@@ -31,9 +31,9 @@
   },
   "freshNetworkPreparation": {
     "passed": true,
-    "workflowRun": 40087492895,
-    "workflowUrl": "https://github.com/lemon7500/shuangling-gpt/actions/runs/40087492895",
-    "sourceCommit": "657913ffd397e3b151df2eab2650c7ebe0e1b584",
+    "workflowRun": 40098303665,
+    "workflowUrl": "https://github.com/lemon7500/shuangling-gpt/actions/runs/40098303665",
+    "sourceCommit": "a00addecde6e1b4eeda59fc35fff5c7863011f34",
     "runtimeDownloads": true,
     "lockedDependencyInstall": true,
     "standaloneAndDesktopCoreBuild": true,
@@ -182,7 +182,7 @@
       "appearanceUnchanged": true,
       "pauseUnchanged": true
     },
-    "releaseArchiveUpdated": false,
+    "releaseArchiveUpdated": true,
     "packagedFullProcessRestart": {
       "languages": [
         "zh-CN",
@@ -208,5 +208,29 @@
     ],
     "userDataIncluded": false,
     "currentPetTouched": false
+  },
+  "portableArchive": {
+    "version": "1.8.3",
+    "name": "shuangling-gpt-1.8.3-windows-x64.zip",
+    "bytes": 298809720,
+    "sha256": "6f3b0f06192b06187052487428ce9ab50fdb63ed6dd0cdfa367ee5c5ff9d3288",
+    "manifestSha256": "ccaaae112e97ca3361848b3310ba03a19bde61cf2bf6d09982bf25d62228ee14",
+    "payloadFilesVerified": 9186,
+    "allZipEntryHashesMatch": true,
+    "sourceCommit": "a00addecde6e1b4eeda59fc35fff5c7863011f34",
+    "threeLanguageGuidesAndCreditsVerifiedInsideZip": true,
+    "noUserData": true
+  },
+  "publishedRelease": {
+    "tag": "v1.8.3",
+    "url": "https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.3",
+    "releaseId": 422749848,
+    "sourceCommit": "a00addecde6e1b4eeda59fc35fff5c7863011f34",
+    "publicDownloadVerified": true,
+    "serverDigestMatchesLocal": true,
+    "latestReleaseVerified": true,
+    "threeLanguageNotesMatchLocalFile": true,
+    "attributionPreserved": true,
+    "checkedAt": "2026-10-24T13:37:38.492Z"
   }
 }

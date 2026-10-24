@@ -4,7 +4,7 @@
 
 A silver-haired chibi dragon companion for Codex on Windows. Shuangling lives on your desktop, follows the work of the local Codex app, and provides a compact control panel for animations, context usage and account limits.
 
-**Version:** 1.8.1 · **Platform:** Windows x64 · **Integration:** local Codex plugin + MCP
+**Version:** 1.8.2 · **Platform:** Windows x64 · **Integration:** local Codex plugin + MCP
 
 ## Preview
 
@@ -32,7 +32,7 @@ Three independent loops made from the existing release animations, using croppin
   </tr>
 </table>
 
-Captured from the actual panel code with demonstration chat and usage data. Click an image for the full-resolution screenshot. The current interface is in Simplified Chinese. [Preview sources and details](../media/README.md)
+Captured from the actual panel code, showing the Simplified Chinese interface with demonstration chat and usage data. Click an image for the full-resolution screenshot. The panel supports Simplified Chinese, Traditional Chinese and English. [Preview sources and details](../media/README.md)
 
 ## Features
 
@@ -46,9 +46,23 @@ Captured from the actual panel code with demonstration chat and usage data. Clic
 
 ## Quick start · Install the plugin
 
-Install the **Codex desktop app for Windows x64** first. This repository provides source installation; there is currently no ready-made portable release or official store listing. The first setup needs an internet connection to download dependencies.
+You need **Windows 10/11 x64 and the Codex desktop app**. The portable package includes Node, Electron, the compiled desktop host and window observer, and production dependencies. You do not need to install Node/npm or compile anything. Installation uses a local plugin, not an official store listing. macOS, Linux and Windows ARM are not supported.
 
-Clone the repository, or choose **Code → Download ZIP** on GitHub and extract it to a permanent, writable folder. Open PowerShell in that folder:
+1. Download the **[Windows x64 portable package](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.2/shuangling-gpt-1.8.2-windows-x64.zip)**, `shuangling-gpt-1.8.2-windows-x64.zip`. [Release page and assets](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.2). GitHub's **Source code** archives are not the portable package.
+2. **Extract the entire archive** to a permanent folder writable by your Windows user. Do not run it inside the ZIP. Spaces and Chinese characters in the path are supported; keep the folder in place after installation.
+3. Double-click **`安装Codex插件.vbs`** in the extracted root folder, then check that **霜铃 GPT** is enabled in Codex's plugin list. Installation is per user and does not require administrator rights. If local policy blocks login-task registration, manual launch remains available.
+4. **Close all Codex windows and reopen Codex.** No message or plugin-tool call is needed. Right-click Shuangling, select a local chat in **Overview**, and use **Settings** to change **Start with Codex**.
+
+The installer generates paths for the extracted folder, registers `shuangling-gpt@shuangling-local`, and manages the current user's login observer task according to your preferences. The included MCP template is disabled until the installer registers the local paths; do not install the template directly. If you move the folder, run the installer again from its new location. See [plugin installation details](../../plugin-marketplace/README.md).
+
+Signing into Windows starts only the observer; the pet appears when Codex opens. Minimized windows count as open, and multiple windows share one pet. Manually quitting Shuangling suppresses automatic relaunch for that Codex session; fully reopen Codex or explicitly start Shuangling to clear it.
+
+You can also double-click **`启动霜铃.vbs`** for independent companionship. Task status and account usage require data from local Codex. Context and tokens stay unknown until a chat is selected and readable data is available.
+
+See the [trilingual portable-package guide](../PORTABLE.md) and [installation, migration and removal guide](../INSTALL.md).
+
+<details>
+<summary>Developers: prepare from source</summary>
 
 ```powershell
 git clone https://github.com/lemon7500/shuangling-gpt.git
@@ -56,22 +70,9 @@ cd shuangling-gpt
 powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
-Skip the first two commands if you downloaded the ZIP. Setup downloads and verifies Node and Electron, installs the locked dependencies, builds the desktop runtime and compiles the window observer. It does not register a Codex plugin or start the pet automatically.
+For a source ZIP, run only the last command from its extracted folder. Setup downloads checksum-verified Node and Electron, installs locked dependencies, builds the host and compiles the observer. It does not install the plugin or start the pet; use the root installer afterward. Add `-Plan` to inspect setup first. Portable-package users do not need this step.
 
-After setup succeeds:
-
-1. Double-click **`安装Codex插件.vbs`** in the project folder. It regenerates local paths and registers the plugin through Codex's native plugin commands.
-2. Check that **霜铃 GPT** is enabled in Codex's plugin list.
-3. Close all Codex windows and reopen Codex. Shuangling should appear without sending a message or calling a plugin tool.
-4. Right-click Shuangling to open the panel. Select a chat in **Overview** to view its context and cumulative tokens; before a chat is selected, those values may be unknown. Use **Settings** to change **Start with Codex**.
-
-The plugin uses a local marketplace named `shuangling-local`; its identifier is `shuangling-gpt@shuangling-local`. It is not an OpenAI bundled or officially endorsed plugin. Do not install the machine-specific development manifest directly. See [plugin installation details](../../plugin-marketplace/README.md).
-
-The installation registers a login task for the current Windows user. Signing into Windows starts a small observer; the pet appears only when Codex is open. Minimized windows count as open, and multiple Codex windows share one pet. Manually quitting Shuangling suppresses automatic relaunch for that Codex session. Reopen Codex completely or explicitly start Shuangling to clear that suppression.
-
-If you move the project, run the installer again at its new location. Keep the project folder while the plugin is installed.
-
-Repository: [`lemon7500/shuangling-gpt`](https://github.com/lemon7500/shuangling-gpt).
+</details>
 
 ## Everyday controls
 
@@ -81,11 +82,13 @@ Repository: [`lemon7500/shuangling-gpt`](https://github.com/lemon7500/shuangling
 | Right-click | Open the fixed-size control card without resizing the pet. |
 | Overview | View task state, choose a usage chat, and pause or resume task following. |
 | Actions | Play one of the nine animations. Manual actions take priority; use **Resume following** to return control. |
-| Settings | Adjust visible height, docking position and automatic startup. |
+| Settings | Adjust visible height, docking position, interface language and automatic startup. |
 | Esc / outside click / top close button | Close the panel. |
 | Bottom controls | Reset position, hide Shuangling or quit it. |
 
 The folder also provides manual shortcuts: **`启动霜铃.vbs`** (start), **`霜铃设置.vbs`** (settings) and **`退出霜铃.vbs`** (quit).
+
+Choose **简体中文 / 繁體中文 / English** under **Settings → Interface language**, or in advanced settings. Changing language preserves your selected chat, animations, position and other preferences.
 
 ## Task state, tokens and account limits
 

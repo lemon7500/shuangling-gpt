@@ -4,7 +4,7 @@
   <p>陪你思考、等你回答，也陪你安静工作。</p>
   <p>Windows 桌宠 × Codex 本地插件 × 任务与用量面板</p>
   <p><a href="README.md">简体中文</a> · <a href="docs/i18n/README.zh-TW.md">繁體中文</a> · <a href="docs/i18n/README.en.md">English</a></p>
-  <p><img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-8B73A6" /> <img alt="Version 1.8.1" src="https://img.shields.io/badge/version-1.8.1-8B73A6" /> <a href="LICENSE"><img alt="Code license MIT" src="https://img.shields.io/badge/code-MIT-8B73A6" /></a> <a href="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml"><img alt="Windows source check" src="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml/badge.svg" /></a></p>
+  <p><img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-8B73A6" /> <img alt="Version 1.8.2" src="https://img.shields.io/badge/version-1.8.2-8B73A6" /> <a href="LICENSE"><img alt="Code license MIT" src="https://img.shields.io/badge/code-MIT-8B73A6" /></a> <a href="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml"><img alt="Windows source check" src="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml/badge.svg" /></a></p>
 </div>
 
 霜铃是一只银白卷发、淡紫双翼的 Q 版龙女桌宠。她通过本地 Codex 插件跟随整个应用的任务状态，提供九种动画、拖拽与抛出交互，以及霜白淡紫的右键控制卡片。
@@ -39,7 +39,7 @@
   </tr>
 </table>
 
-截图来自实际面板代码，聊天和用量为演示数据；点击图片可查看清晰原图。界面目前为简体中文。[素材来源与预览说明](docs/media/README.md)
+截图来自实际面板代码，以简体中文界面和演示聊天、用量展示；点击图片可查看清晰原图。面板支持简体中文、繁體中文和 English。[素材来源与预览说明](docs/media/README.md)
 
 ## 功能
 
@@ -56,42 +56,31 @@
 
 ## 快速开始（安装插件）
 
-**需要 Windows 10/11 x64、已安装的 Codex 桌面版，以及首次准备时的网络连接。** 当前提供源码安装流程，尚未上架官方插件商店，也没有附带运行时的预制 Release 安装包。首次准备建议留出至少 2 GB 空间。
+**需要 Windows 10/11 x64 和已安装的 Codex 桌面版。** 免安装包已包含 Node、Electron、桌宠宿主、窗口观察器和运行依赖，无需安装 Node/npm 或自行编译。当前通过 GitHub 下载及本地插件安装，不是官方插件商店项目；不支持 macOS、Linux 或 Windows ARM。
 
-### 1. 下载项目
+1. 下载 **[Windows x64 免安装包](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.2/shuangling-gpt-1.8.2-windows-x64.zip)**（`shuangling-gpt-1.8.2-windows-x64.zip`）。[查看 Release 与附件](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.2)。请勿将 GitHub 的 **Source code** 压缩包当作免安装包。
+2. **完整解压**到一个固定、当前用户可写的目录。不要直接在 ZIP 中运行；中文和空格路径均可，安装后请保留此目录。
+3. 双击解压后根目录的 **`安装Codex插件.vbs`**，然后确认 Codex 插件列表中的 **霜铃 GPT** 已启用。安装使用当前 Windows 用户，无需管理员身份；若本机策略阻止登录任务登记，仍可手动启动霜铃。
+4. **完整关闭所有 Codex 窗口并重新打开，无需发消息或手动调用工具。** 右键霜铃打开「总览」，在用量区选择本机聊天；在「设置」调整「随 Codex 自动启动」。
 
-使用 Git：
+安装器按当前解压目录生成本机路径，注册 `shuangling-gpt@shuangling-local`，并按偏好管理当前用户的登录观察任务。包内 MCP 模板默认禁用，不能直接用于安装；运行上述入口后才会注册本机路径。移动目录后需在新位置重新运行安装入口。
+
+默认单只、右下角、可见高度约 200 像素；声音和自动漫游关闭。也可双击 **`启动霜铃.vbs`** 独立陪伴；任务状态和账户用量需要本机 Codex 提供数据。首次未选择聊天或数据不可用时，用量保留为未知。
+
+包内首读见 [免安装包使用说明（三语）](docs/PORTABLE.md)，迁移、保留设置及排查见 [安装、迁移与卸载](docs/INSTALL.md)。
+
+<details>
+<summary>开发者：从源码准备运行环境</summary>
 
 ~~~powershell
 git clone https://github.com/lemon7500/shuangling-gpt.git
 cd shuangling-gpt
-~~~
-
-也可以在仓库页面选择 **Code → Download ZIP**，完整解压到一个固定目录，再在该目录打开 PowerShell。路径包含中文或空格均可；安装后不要随意移动此目录。
-
-### 2. 准备运行环境
-
-~~~powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 ~~~
 
-脚本下载固定版本的 Node.js 与 Electron 并校验 SHA-256，安装锁定依赖、构建桌宠宿主、编译小型窗口观察器。该步骤不安装插件、不注册登录任务，也不启动桌宠。可先用 `-Plan` 查看准备内容；脚本发现已有依赖目录会停止，避免覆盖现有安装。
+也可下载源码 ZIP 后在解压目录运行最后一行。准备脚本下载固定版本的 Node.js 与 Electron 并校验 SHA-256，安装锁定依赖、构建宿主并编译观察器；不安装插件或启动桌宠。可加 `-Plan` 只查看准备内容。完成后使用根目录的安装入口；免安装包用户无需运行此脚本。
 
-### 3. 安装 Codex 插件
-
-双击根目录 **「安装Codex插件.vbs」**。也可以在 PowerShell 执行：
-
-~~~powershell
-.\windows\runtime\node\node.exe .\windows\install-plugin.mjs
-~~~
-
-安装器根据当前目录重建本机路径，通过 Codex 原生插件命令安装 `shuangling-gpt@shuangling-local`，并按偏好管理当前 Windows 用户的登录观察任务。直接添加仓库中的禁用模板不会完成安装；请使用这个安装入口。
-
-### 4. 打开 Codex
-
-**完整关闭并重新打开 Codex，无需发消息或手动调用工具。** 霜铃会随主窗口出现。首次用量尚未选聊天时显示未知；右键打开「总览」，在用量区选择本机聊天即可。默认单只、右下角、可见高度约 200 像素；声音和自动漫游关闭。
-
-详细说明见 [安装、迁移与卸载](docs/INSTALL.md)。
+</details>
 
 ## 日常操作
 
@@ -101,11 +90,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 | 右键 | 打开霜白控制面板 |
 | 总览 | 查看工作状态、选择用量聊天、暂停／恢复联动 |
 | 动作 | 点播九种动作；用户操作优先，可用「恢复联动」交回控制 |
-| 设置 | 调整可见高度、停靠位置和随 Codex 自动启动 |
+| 设置 | 调整可见高度、停靠位置、界面语言和随 Codex 自动启动 |
 | Esc／点击面板外部 | 关闭面板，不退出角色 |
 | 隐藏／退出 | 隐藏角色或完整退出；聊天事件不会擅自重新打开 |
 
 备用入口：`启动霜铃.vbs`、`霜铃设置.vbs`、`退出霜铃.vbs`。主动退出会抑制本次 Codex 应用会话内的自动重启；完整关闭再打开 Codex，或明确手动启动，才恢复。
+
+在面板「设置 → 界面语言」或高级设置中选择 **简体中文／繁體中文／English**，会保留当前聊天选择、动画、位置和其他设置。
 
 ## 用量显示的含义
 
@@ -137,7 +128,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 
 源码目录：`src/bridge`（工作状态、聊天用量和当前账号）、`src/plugin`（MCP）、`src/lifecycle` 与 `windows/lifecycle`（自动启停），以及 `vendor/dsh-pet`（保留上游与本项目修改的宿主）。最终九段动画在 `windows/assets/shuangling`。
 
-详见 [联动与接口](BRIDGE.md)、[隐私](docs/PRIVACY.md)、[更新记录](docs/CHANGELOG.md)和[发布验证记录](reports/publication-check.json)。全新 Windows 环境已通过运行时下载、锁定依赖安装、宿主／观察器编译与核心测试。本次公开版本保留本地既有九段媒体的字节；来源记录只保留运行所需的相对路径元数据，并重新绑定校验值。
+详见 [联动与接口](BRIDGE.md)、[隐私](docs/PRIVACY.md)、[更新记录](docs/CHANGELOG.md)和[源码准备检查记录](reports/publication-check.json)。公开版本保留既有九段媒体的字节；来源记录只保留运行所需的相对路径元数据，并重新绑定校验值。
 
 ## 致谢与参考
 

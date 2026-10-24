@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.8.2 — Windows portable package and interface languages
+
+- Add a Windows x64 portable package with bundled Node/Electron, production dependencies, compiled desktop host and window observer; no source compilation is needed for package users.
+- Provide double-click plugin installation and manual start/settings/exit entries. The installer generates paths only for the user's extracted directory; shipped MCP template metadata remains disabled.
+- Make the portable download the primary quick-start path in Simplified Chinese, Traditional Chinese and English; retain source setup as a developer option and include a trilingual package readme.
+- Add Simplified Chinese, Traditional Chinese and English interface selection in the control panel and advanced settings, preserving existing user preferences.
+- Retain the nine existing animation clips, homepage previews, upstream notices and attribution to the original reference-image author, Bilibili @ZipZipPipe.
+
 ## 1.8.1 — public source edition
 
 - Separate whole-Codex work state, explicitly selected chat usage, and current-authenticated-account quota.

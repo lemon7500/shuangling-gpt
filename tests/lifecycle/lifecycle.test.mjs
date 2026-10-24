@@ -122,6 +122,29 @@ test('manual marks persist across independent clients and preferences merge with
   assert.deepEqual(calls, ['disable', 'install']); assert.deepEqual(await readFile(join(dataDir, 'bridge-config.json')), baseline);
   await assert.rejects(setLifecyclePreferences(options, { autoLaunch: 'yes' }), /invalid-auto-launch/);
 });
+test('language persists independently without touching lifecycle tasks, suppression, or bridge settings', async () => {
+  const dataDir = await mkdtemp(join(tmpdir(), 'shuangling-language-'));
+  let taskCalls = 0, observerCalls = 0;
+  const options = { projectRoot: 'unused', dataDir, pluginEnabledImpl: () => true,
+    taskController: async () => taskCalls++, ensureObserverImpl: async () => observerCalls++ };
+  const p = lifecyclePaths(options);
+  await atomicJson(p.preferences, { autoLaunch: false, retained: { setting: 42 } });
+  await markManualStop(options);
+  const session = await readFile(p.session);
+  const baseline = { threadId: 'selected', paused: true, size: 339 };
+  await atomicJson(join(dataDir, 'bridge-config.json'), baseline);
+  assert.equal((await getLifecyclePreferences(options)).language, 'zh-CN');
+  for (const language of ['en', 'zh-TW', 'zh-CN']) {
+    assert.equal((await setLifecyclePreferences(options, { language })).language, language);
+    assert.deepEqual(JSON.parse(await readFile(p.preferences)), { autoLaunch: false, retained: { setting: 42 }, language });
+    assert.deepEqual(await readFile(p.session), session);
+    assert.deepEqual(JSON.parse(await readFile(join(dataDir, 'bridge-config.json'))), baseline);
+  }
+  assert.equal(taskCalls, 0); assert.equal(observerCalls, 0);
+  for (const bad of [null, {}, { language: 'EN' }, { language: 'ja' }, { language: 'en', path: 'arbitrary' }]) await assert.rejects(setLifecyclePreferences(options, bad), /invalid-preferences/);
+  assert.deepEqual(JSON.parse(await readFile(p.preferences)), { autoLaunch: false, retained: { setting: 42 }, language: 'zh-CN' });
+});
+
 test('readiness requires fresh detector heartbeat plus enabled scheduled task and plugin', async () => {
   const dataDir = await mkdtemp(join(tmpdir(), 'shuangling-ready-'));
   const options = { projectRoot: 'unused', dataDir, pluginEnabledImpl: () => true };

@@ -25,7 +25,7 @@ test('loopback settings require capability, reject foreign origin, limit routes 
   await new Promise(resolve => setTimeout(resolve, 10)); assert.equal(shutdown, true);
 });
 
-test('preferences remain capability protected and accept only the automatic-launch boolean', async t => {
+test('preferences remain capability protected and accept only supported launch/language values', async t => {
   const changes = [];
   const ui = await startSettings({
     getState: () => ({}), getUsage: () => ({}), getThreads: () => [], update: () => ({}),
@@ -38,12 +38,14 @@ test('preferences remain capability protected and accept only the automatic-laun
   const headers = { 'x-shuangling-token': ui.token, 'content-type': 'application/json' };
   assert.equal((await fetch(url)).status, 403);
   assert.deepEqual(await (await fetch(url, { headers })).json(), { autoLaunch: true, lifecycle: { available: true } });
-  for (const body of [null, [], {}, { autoLaunch: 1 }, { autoLaunch: true, command: 'anything' }]) {
+  for (const body of [null, [], {}, { autoLaunch: 1 }, { language: 'ja' }, { language: null }, { language: 'en', url: 'https://example.invalid' }, { autoLaunch: true, command: 'anything' }]) {
     assert.equal((await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) })).status, 400);
   }
   assert.equal((await fetch(url, { method: 'POST', headers: { ...headers, origin: 'https://example.invalid' }, body: '{"autoLaunch":false}' })).status, 403);
   assert.equal((await fetch(url, { method: 'POST', headers, body: '{"autoLaunch":false}' })).status, 200);
-  assert.deepEqual(changes, [{ autoLaunch: false }]);
+  for (const language of ['zh-CN', 'zh-TW', 'en']) assert.equal((await fetch(url, { method: 'POST', headers, body: JSON.stringify({ language }) })).status, 200);
+  assert.equal((await fetch(url, { method: 'POST', headers, body: '{"autoLaunch":true,"language":"en"}' })).status, 200);
+  assert.deepEqual(changes, [{ autoLaunch: false }, { language: 'zh-CN' }, { language: 'zh-TW' }, { language: 'en' }, { autoLaunch: true, language: 'en' }]);
 });
 
 test('usage target accepts only an authenticated thread choice without changing task settings', async t => {

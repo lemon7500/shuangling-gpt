@@ -5,6 +5,7 @@ import { homedir } from 'node:os';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { emptyLifecycleState, OBSERVER_FRESH_MS } from './state.mjs';
+import { normalizeLanguage, validPreferences } from './preferences.mjs';
 
 export { reconcileLifecycleTick, emptyLifecycleState, markStartFailure } from './state.mjs';
 export const readJson = async file => { try { return JSON.parse(await readFile(file, 'utf8')); } catch { return null; } };
@@ -82,7 +83,7 @@ export async function getLifecyclePreferences(options) {
   const [preference, heartbeat, task, state, enabled] = await Promise.all([readJson(p.preferences), readJson(p.heartbeat), readJson(p.task), getLifecycleSession(options), pluginEnabled(options)]);
   const observerRunning = Number.isFinite(heartbeat?.observedAt) && Date.now() - heartbeat.observedAt < OBSERVER_FRESH_MS && heartbeat.detectorAvailable === true;
   const autoLaunch = preference?.autoLaunch !== false;
-  return { autoLaunch, lifecycle: { available: autoLaunch && observerRunning && task?.installed === true && task?.enabled === true && enabled,
+  return { autoLaunch, language: normalizeLanguage(preference?.language), lifecycle: { available: autoLaunch && observerRunning && task?.installed === true && task?.enabled === true && enabled,
     observerRunning, taskInstalled: task?.installed === true, taskEnabled: task?.enabled === true, reason: !autoLaunch ? 'disabled' : !enabled ? 'plugin-disabled' : !observerRunning ? 'observer-not-ready' : !task?.installed || !task?.enabled ? 'login-task-not-ready' : null,
     lastObservedAt: heartbeat?.observedAt ? new Date(heartbeat.observedAt).toISOString() : null,
     windowCount: heartbeat?.windowCount ?? null, sessionActive: state.active, suppressed: state.manualSuppressed, pluginEnabled: enabled } };
@@ -94,8 +95,9 @@ async function runTask(options, action) {
   return runTaskCommand({ projectRoot: p.root, dataDir: p.data, action });
 }
 export async function setLifecyclePreferences(options, input) {
-  if (!input || Array.isArray(input) || typeof input !== 'object' || Object.keys(input).length !== 1 || typeof input.autoLaunch !== 'boolean') throw new Error('invalid-auto-launch');
-  await withLifecycleLock(options, async p => atomicJson(p.preferences, { ...await readJson(p.preferences), autoLaunch: input.autoLaunch }));
+  if (!validPreferences(input)) throw new Error(Object.hasOwn(input ?? {}, 'autoLaunch') ? 'invalid-auto-launch' : 'invalid-preferences');
+  await withLifecycleLock(options, async p => atomicJson(p.preferences, { ...await readJson(p.preferences), ...input }));
+  if (!Object.hasOwn(input, 'autoLaunch')) return getLifecyclePreferences(options);
   try { await runTask(options, input.autoLaunch ? 'install' : 'disable'); } catch (error) {
     const p = lifecyclePaths(options); await atomicJson(p.task, { ...await readJson(p.task), error: 'login-task-unavailable', checkedAt: new Date().toISOString() });
   }

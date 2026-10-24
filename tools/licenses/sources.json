@@ -1,0 +1,29 @@
+{
+  "schema": "shuangling-license-supplements-v1",
+  "sources": [
+    {
+      "package": "standardwebhooks",
+      "version": "1.1.1",
+      "declaredLicense": "MIT",
+      "file": "standardwebhooks-MIT-LICENSE.txt",
+      "sha256": "5ec8c7b26b64d881a6706617bed25c049f97f2f35de034c756de8546fd6dbe27",
+      "source": "https://github.com/standard-webhooks/standard-webhooks/blob/b4d2c14fc5b4ccff3ff271e3b087dff812254c59/libraries/LICENSE",
+      "revision": "b4d2c14fc5b4ccff3ff271e3b087dff812254c59",
+      "gitBlobSha1": "55b14b3a3ce649a2f1b05428dcc9c6db95b37c04",
+      "versionEvidence": "https://registry.npmjs.org/standardwebhooks/1.1.1",
+      "note": "The installed npm archive omits its LICENSE. This is the exact upstream libraries/LICENSE at the published package's gitHead."
+    },
+    {
+      "package": "@electron-internal/extract-zip",
+      "version": "1.0.5",
+      "declaredLicense": "BSD-2-Clause",
+      "file": "BSD-2-Clause-standard-template.txt",
+      "sha256": "f32fb3b417a194167cfad068223fc975ba96c5960513a10f66a3c28720aec1df",
+      "source": "https://github.com/spdx/license-list-data/blob/main/text/BSD-2-Clause.txt",
+      "gitBlobSha1": "5f662b354cd40cd5339d5aa05d74b15405138230",
+      "upstreamDeclaration": "https://github.com/electron/extract-zip/blob/b83e459fd04c53b0a1c8438a6792df8f64be47fc/README.md#license",
+      "revision": "b83e459fd04c53b0a1c8438a6792df8f64be47fc",
+      "note": "The exact upstream tag v1.0.5 and published npm archive declare BSD-2-Clause but provide no separate LICENSE or copyright notice. This is the unchanged SPDX standard template, not a copyright notice supplied by the upstream authors. Placeholder year and owner are intentionally retained. The original package README and metadata remain bundled."
+    }
+  ]
+}

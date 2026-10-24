@@ -4,7 +4,7 @@
 
 陪伴你使用 Codex 的銀髮 Q 版龍女桌寵。霜鈴顯示在 Windows 桌面上，跟隨本機 Codex 的工作狀態，並透過小型控制面板提供動作、聊天用量與帳戶額度資訊。
 
-**版本：**1.8.1 · **平台：**Windows x64 · **整合方式：**本機 Codex 外掛程式 + MCP
+**版本：**1.8.2 · **平台：**Windows x64 · **整合方式：**本機 Codex 外掛程式 + MCP
 
 ## 效果預覽
 
@@ -32,7 +32,7 @@
   </tr>
 </table>
 
-截圖來自實際面板程式碼，聊天與用量為展示資料；點擊圖片可查看清晰原圖。介面目前為簡體中文。[素材來源與預覽說明](../media/README.md)
+截圖來自實際面板程式碼，以簡體中文介面搭配展示聊天與用量；點擊圖片可查看清晰原圖。面板支援簡體中文、繁體中文與 English。[素材來源與預覽說明](../media/README.md)
 
 ## 功能
 
@@ -46,9 +46,23 @@
 
 ## 快速開始 · 安裝外掛程式
 
-請先安裝 **Windows x64 版 Codex 桌面應用程式**。目前提供原始碼安裝，尚無現成的免安裝發行包或官方商店項目；首次準備需要連線下載依賴。
+需要 **Windows 10/11 x64 與已安裝的 Codex 桌面應用程式**。免安裝包包含 Node、Electron、已建置的桌寵宿主、視窗觀察器及執行依賴，不必安裝 Node/npm 或自行編譯。目前採用本機外掛程式安裝，並非官方商店項目；不支援 macOS、Linux 或 Windows ARM。
 
-可複製儲存庫，或在 GitHub 選擇 **Code → Download ZIP**，解壓到可寫入、之後仍會保留的資料夾。在該目錄開啟 PowerShell：
+1. 下載 **[Windows x64 免安裝包](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.2/shuangling-gpt-1.8.2-windows-x64.zip)**（`shuangling-gpt-1.8.2-windows-x64.zip`）。[查看 Release 與附件](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.2)。GitHub 的 **Source code** 壓縮檔不是免安裝包。
+2. **完整解壓縮**至固定、目前使用者可寫入的資料夾。不要直接在 ZIP 中執行；路徑可包含中文或空格，安裝後請保留此目錄。
+3. 按兩下解壓後根目錄的 **`安装Codex插件.vbs`**，再確認 Codex 外掛程式清單中的 **霜铃 GPT** 已啟用。安裝範圍為目前 Windows 使用者，不需管理員身分；若本機原則阻止登錄登入工作，仍可手動啟動霜鈴。
+4. **完整關閉所有 Codex 視窗後重新開啟**，無須傳送訊息或呼叫外掛程式工具。按右鍵開啟霜鈴面板，在**總覽**選擇本機聊天，並於**設定**調整**隨 Codex 自動啟動**。
+
+安裝器會依解壓目錄重建本機路徑，註冊 `shuangling-gpt@shuangling-local`，並依偏好管理目前使用者的登入觀察工作。包內 MCP 範本預設停用，執行安裝入口後才會註冊本機路徑，請勿直接安裝範本。搬移目錄後，請於新位置重新執行安裝器。詳見[外掛程式安裝說明](../../plugin-marketplace/README.md)。
+
+登入 Windows 時只執行輕量觀察器，開啟 Codex 才會顯示桌寵。最小化不影響執行，多個 Codex 視窗共用一隻。手動退出後，本次 Codex 工作階段不會自動重新開啟；完整關閉再開啟 Codex，或明確手動啟動霜鈴，才會解除抑制。
+
+也可按兩下 **`启动霜铃.vbs`** 獨立陪伴；工作狀態與帳戶用量需要本機 Codex 提供資料。尚未選擇聊天或資料不可讀時，用量保持未知。
+
+包內首讀請見[免安裝包使用說明（三語）](../PORTABLE.md)，保留設定、搬移及排查請見[安裝、遷移與移除](../INSTALL.md)。
+
+<details>
+<summary>開發者：從原始碼準備執行環境</summary>
 
 ```powershell
 git clone https://github.com/lemon7500/shuangling-gpt.git
@@ -56,22 +70,9 @@ cd shuangling-gpt
 powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
-使用 ZIP 的話略過前兩行。準備程式會下載並校驗 Node 與 Electron、安裝鎖定的依賴、建置桌寵執行環境並編譯視窗觀察器，不會自動註冊 Codex 外掛程式或啟動桌寵。
+若使用原始碼 ZIP，請在解壓目錄執行最後一行。準備程式會下載並驗證 Node 與 Electron、安裝鎖定依賴、建置宿主並編譯觀察器；不會安裝外掛程式或啟動桌寵。完成後再使用根目錄安裝入口；可加上 `-Plan` 先查看準備內容。免安裝包使用者無須執行此步驟。
 
-準備成功後：
-
-1. 按兩下根目錄的 **`安装Codex插件.vbs`**。安裝器會依目前位置重建路徑，並透過 Codex 原生外掛程式命令完成註冊。
-2. 確認 Codex 外掛程式清單中的 **霜铃 GPT** 已啟用。
-3. 完整關閉所有 Codex 視窗後重新開啟，霜鈴應會自動出現，不需要傳送訊息或呼叫外掛程式工具。
-4. 在霜鈴上按右鍵開啟面板。於**總覽**選擇聊天即可查看上下文與累計 token；尚未選取時可能顯示未知。**設定**可調整**隨 Codex 自動啟動**。
-
-本機 marketplace 名稱為 `shuangling-local`，外掛程式識別碼為 `shuangling-gpt@shuangling-local`。這不是 OpenAI 內建或官方背書的外掛程式。請勿直接安裝包含開發機專用路徑的清單。詳見[外掛程式安裝說明](../../plugin-marketplace/README.md)。
-
-安裝器會註冊目前 Windows 使用者的登入工作。登入 Windows 時只執行輕量觀察器，開啟 Codex 才會顯示桌寵。最小化不影響執行，多個 Codex 視窗共用一隻。手動退出霜鈴後，本次 Codex 工作階段不會自動重新開啟；完整關閉再開啟 Codex，或明確手動啟動霜鈴，才會解除抑制。
-
-搬移專案後，請在新位置重新執行安裝器。外掛程式使用期間請保留專案目錄。
-
-儲存庫：[`lemon7500/shuangling-gpt`](https://github.com/lemon7500/shuangling-gpt)。
+</details>
 
 ## 日常操作
 
@@ -81,11 +82,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 | 按右鍵 | 開啟固定大小的控制卡片，不縮放桌寵視窗。 |
 | 總覽 | 查看工作狀態、選擇用量聊天、暫停或恢復聯動。 |
 | 動作 | 點播九種動作。使用者操作優先；使用**恢復聯動**交回控制。 |
-| 設定 | 調整可見高度、停靠位置及自動啟動。 |
+| 設定 | 調整可見高度、停靠位置、介面語言及自動啟動。 |
 | Esc／點擊外部／右上角關閉 | 關閉面板。 |
 | 底部按鈕 | 回到初始位置、隱藏霜鈴或退出。 |
 
 另有手動入口：**`启动霜铃.vbs`**、**`霜铃设置.vbs`**、**`退出霜铃.vbs`**。
+
+在面板「設定 → 介面語言」或進階設定中選擇 **简体中文／繁體中文／English**，會保留目前聊天選擇、動畫、位置及其他偏好。
 
 ## 工作狀態、token 與帳戶額度
 

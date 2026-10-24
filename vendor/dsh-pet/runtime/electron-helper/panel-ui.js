@@ -1,6 +1,8 @@
 /* The panel receives only the fixed, local IPC capability exposed by its preload. */
 (function () {
   'use strict';
+  const i18n = typeof module !== 'undefined' && module.exports ? require('./panel-i18n.js') : globalThis.shuanglingI18n;
+  const { t, getLanguage, setLanguage, normalizeLanguage } = i18n;
   const ANIMATIONS = Object.freeze(['idle', 'running-right', 'running-left', 'waving', 'jumping', 'failed', 'waiting', 'running', 'review']);
   const CORNERS = Object.freeze(['top-left', 'top-right', 'bottom-left', 'bottom-right']);
   const STATE_LABELS = { idle: '安静陪伴中', working: '正在认真思考', running: '正在认真思考', waiting: '等你回答', complete: '本轮已完成', completed: '本轮已完成', interrupted: '动作已收起', unknown: '任务状态未知' };
@@ -19,7 +21,7 @@
   };
   const finite = value => typeof value === 'number' && Number.isFinite(value);
   const clamp = (number, min, max) => Math.min(max, Math.max(min, number));
-  const formatNumber = number => Math.round(number).toLocaleString('zh-CN');
+  const formatNumber = number => Math.round(number).toLocaleString(getLanguage());
   const percent = value => `${Math.round(value * 10) / 10}%`;
   const displayName = (value, max = 200) => typeof value === 'string' ? value.replace(/[\s\u0000-\u001f\u007f-\u009f]+/gu, ' ').trim().slice(0, max) : '';
   const shortId = id => `${id.slice(0, 8)}${id.length > 12 ? `…${id.slice(-4)}` : id.slice(8)}`;
@@ -27,7 +29,7 @@
   function clock(value, date = false) {
     const time = typeof value === 'string' || finite(value) ? new Date(value) : null;
     if (!time || !Number.isFinite(time.getTime())) return '';
-    return time.toLocaleString('zh-CN', date ? { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false } : { hour: '2-digit', minute: '2-digit', hour12: false });
+    return time.toLocaleString(getLanguage(), date ? { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false } : { hour: '2-digit', minute: '2-digit', hour12: false });
   }
 
   /** Historical request context is labelled; expired account balances stay unknown. */
@@ -43,14 +45,14 @@
     const validContext = !context || Number.isSafeInteger(sample?.remainingTokens) && Number.isSafeInteger(sample?.windowTokens) && sample.windowTokens > 0 && sample.remainingTokens >= 0 && sample.remainingTokens <= sample.windowTokens;
     const available = !disconnected && !stale && (sample?.status === 'available' || historical) && Number.isFinite(observed) && age >= -60_000 && validNumber && validContext;
     if (!available) {
-      const reason = disconnected ? '本机连接已断开' : resetPassed || sample?.reason === 'reset-passed' ? '重置已到，等待新采样' : stale ? '采样已过期' : '等待可靠采样';
-      return { available: false, state: stale ? 'stale' : 'unknown', value: '未知', suffix: '', percent: '—', time: `${reason}${clock(sample?.observedAt) ? ` · ${clock(sample.observedAt)}` : ''}`, bar: null };
+      const reason = disconnected ? t('本机连接已断开') : resetPassed || sample?.reason === 'reset-passed' ? t('重置已到，等待新采样') : stale ? t('采样已过期') : t('等待可靠采样');
+      return { available: false, state: stale ? 'stale' : 'unknown', value: t('未知'), suffix: '', percent: '—', time: `${reason}${clock(sample?.observedAt) ? ` · ${clock(sample.observedAt)}` : ''}`, bar: null };
     }
     return {
       available: true, historical, state: historical ? 'historical' : 'available', value: context ? formatNumber(sample.remainingTokens) : percent(sample.remainingPercent),
-      suffix: context ? `/ ${formatNumber(sample.windowTokens)} tokens` : '剩余',
+      suffix: context ? `/ ${formatNumber(sample.windowTokens)} tokens` : t('剩余'),
       percent: percent(sample.remainingPercent), bar: sample.remainingPercent,
-      time: historical ? `历史采样 · ${new Date(observed).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}` : `采样 ${clock(sample.observedAt)}${!context && finite(sample.resetsAt) ? ` · ${clock(sample.resetsAt * 1000, true)} 重置` : ''}`,
+      time: historical ? t('历史采样 · {time}', { time: new Date(observed).toLocaleString(getLanguage(), { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }) }) : t('采样 {time}', { time: clock(sample.observedAt) }) + (!context && finite(sample.resetsAt) ? t(' · {time} 重置', { time: clock(sample.resetsAt * 1000, true) }) : ''),
     };
   }
 
@@ -59,30 +61,30 @@
     const paused = control.paused === true, manual = control.preempted === true;
     const reason = control.issue || status.reason;
     const state = disconnected ? 'unknown' : status.state;
-    const label = disconnected ? '本机连接已断开' : STATE_LABELS[state] || STATE_LABELS.unknown;
+    const label = disconnected ? t('本机连接已断开') : t(STATE_LABELS[state] || STATE_LABELS.unknown);
     const threadId = typeof status.threadId === 'string' && /^[A-Za-z0-9_-]{1,120}$/.test(status.threadId) ? status.threadId : '';
     const global = status.scope === 'codex';
     const count = key => Number.isSafeInteger(status[key]) && status[key] >= 0 && status[key] <= 10000 ? status[key] : null;
     const working = count('workingCount'), waiting = count('waitingCount'), unknown = count('unknownCount');
-    const counts = global && !disconnected && working !== null && waiting !== null ? `运行 ${working} · 等待 ${waiting}${unknown > 0 ? ` · 未知 ${unknown}` : ''}` : '';
+    const counts = global && !disconnected && working !== null && waiting !== null ? t('运行 {working} · 等待 {waiting}', { working, waiting }) + (unknown > 0 ? t(' · 未知 {unknown}', { unknown }) : '') : '';
     return {
-      label, threadId, shortThread: global ? '整个 Codex' : threadId ? `${threadId.slice(0, 8)}${threadId.length > 12 ? `…${threadId.slice(-4)}` : threadId.slice(8)}` : '尚未绑定',
-      headerLabel: disconnected ? label : global ? `整个 Codex${counts ? ` · ${counts}` : ''}` : label, counts,
-      badge: disconnected ? '连接断开' : paused ? '联动已暂停' : manual ? '你在控制' : '正在联动',
+      label, threadId, shortThread: global ? t('整个 Codex') : threadId ? `${threadId.slice(0, 8)}${threadId.length > 12 ? `…${threadId.slice(-4)}` : threadId.slice(8)}` : t('尚未绑定'),
+      headerLabel: disconnected ? label : global ? `${t('整个 Codex')}${counts ? ` · ${counts}` : ''}` : label, counts,
+      badge: disconnected ? t('连接断开') : paused ? t('联动已暂停') : manual ? t('你在控制') : t('正在联动'),
       badgeMuted: disconnected || paused || manual, resume: paused || manual,
       dot: disconnected || paused || state === 'unknown' ? 'unknown' : state === 'waiting' ? 'waiting' : 'active',
-      hint: disconnected ? '可以稍后重试。陪伴与拖动不受面板连接影响。' : paused ? '恢复后继续跟随整个 Codex。' : manual ? HINTS.preempted : HINTS[reason] || (state === 'unknown' ? '暂时无法确认任务状态，陪伴和拖动仍可使用。' : ''),
+      hint: disconnected ? t('可以稍后重试。陪伴与拖动不受面板连接影响。') : paused ? t('恢复后继续跟随整个 Codex。') : manual ? HINTS.preempted : t(HINTS[reason] || '') || (state === 'unknown' ? t('暂时无法确认任务状态，陪伴和拖动仍可使用。') : ''),
     };
   }
 
   function presentSelection(selection, { disconnected = false } = {}) {
     const threadId = typeof selection?.threadId === 'string' && /^[A-Za-z0-9_-]{1,120}$/.test(selection.threadId) ? selection.threadId : '';
     const available = !disconnected && selection?.status === 'available' && !!threadId;
-    const threadName = displayName(selection?.threadName), projectName = displayName(selection?.projectName, 100) || '未归入项目';
+    const threadName = displayName(selection?.threadName), projectName = displayName(selection?.projectName, 100) || t('未归入项目');
     const choice = available ? usageChoices(selection).find(choice => choice.threadId === threadId) : null;
-    const name = choice?.label || `${threadName || '未命名聊天'} · ${projectName}${threadName ? '' : ` · ${shortId(threadId)}`}`;
-    const caption = selection?.source === 'bound-chat' ? '默认聊天' : selection?.source === 'selected-chat' ? '所选聊天' : selection?.source === 'active-page' ? '当前页面' : '用量来源';
-    return { available, threadId: available ? threadId : '', caption, label: available ? name : '用量来源未知', title: available ? [threadName || '未命名聊天', projectName, selection.projectRoot, threadId].filter(value => typeof value === 'string' && value).join('\n') : '', status: available ? 'available' : 'unknown' };
+    const name = choice?.label || `${threadName || t('未命名聊天')} · ${projectName}${threadName ? '' : ` · ${shortId(threadId)}`}`;
+    const caption = selection?.source === 'bound-chat' ? t('默认聊天') : selection?.source === 'selected-chat' ? t('所选聊天') : selection?.source === 'active-page' ? t('当前页面') : t('用量来源');
+    return { available, threadId: available ? threadId : '', caption, label: available ? name : t('用量来源未知'), title: available ? [threadName || t('未命名聊天'), projectName, selection.projectRoot, threadId].filter(value => typeof value === 'string' && value).join('\n') : '', status: available ? 'available' : 'unknown' };
   }
 
   function usageChoices(selection) {
@@ -91,17 +93,17 @@
     const choices = selection.choices.filter(choice => {
       if (typeof choice?.threadId !== 'string' || !/^[A-Za-z0-9_-]{1,120}$/.test(choice.threadId) || seen.has(choice.threadId)) return false;
       seen.add(choice.threadId); return true;
-    }).slice(0, 200).map(choice => ({ threadId: choice.threadId, threadName: displayName(choice.threadName), projectName: displayName(choice.projectName, 100) || '未归入项目' }));
+    }).slice(0, 200).map(choice => ({ threadId: choice.threadId, threadName: displayName(choice.threadName), projectName: displayName(choice.projectName, 100) || t('未归入项目') }));
     const occurrences = new Map();
-    for (const choice of choices) { choice.base = `${choice.threadName || '未命名聊天'} · ${choice.projectName}`; occurrences.set(choice.base, (occurrences.get(choice.base) || 0) + 1); }
-    return choices.map(choice => ({ threadId: choice.threadId, label: choice.base + (!choice.threadName || occurrences.get(choice.base) > 1 ? ` · ${shortId(choice.threadId)}` : ''), title: [choice.threadName || '未命名聊天', choice.projectName, choice.threadId].join('\n') }));
+    for (const choice of choices) { choice.base = `${choice.threadName || t('未命名聊天')} · ${choice.projectName}`; occurrences.set(choice.base, (occurrences.get(choice.base) || 0) + 1); }
+    return choices.map(choice => ({ threadId: choice.threadId, label: choice.base + (!choice.threadName || occurrences.get(choice.base) > 1 ? ` · ${shortId(choice.threadId)}` : ''), title: [choice.threadName || t('未命名聊天'), choice.projectName, choice.threadId].join('\n') }));
   }
 
   /** An incomplete local archive is a lower bound, never a precise cumulative total. */
   function presentProjectUsage(sample, { selection, disconnected = false, now = Date.now() } = {}) {
     const selected = presentSelection(selection, { disconnected });
     const scope = sample?.scope === 'project' ? 'project' : 'thread';
-    const label = scope === 'thread' ? '本聊天已用' : '本项目已用';
+    const label = scope === 'thread' ? t('本聊天已用') : t('本项目已用');
     const observed = typeof sample?.observedAt === 'string' ? Date.parse(sample.observedAt) : NaN;
     const countValid = Number.isSafeInteger(sample?.usedTokens) && sample.usedTokens >= 0;
     const available = selected.available && ['available', 'partial'].includes(sample?.status) && countValid && Number.isFinite(observed) && observed <= now + 60_000;
@@ -109,9 +111,9 @@
     const threads = Number.isSafeInteger(sample?.threadCount) && sample.threadCount > 0 ? sample.threadCount : null;
     return {
       label, available, state: available ? partial ? 'partial' : 'available' : 'unknown',
-      value: available ? `${partial ? '≥ ' : ''}${formatNumber(sample.usedTokens)}` : '未知',
+      value: available ? `${partial ? '≥ ' : ''}${formatNumber(sample.usedTokens)}` : t('未知'),
       suffix: available ? 'tokens' : '',
-      time: available ? `${partial ? '部分记录 · ' : ''}${threads && scope === 'project' ? `${threads} 段聊天 · ` : ''}采样 ${clock(sample.observedAt)}` : disconnected ? '本机连接已断开' : selected.available ? '等待可靠记录' : '等待识别用量来源',
+      time: available ? `${partial ? t('部分记录 · ') : ''}${threads && scope === 'project' ? t('{count} 段聊天 · ', { count: threads }) : ''}${t('采样 {time}', { time: clock(sample.observedAt) })}` : disconnected ? t('本机连接已断开') : selected.available ? t('等待可靠记录') : t('等待识别用量来源'),
     };
   }
 
@@ -162,7 +164,7 @@
     };
   }
 
-  const model = { ANIMATIONS, presentUsage, presentState, presentSelection, presentProjectUsage, usageChoices, appearanceModel, appearanceCommand, createPoller };
+  const model = { i18n, ANIMATIONS, presentUsage, presentState, presentSelection, presentProjectUsage, usageChoices, appearanceModel, appearanceCommand, createPoller };
   if (typeof module !== 'undefined' && module.exports) module.exports = model;
   if (typeof document === 'undefined') return;
 
@@ -170,8 +172,18 @@
   const api = globalThis.shuanglingPanel;
   let lastSnapshot = null, currentAppearance = null, currentPreferences = null, usage = null, disconnected = false;
   let editingHeight = false, heightDirty = false, appearancePending = false, preferencePending = false, usageTargetPending = false, usageChoicesKey = '', usagePickerOpen = false, usageActiveIndex = 0, renderedUsageChoices = [], renderedUsageId = null, busy = false, revision = 0;
-  const messageFor = error => ({ 'invalid-height': '请填写有效的显示高度。', 'appearance-unavailable': '大小信息暂未就绪，请稍后重试。', 'invalid-appearance': '大小或位置超出可用范围。', 'config-conflict': '设置刚被其他操作更新，请稍后重试。', 'lifecycle-unavailable': '自动联动暂未就绪，请稍后重试。', 'watcher-unavailable': '自动联动暂未就绪，请稍后重试。' }[error?.message] || '操作暂未完成，请稍后重试。');
+  const messageFor = error => ({ 'invalid-height': t('请填写有效的显示高度。'), 'appearance-unavailable': t('大小信息暂未就绪，请稍后重试。'), 'invalid-appearance': t('大小或位置超出可用范围。'), 'config-conflict': t('设置刚被其他操作更新，请稍后重试。'), 'lifecycle-unavailable': t('自动联动暂未就绪，请稍后重试。'), 'watcher-unavailable': t('自动联动暂未就绪，请稍后重试。') }[error?.message] || t('操作暂未完成，请稍后重试。'));
   function notice(text = '', kind = 'error') { $('notice').textContent = text; $('notice').dataset.kind = kind; $('notice').hidden = !text; }
+  function applyLanguage(value) {
+    const next = normalizeLanguage(value);
+    const changed = getLanguage() !== next;
+    setLanguage(next);
+    document.documentElement.lang = next;
+    document.title = t('霜铃 GPT · 控制面板');
+    for (const element of document.querySelectorAll('[data-i18n]')) element.textContent = t(element.dataset.i18n);
+    for (const attribute of ['title', 'aria-label']) for (const element of document.querySelectorAll('[data-i18n-' + attribute + ']')) element.setAttribute(attribute, t(element.getAttribute('data-i18n-' + attribute)));
+    if (changed) { notice(); usageChoicesKey = ''; }
+  }
   function renderState() {
     const state = presentState(lastSnapshot, disconnected);
     $('header-state').textContent = state.headerLabel;
@@ -183,7 +195,7 @@
     $('thread').title = state.threadId;
     $('codex-counts').textContent = state.counts;
     $('codex-counts').hidden = !state.counts;
-    $('pause').textContent = state.resume ? '恢复联动' : '暂停联动';
+    $('pause').textContent = state.resume ? t('恢复联动') : t('暂停联动');
     $('pause').disabled = busy || !api;
     $('usage-thread').disabled = busy || !api;
     $('state-hint').textContent = state.hint;
@@ -208,13 +220,13 @@
     // Never rewrite an in-progress native/user selection on the one-second poll.
     if (!usagePickerOpen && !usageTargetPending) {
       if (renderedUsageId !== selected.threadId) { renderedUsageId = selected.threadId; $('usage-thread').value = selected.threadId; }
-      $('usage-current').textContent = selected.available ? selected.label : '选择用量聊天';
+      $('usage-current').textContent = selected.available ? selected.label : t('选择用量聊天');
       for (const option of $('usage-options').children) option.setAttribute('aria-selected', String(option.dataset.threadId === selected.threadId));
     }
     for (const [key, sample, context] of [['context', usage?.context, true], ['fiveHour', usage?.account?.fiveHour, false], ['weekly', usage?.account?.weekly, false]]) {
       const value = presentUsage(context && !selected.available ? null : sample, { context, disconnected });
       if (!context) $(key + '-card').hidden = value.hidden === true;
-      if (context) $('context-label').textContent = value.historical ? '上次请求上下文剩余' : '上下文剩余';
+      if (context) $('context-label').textContent = value.historical ? t('上次请求上下文剩余') : t('上下文剩余');
       $(key + '-value').replaceChildren(document.createTextNode(value.value));
       if (context && value.available) { const suffix = document.createElement('small'); suffix.textContent = value.suffix; $(key + '-value').append(suffix); }
       if (context) $('context-percent').textContent = value.percent;
@@ -249,12 +261,14 @@
   }
   function renderPreferences() {
     $('auto-launch').disabled = !currentPreferences || preferencePending || busy;
+    $('language').disabled = !currentPreferences || preferencePending || busy;
+    if (currentPreferences && !preferencePending) $('language').value = normalizeLanguage(currentPreferences.language);
     if (!currentPreferences) return;
     const enabled = currentPreferences.autoLaunch !== false;
     $('auto-launch').setAttribute('aria-checked', String(enabled));
     const lifecycle = currentPreferences.lifecycle;
     const ready = lifecycle?.available === true && lifecycle?.taskInstalled === true && lifecycle?.taskEnabled === true && lifecycle?.pluginEnabled === true;
-    $('launch-hint').textContent = !enabled ? '自动启动已关闭，可手动打开霜铃。' : ready ? 'Codex 打开时陪伴，全部窗口关闭后退出。' : '自动联动未就绪，仍可手动启动霜铃。';
+    $('launch-hint').textContent = !enabled ? t('自动启动已关闭，可手动打开霜铃。') : ready ? t('Codex 打开时陪伴，全部窗口关闭后退出。') : t('自动联动未就绪，仍可手动启动霜铃。');
   }
   const poller = createPoller({
     snapshot: options => api?.snapshot ? api.snapshot(options) : Promise.reject(new Error('bridge-unavailable')),
@@ -276,7 +290,10 @@
       }
       if (request.revision === revision) {
         if (value.appearance && !appearancePending) currentAppearance = value.appearance;
-        if (value.preferences && !preferencePending) currentPreferences = value.preferences;
+        if (value.preferences && !preferencePending) {
+          currentPreferences = value.preferences;
+          if (getLanguage() !== normalizeLanguage(currentPreferences.language)) applyLanguage(currentPreferences.language);
+        }
       }
       renderState(); renderUsage(); renderAppearance(); renderPreferences();
     },
@@ -305,7 +322,7 @@
     catch (error) { notice(messageFor(error)); return; }
     appearancePending = true;
     renderAppearance();
-    const saved = await command(payload, { success: '大小与位置已保存。', refresh: false });
+    const saved = await command(payload, { success: t('大小与位置已保存。'), refresh: false });
     if (saved) { currentAppearance = { ...currentAppearance, size: payload.size, position: { corner: payload.corner, marginX: payload.marginX, marginY: payload.marginY } }; heightDirty = false; }
     appearancePending = false; renderAppearance(); poller.refresh();
   }
@@ -397,10 +414,23 @@
     if (preferencePending || busy || !currentPreferences) return;
     const enabled = currentPreferences.autoLaunch === false;
     preferencePending = true; renderPreferences();
-    const saved = await command({ type: 'autoLaunch', enabled }, { success: enabled ? '已开启随 Codex 自动启动。' : '已关闭自动启动。', refresh: false });
+    const saved = await command({ type: 'autoLaunch', enabled }, { success: enabled ? t('已开启随 Codex 自动启动。') : t('已关闭自动启动。'), refresh: false });
     if (saved) currentPreferences = { ...currentPreferences, autoLaunch: enabled };
     preferencePending = false; renderPreferences(); poller.refresh();
   });
+  $('language').addEventListener('change', async () => {
+    if (preferencePending || busy || !currentPreferences) return;
+    const language = normalizeLanguage($('language').value);
+    preferencePending = true; renderPreferences();
+    const saved = await command({ type: 'language', language }, { refresh: false });
+    if (saved) {
+      currentPreferences = { ...currentPreferences, language };
+      applyLanguage(language); renderState(); renderUsage();
+      notice(t('界面语言已保存。'), 'success');
+    }
+    preferencePending = false; renderPreferences(); poller.refresh();
+  });
+  applyLanguage(getLanguage());
   document.addEventListener('visibilitychange', () => { if (document.hidden) poller.stop(); else poller.start(); });
   globalThis.addEventListener('pagehide', () => poller.stop());
   globalThis.addEventListener('beforeunload', () => poller.stop());

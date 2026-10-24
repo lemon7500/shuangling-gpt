@@ -19,6 +19,7 @@ function validateCommand(value) {
   const only = allowed => keys.every(key => allowed.includes(key));
   if (['pause', 'resume', 'home', 'hide', 'advanced', 'quit'].includes(value.type) && only(['type'])) return { type: value.type };
   if (value.type === 'autoLaunch' && only(['type', 'enabled']) && typeof value.enabled === 'boolean') return { type: value.type, enabled: value.enabled };
+  if (value.type === 'language' && only(['type', 'language']) && ['zh-CN', 'zh-TW', 'en'].includes(value.language)) return { type: value.type, language: value.language };
   if (value.type === 'animation' && only(['type', 'name']) && ACTIONS.has(value.name)) return { type: value.type, name: value.name };
   if (value.type === 'usageThread' && only(['type', 'threadId']) && typeof value.threadId === 'string' && /^[A-Za-z0-9_-]{1,120}$/.test(value.threadId)) return { type: value.type, threadId: value.threadId };
   if (value.type === 'appearance' && only(['type', 'size', 'corner', 'marginX', 'marginY']) && Number.isFinite(value.size) && value.size >= 160 && value.size <= 1200 && ['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(value.corner) && [value.marginX, value.marginY].every(n => Number.isFinite(n) && n >= 0 && n <= 3000)) {
@@ -42,7 +43,7 @@ function sanitizeSnapshot({ state, usage, account, appearance, preferences, erro
     status: { state: ['unknown', 'idle', 'working', 'waiting', 'complete', 'interrupted'].includes(status.state) ? status.state : 'unknown', threadId: safeText(status.threadId), updatedAt: safeText(status.updatedAt), reason: safeText(status.reason) },
     control: { paused: control.paused === true, preempted: control.preempted === true, issue: safeText(control.issue) },
     appearance: { size: number(appearance?.size), position: { corner: safeText(appearance?.position?.corner), marginX: number(appearance?.position?.marginX), marginY: number(appearance?.position?.marginY) }, display: safeText(appearance?.display), metrics: {} },
-    preferences: { autoLaunch: typeof preferences?.autoLaunch === 'boolean' ? preferences.autoLaunch : null, lifecycle: {} },
+    preferences: { autoLaunch: typeof preferences?.autoLaunch === 'boolean' ? preferences.autoLaunch : null, language: ['zh-CN', 'zh-TW', 'en'].includes(preferences?.language) ? preferences.language : 'zh-CN', lifecycle: {} },
   };
   if (status.scope === 'codex') {
     result.status.scope = 'codex';
@@ -166,6 +167,7 @@ function createPanelController({ BrowserWindow, ipcMain, screen, shell, statePat
         return { ok: true, appearance: sanitizeSnapshot({ appearance }).appearance };
       }
       else if (v.type === 'autoLaunch') await client.request('/api/preferences', { autoLaunch: v.enabled });
+      else if (v.type === 'language') await client.request('/api/preferences', { language: v.language });
       // The usage selection is intentionally separate from task-following settings.
       else if (v.type === 'usageThread') await client.request('/api/usage-target', { threadId: v.threadId });
       else if (v.type === 'advanced') await shell.openExternal(client.settingsUrl());

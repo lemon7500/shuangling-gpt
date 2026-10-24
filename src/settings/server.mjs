@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { validPreferences } from '../lifecycle/preferences.mjs';
 
 const htmlPath = fileURLToPath(new URL('./index.html', import.meta.url));
 const authEquals = (a, b) => {
@@ -23,7 +24,7 @@ async function jsonBody(req) {
 export async function startSettings({ getState, getUsage, getThreads, update, getAppearance, setAppearance,
   getAccountUsage = () => ({ fiveHour: { status: 'unknown', reason: 'account-source-unavailable' }, weekly: { status: 'unknown', reason: 'account-source-unavailable' } }),
   setUsageTarget = () => { throw Object.assign(new Error('usage-selection-unavailable'), { reason: 'usage-selection-unavailable' }); },
-  getPreferences = () => ({ autoLaunch: false, lifecycle: { available: false, reason: 'unavailable' } }),
+  getPreferences = () => ({ autoLaunch: false, language: 'zh-CN', lifecycle: { available: false, reason: 'unavailable' } }),
   setPreferences = () => { throw Object.assign(new Error('preferences-unavailable'), { reason: 'preferences-unavailable' }); },
   shutdown, port = 0 }) {
   const token = randomBytes(32).toString('base64url');
@@ -64,8 +65,7 @@ export async function startSettings({ getState, getUsage, getThreads, update, ge
       if (req.method === 'POST' && path === '/api/appearance') return send(200, await setAppearance(await jsonBody(req)));
       if (req.method === 'POST' && path === '/api/preferences') {
         const input = await jsonBody(req);
-        if (!input || Array.isArray(input) || typeof input !== 'object' ||
-          Object.keys(input).length !== 1 || typeof input.autoLaunch !== 'boolean') {
+        if (!validPreferences(input)) {
           return send(400, { error: 'invalid-preferences' });
         }
         return send(200, await setPreferences(input));

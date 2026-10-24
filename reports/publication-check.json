@@ -1,236 +1,163 @@
 {
-  "version": "1.8.3",
+  "version": "1.8.4",
   "date": "2026-10-24",
+  "sourceCommit": "7d386b5130263ef5488136e1f7675a694f94cf73",
   "coreTests": {
-    "passed": 238,
+    "passed": 250,
     "failed": 0
-  },
-  "localBuild": {
-    "mode": "offline-reused-dependencies",
-    "bundle": true,
-    "desktopCore": true,
-    "windowObserver": true
-  },
-  "sourceChecks": {
-    "nineAnimationBytesUnchanged": true,
-    "mediaIntegrityContract": true,
-    "noPrivateDataDirectories": true,
-    "noPrivatePathReferencesOrCredentialPatterns": true,
-    "noPrivateDefaultChat": true,
-    "noOversizedGitBlobs": true,
-    "relativeDocumentLinksResolve": true,
-    "languages": [
-      "zh-CN",
-      "zh-TW",
-      "en"
-    ]
-  },
-  "runtimeDistributionChecksumsAvailable": {
-    "node": "24.19.0",
-    "electron": "43.2.0"
   },
   "freshNetworkPreparation": {
     "passed": true,
-    "workflowRun": 40098303665,
-    "workflowUrl": "https://github.com/lemon7500/shuangling-gpt/actions/runs/40098303665",
-    "sourceCommit": "a00addecde6e1b4eeda59fc35fff5c7863011f34",
+    "workflowRun": 40105585082,
+    "workflowUrl": "https://github.com/lemon7500/shuangling-gpt/actions/runs/40105585082",
+    "sourceCommit": "7d386b5130263ef5488136e1f7675a694f94cf73",
     "runtimeDownloads": true,
     "lockedDependencyInstall": true,
     "standaloneAndDesktopCoreBuild": true,
     "windowObserverBuild": true,
     "coreTests": "passed"
   },
-  "accountVerification": {
-    "live": [
-      "pro"
-    ],
-    "simulated": [
-      "plus",
-      "pro",
-      "max"
-    ],
-    "realPlusMaxSwitching": "pending"
+  "sourceChecks": {
+    "passed": true,
+    "sourceFiles": 299,
+    "relativeLinks": 65,
+    "nineAnimationBytesMatchV183": true,
+    "mediaIntegrityContract": true,
+    "noPrivateDataOrReferences": true,
+    "threeLanguageGuidesAndAttribution": true
   },
-  "localSettingsChanged": false,
-  "modelRequests": 0,
-  "newAnimationGenerationRequests": 0,
-  "interfaceLanguages": {
-    "panelAndAdvancedSettingsSynchronized": true,
-    "unrelatedSettingsPreserved": true,
-    "data": "synthetic-fixtures-only",
-    "realPanelPages": 9,
-    "viewport": {
-      "width": 352,
-      "height": 520
+  "autoStartFix": {
+    "schedulerHostsObserverBetweenCodexSessions": true,
+    "taskMaintenanceDoesNotBlockNativeSnapshots": true,
+    "requiresFreshHeartbeat": true,
+    "retainsNativeFallback": true,
+    "preservesManualExitSuppression": true,
+    "priorLocalWatcherMigration": {
+      "verifiedSchedulerParent": true,
+      "continuedHeartbeat": true,
+      "petInstanceUnchanged": true,
+      "personalSettingsAndAnimationsUnchanged": true
     },
-    "languages": [
-      "zh-CN",
-      "zh-TW",
-      "en"
-    ],
-    "persistentPreference": true
+    "installerChecks": {
+      "explicitOwnershipHandover": true,
+      "copiedHeartbeatCannotSkipHandover": true,
+      "oldRootRetiredBeforeNewObserverLaunch": true,
+      "activePetRefusedWithoutStopping": true,
+      "taskAndProcessIdentityVerified": true,
+      "creationTimeRecheckedBeforeStopping": true,
+      "pendingRetirementSurvivesFailedInstallationRetry": true,
+      "pendingSourceRevalidated": true,
+      "pendingMarkerClearedAfterVerifiedRetirement": true,
+      "prepareOnlyAndFailedRegistrationHaveNoLifecycleEffects": true
+    },
+    "powerShellSimulation": {
+      "passed": true,
+      "cases": [
+        "fresh-scheduled-install",
+        "copied-heartbeat-cannot-skip-start",
+        "legacy-mcp-handover",
+        "healthy-scheduled-observer-retained",
+        "fake-running-task-does-not-adopt-mcp-child",
+        "running-old-pet-blocks-handover",
+        "case-varied-old-pet-still-blocks-handover",
+        "pid-reuse-is-rejected-before-stop",
+        "different-task-ownership-rejected",
+        "retire-old-installation"
+      ],
+      "actualTaskOrProcessMutations": 0
+    },
+    "acceptanceLimitations": [
+      "An actual full Codex close/reopen cycle was not performed during this publication check."
+    ]
   },
   "portableSmoke": {
-    "pluginPathPreparation": true,
-    "singleInstance": true,
-    "fullExit": true,
-    "animationResources": 9,
-    "limitations": [
-      "No human drag, click-through or multi-monitor operation acceptance during this release check."
-    ],
-    "filesVerified": 9186,
     "passed": true,
-    "realRenderedWavingEndedReceipt": true,
-    "isolatedUnboundStartup": true,
-    "nativePluginRegistrationCalls": 0
+    "checks": {
+      "packageHashes": {
+        "passed": true,
+        "fileCount": 9186
+      },
+      "pluginPrepareOnly": {
+        "passed": true,
+        "nativeRegistrationCalls": 0
+      },
+      "isolatedStartup": {
+        "passed": true,
+        "globalActivityScope": true,
+        "unboundFirstLaunch": true
+      },
+      "nativeApiAndAnimationResources": {
+        "passed": true,
+        "resourceCount": 9,
+        "invalidCapabilityDenied": true
+      },
+      "singleInstance": {
+        "passed": true
+      },
+      "renderedPlaybackReceipt": {
+        "passed": true,
+        "animation": "waving",
+        "finalStatus": "ended"
+      },
+      "fullShutdown": {
+        "passed": true,
+        "managerExited": true,
+        "hostExited": true,
+        "stagedElectronProcesses": 0
+      }
+    },
+    "limitations": [
+      "No human drag, click-through, monitor-boundary, or visual animation-quality acceptance was performed."
+    ]
   },
-  "followUpLanguageAudit": {
+  "languageAndUsagePersistence": {
+    "passed": true,
+    "exactStagedPackage": true,
     "languages": [
       "zh-CN",
       "zh-TW",
       "en"
     ],
-    "status": "included-in-v1.8.3-portable",
-    "date": "2026-10-24",
-    "nativeRenderer": {
-      "realWavingEndedReceipt": true,
-      "englishErrorBanner": true,
-      "loaded": true,
-      "fullExit": true,
-      "titleAriaAndHover": true,
-      "threeLanguageWatcher": true,
-      "trayCoverage": "focused-tests-only"
-    },
-    "coreTests": {
-      "passed": 230,
-      "failed": 0
-    },
-    "liveDeployment": {
-      "animationsUnchanged": true,
-      "liveInstanceNotRestartedToRetainManualControl": true,
-      "settingsUnchanged": true,
-      "usageSelectionUnchanged": true
-    },
-    "fullProcessRestart": {
-      "languagePreserved": [
-        "zh-CN",
-        "zh-TW",
-        "en"
-      ],
-      "persistentAppearancePauseAutostartAndSuppressionUnchanged": true,
-      "realUserSettingsWrites": 0
-    },
-    "layout": {
-      "advancedSettingsCombinations": 6,
-      "productTextClipped": false,
-      "englishProductTextContainsChinese": false,
-      "longUserNamesUseTitleAndSourceLabel": true,
-      "garbledText": false,
-      "panelScales": [
-        1,
-        1.5,
-        2
-      ],
-      "advancedWidths": [
-        800,
-        360
-      ],
-      "panelCombinations": 27
-    },
-    "existingBehavior": "Observed before the usage-selection persistence fix: explicit usage selection returned to the saved default chat after a full restart. Resolved by the follow-up usageSelectionPersistenceAudit."
-  },
-  "usageSelectionPersistenceAudit": {
-    "date": "2026-10-24",
-    "status": "included-in-v1.8.3-portable",
-    "coreTests": {
-      "passed": 238,
-      "failed": 0
-    },
-    "focusedTests": 8,
-    "languages": [
-      "zh-CN",
-      "zh-TW",
-      "en"
+    "selectedChatContextAndTotalsMatchAfterRestart": true,
+    "settingsPreserved": [
+      "autoLaunch",
+      "paused",
+      "savedDefaultUsageThread",
+      "size",
+      "dockPosition",
+      "margins",
+      "manualSuppression",
+      "unrelatedPreferenceFields"
     ],
-    "fullProcessRestarts": {
-      "selectedChatPreserved": true,
-      "selectedContextAndCumulativeTokensMatch": true,
-      "otherPersistentSettingsPreserved": true,
-      "isolatedData": true,
-      "publishedPackageWrites": 0
-    },
-    "behavior": {
-      "independentViewPreference": true,
-      "persistenceBeforeVisibleChange": true,
-      "serializedWrites": true,
-      "revalidateRootChat": true,
-      "unavailableChatStaysSelectedWithoutDefaultFallback": true,
-      "oldVerifiedChatAddedToChoices": true,
-      "accountQuotaSourceUnchanged": true
-    },
-    "liveDeployment": {
-      "restarted": true,
-      "selectedChatPreserved": true,
-      "persistentSettingsByteIdentical": true,
-      "nineSourceAndDeployedAnimationsUnchanged": true,
-      "scope": "codex",
-      "taskStateObserved": "working",
-      "playbackReceiptObserved": "ended",
-      "nativeTranslationWindowTitleVerified": true,
-      "languageUnchanged": true,
-      "autoLaunchUnchanged": true,
-      "appearanceUnchanged": true,
-      "pauseUnchanged": true
-    },
-    "releaseArchiveUpdated": true,
-    "packagedFullProcessRestart": {
-      "languages": [
-        "zh-CN",
-        "zh-TW",
-        "en"
-      ],
-      "selectedChatAndTokenDataPreserved": true,
-      "languageAndOtherSettingsPreserved": true,
-      "latestSourceOverlay": false,
-      "passed": true
-    }
-  },
-  "portableFixes": {
-    "version": "1.8.3",
-    "sourceFilesVerified": 10,
-    "nativeTranslationsIncluded": true,
-    "usageSelectionStoreIncluded": true,
-    "nineAnimationBytesMatchPreviousRelease": true,
-    "threeLanguageReadmesAndAttributionRetained": true,
-    "installerEntrypoints": [
-      "安装Codex插件.vbs",
-      "Install plugin.vbs"
-    ],
-    "userDataIncluded": false,
-    "currentPetTouched": false
+    "realUserSettingsTouched": false
   },
   "portableArchive": {
-    "version": "1.8.3",
-    "name": "shuangling-gpt-1.8.3-windows-x64.zip",
-    "bytes": 298809720,
-    "sha256": "6f3b0f06192b06187052487428ce9ab50fdb63ed6dd0cdfa367ee5c5ff9d3288",
-    "manifestSha256": "ccaaae112e97ca3361848b3310ba03a19bde61cf2bf6d09982bf25d62228ee14",
+    "version": "1.8.4",
+    "name": "shuangling-gpt-1.8.4-windows-x64.zip",
+    "bytes": 298815402,
+    "sha256": "af4e6aa4df3e69fa6d441c7a9ca36bc9a99eb8fdc0780d651de178a145ca9a3a",
+    "manifestSha256": "b92c73564005425904c1d3aaecf26b9235d9873cdf02bb72efbe706b61fb68fe",
     "payloadFilesVerified": 9186,
     "allZipEntryHashesMatch": true,
-    "sourceCommit": "a00addecde6e1b4eeda59fc35fff5c7863011f34",
+    "sourceCommit": "7d386b5130263ef5488136e1f7675a694f94cf73",
     "threeLanguageGuidesAndCreditsVerifiedInsideZip": true,
+    "doubleClickEntriesPresent": true,
     "noUserData": true
   },
   "publishedRelease": {
-    "tag": "v1.8.3",
-    "url": "https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.3",
-    "releaseId": 422749848,
-    "sourceCommit": "a00addecde6e1b4eeda59fc35fff5c7863011f34",
+    "tag": "v1.8.4",
+    "url": "https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.4",
+    "releaseId": 422802416,
+    "sourceCommit": "7d386b5130263ef5488136e1f7675a694f94cf73",
     "publicDownloadVerified": true,
     "serverDigestMatchesLocal": true,
     "latestReleaseVerified": true,
+    "releaseTagMatchesSource": true,
     "threeLanguageNotesMatchLocalFile": true,
     "attributionPreserved": true,
-    "checkedAt": "2026-10-24T13:37:38.492Z"
-  }
+    "checkedAt": "2026-10-24T15:18:46.670Z"
+  },
+  "currentPetTouchedDuringPublication": false,
+  "modelRequests": 0,
+  "newAnimationGenerationRequests": 0
 }

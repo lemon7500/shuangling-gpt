@@ -22,7 +22,7 @@ Each 368×400 GIF loops independently at the original clip timing. A shared safe
 - [Actions / 动作 / 動作](panel-actions.png)
 - [Settings / 设置 / 設定](panel-settings.png)
 
-Captured from the production panel in an isolated hidden Electron window, at 704×1040 physical pixels for the 352×520 CSS layout (native 200% rendering). Chat names, token counts and account percentages are synthetic demonstration data. The capture uses in-memory fixtures, with no connection to the running pet or real account/chat endpoints. Current interface language: Simplified Chinese.
+Captured from the production panel in an isolated hidden Electron window, at 704×1040 physical pixels for the 352×520 CSS layout (native 200% rendering). Chat names, token counts and account percentages are synthetic demonstration data. The capture uses in-memory fixtures, with no connection to the running pet or real account/chat endpoints. These screenshots use Simplified Chinese; Settings also supports Traditional Chinese and English.
 
 截图使用真实面板与演示数据，不包含真实聊天或账户用量；没有修改现有桌宠设置。
 

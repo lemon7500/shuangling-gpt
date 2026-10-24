@@ -1,8 +1,16 @@
 {
-  "version": "1.8.1",
+  "version": "1.8.2",
   "date": "2026-10-24",
-  "coreTests": { "passed": 213, "failed": 0 },
-  "localBuild": { "mode": "offline-reused-dependencies", "bundle": true, "desktopCore": true, "windowObserver": true },
+  "coreTests": {
+    "passed": 223,
+    "failed": 0
+  },
+  "localBuild": {
+    "mode": "offline-reused-dependencies",
+    "bundle": true,
+    "desktopCore": true,
+    "windowObserver": true
+  },
   "sourceChecks": {
     "nineAnimationBytesUnchanged": true,
     "mediaIntegrityContract": true,
@@ -11,22 +19,69 @@
     "noPrivateDefaultChat": true,
     "noOversizedGitBlobs": true,
     "relativeDocumentLinksResolve": true,
-    "languages": ["zh-CN", "zh-TW", "en"]
+    "languages": [
+      "zh-CN",
+      "zh-TW",
+      "en"
+    ]
   },
-  "runtimeDistributionChecksumsAvailable": { "node": "24.19.0", "electron": "43.2.0" },
+  "runtimeDistributionChecksumsAvailable": {
+    "node": "24.19.0",
+    "electron": "43.2.0"
+  },
   "freshNetworkPreparation": {
     "passed": true,
-    "workflowRun": 40072997460,
-    "workflowUrl": "https://github.com/lemon7500/shuangling-gpt/actions/runs/40072997460",
-    "sourceCommit": "2dd49e8d64702101f1062bb09ecd76204f502cd9",
+    "workflowRun": 40087492895,
+    "workflowUrl": "https://github.com/lemon7500/shuangling-gpt/actions/runs/40087492895",
+    "sourceCommit": "657913ffd397e3b151df2eab2650c7ebe0e1b584",
     "runtimeDownloads": true,
     "lockedDependencyInstall": true,
     "standaloneAndDesktopCoreBuild": true,
     "windowObserverBuild": true,
     "coreTests": "passed"
   },
-  "accountVerification": { "live": ["pro"], "simulated": ["plus", "pro", "max"], "realPlusMaxSwitching": "pending" },
+  "accountVerification": {
+    "live": [
+      "pro"
+    ],
+    "simulated": [
+      "plus",
+      "pro",
+      "max"
+    ],
+    "realPlusMaxSwitching": "pending"
+  },
   "localSettingsChanged": false,
   "modelRequests": 0,
-  "newAnimationGenerationRequests": 0
+  "newAnimationGenerationRequests": 0,
+  "interfaceLanguages": {
+    "panelAndAdvancedSettingsSynchronized": true,
+    "unrelatedSettingsPreserved": true,
+    "data": "synthetic-fixtures-only",
+    "realPanelPages": 9,
+    "viewport": {
+      "width": 352,
+      "height": 520
+    },
+    "languages": [
+      "zh-CN",
+      "zh-TW",
+      "en"
+    ],
+    "persistentPreference": true
+  },
+  "portableSmoke": {
+    "pluginPathPreparation": true,
+    "singleInstance": true,
+    "fullExit": true,
+    "animationResources": 9,
+    "limitations": [
+      "No human drag, click-through or multi-monitor operation acceptance during this release check."
+    ],
+    "filesVerified": 9185,
+    "passed": true,
+    "realRenderedWavingEndedReceipt": true,
+    "isolatedUnboundStartup": true,
+    "nativePluginRegistrationCalls": 0
+  }
 }

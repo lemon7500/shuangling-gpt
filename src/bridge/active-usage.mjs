@@ -88,22 +88,34 @@ export class ActiveUsageService {
 
 /** Explicit view selection is separate from the saved task binding. */
 export class UsageTargetSelection {
-  constructor({ navigationReader, boundThreadId }) {
+  constructor({ navigationReader, boundThreadId, selectedThreadId = null, persistSelection = async () => {} }) {
     this.navigationReader = navigationReader;
     this.boundThreadId = boundThreadId;
-    this.selectedThreadId = null;
+    this.selectedThreadId = validId(selectedThreadId) ? selectedThreadId : null;
+    this.persistSelection = persistSelection;
+    this.changing = Promise.resolve();
   }
 
-  async choose(threadId) {
+  choose(threadId) {
+    // Validate, durably save, then publish in request order. A failed write or
+    // slow earlier choice must not leave disk and the visible selection apart.
+    const operation = () => this.chooseAndSave(threadId);
+    const pending = this.changing.then(operation, operation);
+    this.changing = pending.catch(() => {});
+    return pending;
+  }
+
+  async chooseAndSave(threadId) {
     if (!validId(threadId)) throw Object.assign(new Error('invalid-usage-thread'), { reason: 'invalid-usage-thread' });
     const choices = await this.navigationReader.listThreads({ limit: 200 });
-    if (!choices.some(choice => choice.threadId === threadId)) {
+    if (!choices.some(choice => choice.threadId === threadId) && threadId !== (this.selectedThreadId || this.boundThreadId())) {
       throw Object.assign(new Error('usage-thread-unavailable'), { reason: 'usage-thread-unavailable' });
     }
     const selected = await this.navigationReader.resolveThread(threadId);
     if (selected?.status !== 'available' || selected.threadId !== threadId) {
       throw Object.assign(new Error('usage-thread-unavailable'), { reason: 'usage-thread-unavailable' });
     }
+    await this.persistSelection(threadId);
     this.selectedThreadId = threadId;
     return { ok: true, threadId };
   }
@@ -114,10 +126,15 @@ export class UsageTargetSelection {
     const threadId = this.selectedThreadId || this.boundThreadId();
     const selected = await this.navigationReader.resolveThread(threadId);
     const choices = await this.navigationReader.listThreads();
+    // An older restored chat may fall outside the recent list. Keep its
+    // verified option visible so both settings surfaces can select its name.
+    if (selected?.status === 'available' && selected.threadId === threadId && !choices.some(choice => choice.threadId === threadId)) {
+      choices.unshift({ threadId, threadName: selected.threadName ?? null, projectName: selected.projectName ?? null });
+    }
     return {
       ...selected,
       source: this.selectedThreadId ? 'selected-chat' : 'bound-chat',
-      choices: choices.map(choice => ({ threadId: choice.threadId, threadName: choice.threadName ?? null, projectName: choice.projectName })),
+      choices: choices.slice(0, 200).map(choice => ({ threadId: choice.threadId, threadName: choice.threadName ?? null, projectName: choice.projectName })),
     };
   }
 }

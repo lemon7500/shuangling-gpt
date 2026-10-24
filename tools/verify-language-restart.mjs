@@ -2,24 +2,53 @@ import assert from 'node:assert/strict';
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { randomUUID } from 'node:crypto';
-import { readFile, writeFile, mkdir, link, realpath } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, link, realpath, cp, copyFile, symlink } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // Full-process language persistence check. Uses a private data directory and
 // fake Codex home, never installs a task/plugin, and never cleans user files.
-if (process.platform !== 'win32' || !process.argv[2]) throw Error('Usage: node tools/verify-language-restart.mjs <staged-package>');
+if (process.platform !== 'win32' || !process.argv[2]) throw Error('Usage: node tools/verify-language-restart.mjs <staged-package> [--latest-source]');
 const sourceRoot = fileURLToPath(new URL('../', import.meta.url));
-const packageRoot = await realpath(resolve(process.argv[2]));
-const version = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8')).version;
+const stagedRoot = await realpath(resolve(process.argv[2]));
+const latestSource = process.argv.includes('--latest-source');
 const reportRoot = join(sourceRoot, 'reports', 'i18n-audit', 'restart-' + new Date().toISOString().replace(/[:.]/g, '-') + '-' + randomUUID().slice(0, 6));
+// Derive a small test-only package without changing a published staging tree
+// or copying runtimes/media. Junctions and hard links are only used by fixtures.
+const packageRoot = latestSource ? join(reportRoot, 'isolated-source') : stagedRoot;
+if (latestSource) {
+  await mkdir(packageRoot, { recursive: true });
+  for (const directory of ['src', 'vendor/dsh-pet/runtime/electron-helper']) {
+    await cp(join(sourceRoot, directory), join(packageRoot, directory), { recursive: true });
+  }
+  for (const file of ['package.json', 'windows/start.mjs', 'windows/outline-contract.mjs', 'windows/default-config.json', 'windows/runtime-config.json', 'windows/hd-geometry.json', 'windows/animation-timing.json', 'vendor/dsh-pet/lib/standalone.js', 'vendor/dsh-pet/package.json', 'vendor/dsh-pet/assets/config.jsonc', 'vendor/dsh-pet/assets/logo.png', 'reports/windows-assets.json', 'reports/windows-action-frames-v179.json']) {
+    await mkdir(dirname(join(packageRoot, file)), { recursive: true });
+    await copyFile(join(sourceRoot, file), join(packageRoot, file));
+  }
+  await symlink(join(stagedRoot, 'windows/runtime'), join(packageRoot, 'windows/runtime'), 'junction');
+  await symlink(join(stagedRoot, 'vendor/dsh-pet/node_modules'), join(packageRoot, 'vendor/dsh-pet/node_modules'), 'junction');
+  await mkdir(join(packageRoot, 'windows/assets/shuangling'), { recursive: true });
+  const assets = JSON.parse(await readFile(join(packageRoot, 'reports/windows-assets.json'), 'utf8'));
+  for (const { name } of assets.animations) await link(join(stagedRoot, 'windows/assets/shuangling', name + '.webm'), join(packageRoot, 'windows/assets/shuangling', name + '.webm'));
+  const fixtureLauncher = join(packageRoot, 'windows/start.mjs');
+  await writeFile(fixtureLauncher, (await readFile(fixtureLauncher, 'utf8')).replace("DSH_PET_CADENCE_TEST: '0'", "DSH_PET_CADENCE_TEST: '1'"));
+}
+const version = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8')).version;
 const dataDir = join(reportRoot, 'isolated-data'), codexHome = join(reportRoot, 'fake-codex-home');
 await mkdir(dataDir, { recursive: true }); await mkdir(join(codexHome, 'sessions'), { recursive: true });
 await writeFile(join(codexHome, 'config.toml'), '# Synthetic language restart audit. No credentials or enabled plugins.\n');
 const savedThread = 'fixture-saved-chat', selectedThread = 'fixture-selected-chat';
 const at = new Date().toISOString();
 for (const id of [savedThread, selectedThread]) {
-  await writeFile(join(codexHome, 'sessions', 'rollout-' + id + '.jsonl'), JSON.stringify({ type: 'session_meta', timestamp: at, payload: { id, thread_source: 'user', timestamp: at, cwd: reportRoot } }) + '\n');
+  const selected = id === selectedThread;
+  const rows = [
+    { type: 'session_meta', timestamp: at, payload: { id, thread_source: 'user', timestamp: at, cwd: reportRoot } },
+    { type: 'event_msg', timestamp: at, payload: { type: 'token_count', info: {
+      total_token_usage: { total_tokens: selected ? 222 : 111 },
+      last_token_usage: { total_tokens: selected ? 40 : 20 }, model_context_window: 200,
+    } } },
+  ];
+  await writeFile(join(codexHome, 'sessions', 'rollout-' + id + '.jsonl'), rows.map(row => JSON.stringify(row)).join('\n') + '\n');
 }
 await writeFile(join(codexHome, 'session_index.jsonl'), [savedThread, selectedThread].map(id => JSON.stringify({ id, thread_name: id, updated_at: at })).join('\n') + '\n');
 const preferencesFile = join(dataDir, 'plugin-config.json');
@@ -83,7 +112,7 @@ async function stop() {
     return Number(result.stdout.trim()) === 0;
   });
 }
-const report = { version, startedAt: new Date().toISOString(), isolated: true, realCodexHomeUsed: false,
+const report = { version, startedAt: new Date().toISOString(), latestSource, isolated: true, realCodexHomeUsed: false,
   currentPetTouched: false, animationCopies: 0, languageRestarts: [], checks: {} };
 try {
   // Injected task/observer controllers exercise the exact production preference
@@ -110,6 +139,10 @@ try {
     const sessionBytes = await readFile(join(dataDir, 'lifecycle-session.json'));
     await settings('usage-target', { threadId: selectedThread });
     const selectedState = await settings('state'); assert.equal(selectedState.usageThreadId, selectedThread);
+    const selectedUsage = await settings('usage');
+    assert.equal(selectedUsage.selection.threadId, selectedThread);
+    assert.equal(selectedUsage.context.remainingTokens, 160);
+    assert.equal(selectedUsage.project.usedTokens, 222);
     const bridgeBytes = await readFile(join(dataDir, 'bridge-config.json'));
     const saved = await settings('preferences', { language });
     assert.equal(saved.language, language); assert.equal(saved.autoLaunch, false);
@@ -125,21 +158,23 @@ try {
     const restartedPreferences = await settings('preferences'), restartedState = await settings('state');
     assert.equal(restartedPreferences.language, language); assert.equal(restartedPreferences.autoLaunch, false);
     assert.equal(restartedState.control.paused, true); assert.equal(restartedState.defaultUsageThreadId, savedThread);
-    assert.ok([savedThread, selectedThread].includes(restartedState.usageThreadId), 'restart retains the selected or saved default fixture chat');
+    assert.equal(restartedState.usageThreadId, selectedThread, 'restart retains the explicitly selected usage chat');
+    const restartedUsage = await settings('usage');
+    assert.equal(restartedUsage.selection.threadId, selectedThread);
+    assert.equal(restartedUsage.context.remainingTokens, 160);
+    assert.equal(restartedUsage.project.usedTokens, 222);
     assert.deepEqual(await settings('appearance'), baselineAppearance);
     assert.deepEqual(await readFile(join(dataDir, 'bridge-config.json')), bridgeBytes);
     assert.deepEqual(await readFile(join(dataDir, 'lifecycle-session.json')), sessionBytes);
     assert.equal(await json(join(dataDir, 'lifecycle-task.json')), null);
     report.languageRestarts.push({ language, persistedAfterFullRestart: true, oldManagerHostAndElectronExited: true,
       otherPersistentSettingsPreserved: true, explicitSelectionPreservedDuringLanguageSave: true,
-      explicitUsageSelectionPersistedAfterRestart: restartedState.usageThreadId === selectedThread,
-      existingTransientUsageSelectionReturnsToSavedDefaultAfterRestart: restartedState.usageThreadId === savedThread });
+      explicitUsageSelectionPersistedAfterRestart: true, selectedChatContextAndTotalsMatchAfterRestart: true });
   }
   await stop();
   report.checks.completeShutdown = true;
   report.checks.settingsPreserved = ['autoLaunch', 'paused', 'savedDefaultUsageThread', 'size', 'dockPosition', 'margins', 'manualSuppression', 'unrelatedPreferenceFields'];
   report.checks.languageSwitchDidNotCreateLoginTaskFile = true;
-  if (report.languageRestarts.some(row => row.existingTransientUsageSelectionReturnsToSavedDefaultAfterRestart)) report.existingBehavior = 'The explicit usage chat picker is currently in-memory. It stays unchanged during language switching, but a full application restart returns it to the saved default chat. This is independent of language persistence.';
   report.ok = true;
 } catch (error) {
   report.ok = false; report.failure = String(error.message).split('\n')[0].slice(0, 220);

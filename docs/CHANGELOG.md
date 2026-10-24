@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Persist the explicitly selected usage chat across restarts, independently of the default chat, global task following and shared account quotas. Revalidate saved chats before showing usage; temporarily unavailable chats stay selected with unknown values.
 - Complete language switching for the native tray, default hover/accessibility name, window title and configuration error banner. Custom pet names are preserved.
 - Add real-renderer checks for three languages at 100/150/200% panel scaling, narrow/desktop advanced settings, full-process language persistence and native animation playback.
 

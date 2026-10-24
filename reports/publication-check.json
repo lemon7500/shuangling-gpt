@@ -137,6 +137,51 @@
       ],
       "panelCombinations": 27
     },
-    "existingBehavior": "The explicit usage chat picker stays unchanged during language switching, but returns to the saved default chat after a full process restart."
+    "existingBehavior": "Observed before the usage-selection persistence fix: explicit usage selection returned to the saved default chat after a full restart. Resolved by the follow-up usageSelectionPersistenceAudit."
+  },
+  "usageSelectionPersistenceAudit": {
+    "date": "2026-10-24",
+    "status": "unreleased-source-and-local-deployment",
+    "coreTests": {
+      "passed": 238,
+      "failed": 0
+    },
+    "focusedTests": 8,
+    "languages": [
+      "zh-CN",
+      "zh-TW",
+      "en"
+    ],
+    "fullProcessRestarts": {
+      "selectedChatPreserved": true,
+      "selectedContextAndCumulativeTokensMatch": true,
+      "otherPersistentSettingsPreserved": true,
+      "isolatedData": true,
+      "publishedPackageWrites": 0
+    },
+    "behavior": {
+      "independentViewPreference": true,
+      "persistenceBeforeVisibleChange": true,
+      "serializedWrites": true,
+      "revalidateRootChat": true,
+      "unavailableChatStaysSelectedWithoutDefaultFallback": true,
+      "oldVerifiedChatAddedToChoices": true,
+      "accountQuotaSourceUnchanged": true
+    },
+    "liveDeployment": {
+      "restarted": true,
+      "selectedChatPreserved": true,
+      "persistentSettingsByteIdentical": true,
+      "nineSourceAndDeployedAnimationsUnchanged": true,
+      "scope": "codex",
+      "taskStateObserved": "working",
+      "playbackReceiptObserved": "ended",
+      "nativeTranslationWindowTitleVerified": true,
+      "languageUnchanged": true,
+      "autoLaunchUnchanged": true,
+      "appearanceUnchanged": true,
+      "pauseUnchanged": true
+    },
+    "releaseArchiveUpdated": false
   }
 }

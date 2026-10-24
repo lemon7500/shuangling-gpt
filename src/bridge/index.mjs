@@ -6,6 +6,7 @@ import { CodexWorkWatcher } from './codex-work.mjs';
 import { PetClient } from './pet-client.mjs';
 import { PetController } from './controller.mjs';
 import { ActiveUsageService, UsageTargetSelection } from './active-usage.mjs';
+import { UsageSelectionStore } from './usage-selection.mjs';
 import { ActiveSelectionReader } from './active-selection.mjs';
 import { ProjectUsageReader } from './project-usage.mjs';
 import { CurrentAccountUsage } from './current-account.mjs';
@@ -65,9 +66,12 @@ export async function startBridge({ projectRoot, dataDir = join(projectRoot, 'wi
   const accountUsage = accountSource ?? new CurrentAccountUsage({ codexHome,
     transportFactory: ({ signal }) => openNativeAccountClient({ signal, codexHome }),
   });
+  const usageSelectionStore = new UsageSelectionStore({ dataDir });
   const usageSelection = new UsageTargetSelection({
     navigationReader: new ActiveSelectionReader({ codexHome, projectRoot, metadataReader: projectUsage }),
     boundThreadId: () => config.threadId,
+    selectedThreadId: await usageSelectionStore.read(),
+    persistSelection: threadId => usageSelectionStore.save(threadId),
   });
   const usageView = new ActiveUsageService({
     selectionReader: usageSelection, projectReader: projectUsage, scope: usageScope,

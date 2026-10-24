@@ -4,13 +4,14 @@ import { mkdtemp, readFile, writeFile, mkdir, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { emptyLifecycleState, reconcileLifecycleTick, markStartFailure } from '../../src/lifecycle/state.mjs';
-import { parsePluginEnabled, markManualStart, markManualStop, getLifecycleSession, getLifecyclePreferences, setLifecyclePreferences, atomicJson, lifecyclePaths } from '../../src/lifecycle/index.mjs';
+import { parsePluginEnabled, markManualStart, markManualStop, getLifecycleSession, getLifecyclePreferences, setLifecyclePreferences, ensureObserver, atomicJson, lifecyclePaths } from '../../src/lifecycle/index.mjs';
 import { CompanionPlugin } from '../../src/plugin/companion.mjs';
 import { PassThrough } from 'node:stream';
 import { runObserver } from '../../src/lifecycle/observer.mjs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { runTaskCommand, observerHandoverScript } from '../../windows/lifecycle/task.mjs';
 
 const input = changes => ({ detectorAvailable: true, windows: ['100:200:300'], autoLaunch: true, pluginEnabled: true, manager: null, ...changes });
 const tick = (state, changes, now) => reconcileLifecycleTick(state, input(changes), { now, epoch: () => 'test-epoch' });
@@ -165,6 +166,71 @@ test('MCP reconnect only ensures observer and never directly launches pet or cle
   await new CompanionPlugin(options).automaticStart(); await new CompanionPlugin(options).automaticStart();
   assert.equal(petStarts, 0); assert.equal(observerCalls, 2); assert.equal((await getLifecycleSession(options)).manualSuppressed, true);
 });
+
+test('observer bootstrap delegates to Windows scheduler without changing manual suppression or user settings', { skip: process.platform !== 'win32' }, async () => {
+  const dataDir = await mkdtemp(join(tmpdir(), 'shuangling-task-owner-'));
+  const projectRoot = fileURLToPath(new URL('../../', import.meta.url));
+  const modes = [];
+  const options = { projectRoot, dataDir, pluginEnabledImpl: () => true,
+    taskController: async mode => {
+      modes.push(mode);
+      await atomicJson(join(dataDir, 'lifecycle-observer.json'), { observedAt: Date.now(), detectorAvailable: true, windowCount: 1 });
+      return { started: true };
+    } };
+  await atomicJson(join(dataDir, 'plugin-config.json'), { autoLaunch: true, language: 'en' });
+  await markManualStop(options);
+  const state = await readFile(join(dataDir, 'lifecycle-session.json'));
+  const settings = await readFile(join(dataDir, 'plugin-config.json'));
+  const result = await ensureObserver(options);
+  assert.deepEqual(modes, ['start']);
+  assert.equal(result.lifecycle.observerRunning, true, 'task ownership still requires a real fresh heartbeat');
+  assert.equal(result.lifecycle.available, false);
+  assert.deepEqual(await readFile(join(dataDir, 'lifecycle-session.json')), state);
+  assert.deepEqual(await readFile(join(dataDir, 'plugin-config.json')), settings);
+});
+
+test('installer ownership commands use an injectable native runner and preserve private preferences', { skip: process.platform !== 'win32' }, async () => {
+  const dataDir = await mkdtemp(join(tmpdir(), 'shuangling-handover-native-'));
+  const projectRoot = fileURLToPath(new URL('../../', import.meta.url));
+  const preferences = Buffer.from('{"autoLaunch":true,"language":"en"}\n');
+  const selection = Buffer.from('{"version":1,"threadId":"kept-chat"}\n');
+  await writeFile(join(dataDir, 'plugin-config.json'), preferences);
+  await writeFile(join(dataDir, 'usage-selection.json'), selection);
+  let calls = 0;
+  const owned = await runTaskCommand({ projectRoot, dataDir, action: 'handover',
+    runImpl: async (command, args, options) => {
+      calls++;
+      assert.ok(command.endsWith('powershell.exe')); assert.equal(options.windowsHide, true);
+      const script = Buffer.from(args.at(-1), 'base64').toString('utf16le');
+      assert.ok(script.includes('observer-handover-pet-running'));
+      assert.ok(script.includes('observer-identity-changed'));
+      assert.ok(script.includes('Get-ScheduledTaskInfo'));
+      assert.ok(!script.includes('Stop-ScheduledTask'));
+      return { stdout: JSON.stringify({ installed: true, enabled: true, running: true, observerOwned: true, observerPid: 123 }) };
+    } });
+  assert.equal(calls, 1); assert.equal(owned.observerOwned, true);
+  assert.deepEqual(await readFile(join(dataDir, 'plugin-config.json')), preferences);
+  assert.deepEqual(await readFile(join(dataDir, 'usage-selection.json')), selection);
+  await assert.rejects(runTaskCommand({ projectRoot, dataDir, action: 'retire',
+    runImpl: async () => { throw Object.assign(Error('private-native-diagnostic'), { stderr: 'observer-handover-pet-running' }); } }),
+  /^Error: observer-handover-pet-running$/);
+  assert.deepEqual(await readFile(join(dataDir, 'plugin-config.json')), preferences);
+});
+
+test('PowerShell parses installer handover and retirement scripts without invoking their commands', { skip: process.platform !== 'win32' }, async () => {
+  const projectRoot = 'D:\\example pet\\霜铃';
+  const dataDir = join(projectRoot, 'windows/data');
+  const temporary = await mkdtemp(join(tmpdir(), 'shuangling-script-parse-'));
+  for (const retire of [false, true]) {
+    const script = observerHandoverScript({ projectRoot, dataDir, retire });
+    const file = join(temporary, retire ? 'retire.ps1' : 'handover.ps1');
+    await writeFile(file, '\uFEFF' + script, 'utf8');
+    const parser = `$tokens=$null;$errors=$null;[System.Management.Automation.Language.Parser]::ParseFile('${file.replaceAll("'", "''")}',[ref]$tokens,[ref]$errors)|Out-Null;if($errors.Count){$errors|ForEach-Object {$_.Message};exit 1}`;
+    await promisify(execFile)('C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
+      ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(parser, 'utf16le').toString('base64')],
+      { windowsHide: true, timeout: 10000 });
+  }
+});
 test('observer routes synthetic verified snapshots without pet processes, disables task once, and closes owned manager after grace', async () => {
   const dataDir = await mkdtemp(join(tmpdir(), 'shuangling-observer-'));
   let clock = 1000, enabled = true, manager = { ready: true, instanceId: 'fixture-manager' };
@@ -204,6 +270,37 @@ test('scheduler failure is attempted once for a stable mode, rather than once pe
   sample(); await new Promise(accept => setTimeout(accept, 30)); clock = 2; sample();
   await new Promise(accept => setTimeout(accept, 30)); stream.end(); await running;
   assert.equal(attempts, 1);
+});
+
+test('slow scheduler maintenance never delays the first window launch or later close observations', async () => {
+  const dataDir = await mkdtemp(join(tmpdir(), 'shuangling-slow-scheduler-'));
+  const options = { projectRoot: 'unused', dataDir, pluginEnabledImpl: () => true };
+  const stream = new PassThrough();
+  let releaseTask, clock = 1000, manager = null, starts = 0, stops = 0;
+  const heldTask = new Promise(accept => { releaseTask = accept; });
+  const running = runObserver(options, { input: stream, now: () => clock,
+    managerImpl: async () => manager, taskImpl: () => heldTask,
+    spawnImpl: async () => { starts++; manager = { instanceId: 'fast-start', ready: true }; },
+    stopImpl: async () => { stops++; manager = null; return true; },
+  });
+  const sample = windows => stream.write(JSON.stringify({ schemaVersion: 1,
+    source: 'OpenAI.Codex_2p2nqsd0c76g0', detectorAvailable: true, windows }) + '\n');
+  async function until(predicate) {
+    const deadline = performance.now() + 2000;
+    while (!await predicate()) {
+      assert.ok(performance.now() < deadline, 'scheduler blocked native window processing');
+      await new Promise(accept => setTimeout(accept, 10));
+    }
+  }
+  try {
+    sample(['100:200:300']); await until(() => starts === 1);
+    clock = 2000; sample(['100:200:300']);
+    await until(async () => (await getLifecycleSession(options)).ownerInstanceId === 'fast-start');
+    clock = 3000; sample([]);
+    await until(async () => (await getLifecycleSession(options)).zeroSince === 3000);
+    clock = 6000; sample([]); await until(() => stops === 1);
+    assert.equal(starts, 1);
+  } finally { releaseTask(); stream.end(); await running; }
 });
 test('launcher rechecks manual suppression, disabled preference and ended session before any automatic runtime starts', async () => {
   const fixture = await mkdtemp(join(tmpdir(), 'shuangling-launch-guard-'));

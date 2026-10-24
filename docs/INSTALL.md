@@ -4,7 +4,7 @@ Follow the [简体中文 quick start](../README.md#快速开始安装插件), [�
 
 ## Portable installation (recommended)
 
-You need Windows 10/11 x64 and an installed Codex desktop app. Download [shuangling-gpt-1.8.3-windows-x64.zip](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.3/shuangling-gpt-1.8.3-windows-x64.zip) from the [v1.8.3 Release](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.3). GitHub's automatically generated **Source code** archives do not include the portable runtime.
+You need Windows 10/11 x64 and an installed Codex desktop app. Download [shuangling-gpt-1.8.4-windows-x64.zip](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.4/shuangling-gpt-1.8.4-windows-x64.zip) from the [v1.8.4 Release](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.4). GitHub's automatically generated **Source code** archives do not include the portable runtime.
 
 1. Extract the entire ZIP to a permanent folder writable by your Windows user. Do not run it inside the archive.
 2. Double-click root **`安装Codex插件.vbs`**, then check that **霜铃 GPT** is enabled in Codex.
@@ -14,6 +14,8 @@ You need Windows 10/11 x64 and an installed Codex desktop app. Download [shuangl
 The ZIP includes Node.js, Electron, the compiled desktop host and observer, and production dependencies. No Node/npm installation, source setup or compilation is needed. It is a local plugin installation, not an official store listing; the package supports Windows x64, not macOS, Linux or Windows ARM. Runtime and dependency licenses remain in their directories.
 
 Installation uses the current Windows user and does not need administrator rights. It regenerates paths for the extracted folder and registers the local marketplace/plugin. The included MCP template is disabled placeholder metadata; use the installer instead of adding the template directly. Current-user login-task registration can be restricted by local policy. If that step is unavailable, use the manual start entry.
+
+In 1.8.4, the observer runs under Windows Task Scheduler rather than as a long-lived child of a chat plugin process. It remains ready between Codex sessions, so a detected main window can trigger startup before any chat plugin connection. Scheduled-task maintenance runs in the background. Signing into Windows starts only the observer, not the pet; all Codex main windows closing for three seconds still exits the managed pet.
 
 Keep the folder in place. The root entries **`启动霜铃.vbs`**, **`霜铃设置.vbs`** and **`退出霜铃.vbs`** provide manual start, settings and exit. Manual start can provide independent companionship; task status and account usage need readable data from local Codex. Before selecting a chat or when data is unavailable, usage stays unknown. See the [trilingual package readme](PORTABLE.md).
 
@@ -25,7 +27,7 @@ The script refuses an existing `node_modules` directory instead of replacing an 
 
 ## Move / upgrade
 
-Do not run two installations at once. Exit the pet normally and close every Codex window. Extract the new package to a new folder, retain a private backup of your original `windows/data` outside Git, then copy that data directory into the new folder as `windows/data` before running the installer. This carries forward existing persisted preferences; version 1.8.3 also persists the usage chat you select. Run the installer from the final intended directory to regenerate paths and the per-user observer task, then reopen Codex. The installer verifies marketplace ownership before migration and attempts rollback on a partially committed failure; it will not silently enable an explicitly disabled existing plugin. Do not publish credentials, logs, local data or path manifests. The public package does not contain another user's settings or authentication.
+Do not run two installations at once. Exit the pet normally and close every Codex window. Extract the new package to a new folder, retain a private backup of your original `windows/data` outside Git, then copy that data directory into the new folder as `windows/data` before running the installer. This carries forward existing persisted preferences, including the language and selected usage chat. Run the installer from the final intended directory to regenerate paths and the per-user observer task, then reopen Codex. Run the new installer even if the plugin is already listed, so the new observer can take over startup. The installer verifies marketplace ownership before migration and attempts rollback on a partially committed failure; it will not silently enable an explicitly disabled existing plugin. Do not publish credentials, logs, local data or path manifests. The public package does not contain another user's settings or authentication.
 
 ## Disable / uninstall
 

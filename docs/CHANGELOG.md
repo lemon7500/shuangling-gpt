@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.8.4 — Prompt Codex startup and persistent window observation
+
+- Host the window observer through the current user's Windows scheduled task, keeping it ready between Codex sessions without waiting for a chat plugin connection.
+- Move scheduled-task maintenance off the native window-observation path so a slow task query cannot block pet startup, heartbeat updates or the three-second close grace.
+- Require a fresh observer heartbeat after requesting scheduled startup, retain manual launch if task access is unavailable, and preserve automatic-start preferences and manual-exit suppression.
+- Transfer observer ownership during installation and disable verified old-directory login tasks. Require an active previous pet to exit before migration, while retaining personal settings.
+- Retain all nine animation clips, the three interface languages, remembered usage chat, settings and existing artwork/upstream attribution.
+
 ## 1.8.3 — Translation completion and remembered usage chat
 
 - Persist the explicitly selected usage chat across restarts, independently of the default chat, global task following and shared account quotas. Revalidate saved chats before showing usage; temporarily unavailable chats stay selected with unknown values.

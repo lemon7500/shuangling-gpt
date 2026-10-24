@@ -4,7 +4,7 @@
 
 A silver-haired chibi dragon companion for Codex on Windows. Shuangling lives on your desktop, follows the work of the local Codex app, and provides a compact control panel for animations, context usage and account limits.
 
-**Version:** 1.8.3 · **Platform:** Windows x64 · **Integration:** local Codex plugin + MCP
+**Version:** 1.8.4 · **Platform:** Windows x64 · **Integration:** local Codex plugin + MCP
 
 ## Preview
 
@@ -49,7 +49,7 @@ Captured from the actual panel code, showing the Simplified Chinese interface wi
 
 You need **Windows 10/11 x64 and the Codex desktop app**. The portable package includes Node, Electron, the compiled desktop host and window observer, and production dependencies. You do not need to install Node/npm or compile anything. Installation uses a local plugin, not an official store listing. macOS, Linux and Windows ARM are not supported.
 
-1. Download the **[Windows x64 portable package](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.3/shuangling-gpt-1.8.3-windows-x64.zip)**, `shuangling-gpt-1.8.3-windows-x64.zip`. [Release page and assets](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.3). GitHub's **Source code** archives are not the portable package.
+1. Download the **[Windows x64 portable package](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.4/shuangling-gpt-1.8.4-windows-x64.zip)**, `shuangling-gpt-1.8.4-windows-x64.zip`. [Release page and assets](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.4). GitHub's **Source code** archives are not the portable package.
 2. **Extract the entire archive** to a permanent folder writable by your Windows user. Do not run it inside the ZIP. Spaces and Chinese characters in the path are supported; keep the folder in place after installation.
 3. Double-click **`安装Codex插件.vbs`** in the extracted root folder, then check that **霜铃 GPT** is enabled in Codex's plugin list. Installation is per user and does not require administrator rights. If local policy blocks login-task registration, manual launch remains available.
 4. **Close all Codex windows and reopen Codex.** No message or plugin-tool call is needed. Right-click Shuangling, select a local chat in **Overview**, and use **Settings** to change **Start with Codex**.
@@ -57,6 +57,8 @@ You need **Windows 10/11 x64 and the Codex desktop app**. The portable package i
 The installer generates paths for the extracted folder, registers `shuangling-gpt@shuangling-local`, and manages the current user's login observer task according to your preferences. The included MCP template is disabled until the installer registers the local paths; do not install the template directly. If you move the folder, run the installer again from its new location. See [plugin installation details](../../plugin-marketplace/README.md).
 
 Signing into Windows starts only the observer; the pet appears when Codex opens. Minimized windows count as open, and multiple windows share one pet. Manually quitting Shuangling suppresses automatic relaunch for that Codex session; fully reopen Codex or explicitly start Shuangling to clear it.
+
+**Automatic startup fix in 1.8.4:** Windows Task Scheduler independently hosts the lightweight window observer. A Codex main window triggers launch without waiting for a chat plugin connection. Login-task checks run in the background and no longer block pet startup. After all Codex windows close, Shuangling exits while the observer stays ready for the next launch. To upgrade, exit Shuangling and close all Codex windows, back up and copy the original `windows/data` into the new package folder, then run the new installer to preserve settings, language and the selected usage chat.
 
 You can also double-click **`启动霜铃.vbs`** for independent companionship. Task status and account usage require data from local Codex. Context and tokens stay unknown until a chat is selected and readable data is available.
 

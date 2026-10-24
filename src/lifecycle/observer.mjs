@@ -25,7 +25,7 @@ export async function closeOwnedManager(dataDir, expectedId) {
 }
 export async function runObserver(options, { input = process.stdin, now = Date.now, managerImpl, spawnImpl, stopImpl, taskImpl } = {}) {
   const p = lifecyclePaths(options);
-  let pending = Promise.resolve(), lastTaskMode = null, latest = null, processing = false;
+  let pending = Promise.resolve(), taskPending = Promise.resolve(), lastTaskMode = null, latest = null, processing = false;
   const inspectManager = managerImpl || (() => authenticatedManager(p.data));
   const startManager = spawnImpl || (async () => {
     const child = spawn(join(p.root, 'windows', 'runtime', 'node', 'node.exe'), [join(p.root, 'windows', 'start.mjs'), 'start'], {
@@ -50,7 +50,13 @@ export async function runObserver(options, { input = process.stdin, now = Date.n
     const taskMode = autoLaunch && enabled ? 'install' : 'disable';
     if (lastTaskMode !== taskMode) {
       lastTaskMode = taskMode;
-      try { await setTask(taskMode); } catch { /* Do not spawn a failing scheduler command on every native tick. */ }
+      // Scheduler discovery can take seconds. It must never gate a verified
+      // window's launch, heartbeat, or close grace. Serialize maintenance only;
+      // if a preference changes, the newest mode wins after an in-flight call.
+      taskPending = taskPending.then(async () => {
+        if (lastTaskMode !== taskMode) return;
+        try { await setTask(taskMode); } catch { /* Retry only on a mode change. */ }
+      });
     }
     const effects = await withLifecycleLock(options, async paths => {
       const previous = await readJson(paths.session);
@@ -96,6 +102,7 @@ export async function runObserver(options, { input = process.stdin, now = Date.n
   });
   await new Promise(accept => lines.once('close', accept));
   await pending;
+  await taskPending;
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -112,6 +112,21 @@ export async function ensureObserver(options) {
   if (options.ensureObserverImpl) return options.ensureObserverImpl();
   const exe = join(p.root, 'windows', 'lifecycle', 'ShuanglingCodexWatcher.exe');
   if (process.platform !== 'win32' || !existsSync(exe)) return preferences;
+  // Windows detached children can still inherit the Codex job object. Let
+  // Task Scheduler own the persistent watcher, including the current logon,
+  // so the next Codex window does not have to wait for an MCP connection.
+  try {
+    const task = await runTask(options, 'start');
+    if (task?.started === true) {
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const current = await getLifecyclePreferences(options);
+        if (current.lifecycle.observerRunning || !current.autoLaunch || !current.lifecycle.pluginEnabled) return current;
+        await sleep(250);
+      }
+    }
+  } catch { /* Keep the native fallback available if Task Scheduler is denied. */ }
+  const current = await getLifecyclePreferences(options);
+  if (!current.autoLaunch || !current.lifecycle.pluginEnabled) return current;
   const child = spawn(exe, ['--root', p.root, '--data', p.data], { cwd: p.root, windowsHide: true, detached: true, stdio: 'ignore' });
   await new Promise((resolveSpawn, reject) => { child.once('spawn', resolveSpawn); child.once('error', reject); }); child.unref();
   return getLifecyclePreferences(options);

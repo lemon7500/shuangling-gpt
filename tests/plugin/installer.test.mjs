@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { installPlugin } from '../../windows/install-plugin.mjs';
+import { installPlugin, configureInstalledLifecycle } from '../../windows/install-plugin.mjs';
 
 const marketName = 'shuangling-local';
 const pluginName = 'shuangling-gpt';
@@ -23,7 +23,7 @@ async function fixture({ initial = 'installed', enabled = true, sameLocation = f
   }
   for (const path of new Set([market, oldRoot])) {
     await mkdir(join(path, '.agents', 'plugins'), { recursive: true });
-    await writeFile(join(path, '.agents', 'plugins', 'marketplace.json'), JSON.stringify({ name: marketName, plugins: [{ name: pluginName }, ...(path === oldRoot && extraManifest ? [{ name: 'another-plugin' }] : [])] }));
+    await writeFile(join(path, '.agents', 'plugins', 'marketplace.json'), JSON.stringify({ name: marketName, plugins: [{ name: pluginName, source: { source: 'local', path: './plugins/shuangling-gpt' } }, ...(path === oldRoot && extraManifest ? [{ name: 'another-plugin' }] : [])] }));
   }
   const initialEntries = initial === 'installed' ? [own(oldRoot, enabled)] : [];
   if (extraInstalled) initialEntries.push({ pluginId: `another-plugin@${marketName}`, installed: true, enabled: true });
@@ -58,7 +58,7 @@ async function fixture({ initial = 'installed', enabled = true, sameLocation = f
     if (match === 'after') { faultUsed = true; throw new Error('native-cli-timeout'); }
     return result;
   };
-  const run = () => installPlugin({ projectRoot: root, findCli: async () => 'mock-codex-only', runCli });
+  const run = (extra = {}) => installPlugin({ projectRoot: root, findCli: async () => 'mock-codex-only', runCli, ...extra });
   const mutations = () => commands.filter(args => !args.slice(0, args[1] === 'marketplace' ? 3 : 2).join(' ').endsWith(' list'));
   return { root, market, oldRoot, state, before, run, commands, mutations };
 }
@@ -148,4 +148,155 @@ test('rollback never reports restoration from command success without final stat
   assert.equal(result.previousStateRestored, false);
   assert.equal(result.previousSourceRestored, false);
   assert.equal(result.rollbackFailure, 'rollback-verification-failed');
+});
+
+test('lifecycle handover runs only after verified registration, and never during failed registration or prepare-only', async () => {
+  const good = await fixture();
+  let calls = 0;
+  const result = await good.run({ configureLifecycle: async options => {
+    calls++;
+    assert.equal(options.projectRoot, good.root);
+    assert.equal(options.previousMarketplaceRoot, good.oldRoot);
+    assert.equal(good.state.market.root, good.market);
+    assert.deepEqual(good.state.entries, [own(good.market)]);
+    return { observerScheduled: true };
+  } });
+  assert.equal(result.ok, true); assert.equal(result.observerScheduled, true); assert.equal(calls, 1);
+  const bad = await fixture({ fault: ({ kind }) => kind === 'plugin add' ? 'before' : null });
+  const failed = await bad.run({ configureLifecycle: async () => { calls++; } });
+  assert.equal(failed.ok, false); assert.equal(failed.previousStateRestored, true); assert.equal(calls, 1);
+  const prepared = await good.run({ prepareOnly: true, configureLifecycle: async () => { calls++; } });
+  assert.equal(prepared.preparedOnly, true); assert.equal(calls, 1);
+});
+
+test('lifecycle failure remains explicit after a successful plugin install and does not roll registration back', async () => {
+  const f = await fixture({ sameLocation: true });
+  const result = await f.run({ configureLifecycle: async () => { throw Error('observer-handover-pet-running'); } });
+  assert.equal(result.ok, true);
+  assert.equal(result.lifecycleIssue, 'observer-handover-pet-running');
+  assert.equal(result.lifecycleAction, 'exit-pet-and-all-codex-windows-then-run-installer-again');
+  assert.equal(result.rollbackAttempted, undefined);
+  assert.deepEqual(f.state, f.before);
+});
+
+test('fresh/copied healthy heartbeat cannot skip installer scheduler ownership verification', async () => {
+  const f = await fixture({ sameLocation: true });
+  const calls = [];
+  const baseline = { autoLaunch: true, language: 'zh-TW', lifecycle: { observerRunning: true, available: true } };
+  const result = await configureInstalledLifecycle({ projectRoot: f.root,
+    getPreferences: async () => clone(baseline),
+    taskController: async options => {
+      calls.push(options);
+      return options.action === 'handover' ? { installed: true, enabled: true, running: true, observerOwned: true } : {};
+    } });
+  assert.deepEqual(calls, [{ projectRoot: f.root, action: 'install' }, { projectRoot: f.root, action: 'handover' }]);
+  assert.equal(result.observerScheduled, true);
+  assert.equal(baseline.language, 'zh-TW');
+});
+
+test('new-directory install retires only the verified prior root before starting the new observer', async () => {
+  const f = await fixture();
+  const calls = [];
+  const result = await configureInstalledLifecycle({ projectRoot: f.root, previousMarketplaceRoot: f.oldRoot,
+    getPreferences: async () => ({ autoLaunch: true }),
+    taskController: async options => {
+      calls.push(options);
+      if (options.action === 'retire') return { retired: true, enabled: false };
+      return { installed: true, enabled: true, running: true, observerOwned: true };
+    } });
+  assert.deepEqual(calls, [{ projectRoot: join(f.oldRoot, '..'), action: 'retire' },
+    { projectRoot: f.root, action: 'install' }, { projectRoot: f.root, action: 'handover' }]);
+  assert.equal(result.observerScheduled, true);
+  let nativeCalls = 0;
+  await assert.rejects(configureInstalledLifecycle({ projectRoot: f.root, previousMarketplaceRoot: join(f.root, 'custom-market'),
+    getPreferences: async () => ({ autoLaunch: true }), taskController: async () => { nativeCalls++; } }), /old-source-root-unverified/);
+  assert.equal(nativeCalls, 0);
+});
+
+test('retirement failure prevents new observer launch, and disabled autostart remains disabled', async () => {
+  const f = await fixture();
+  const calls = [];
+  await assert.rejects(configureInstalledLifecycle({ projectRoot: f.root, previousMarketplaceRoot: f.oldRoot,
+    getPreferences: async () => ({ autoLaunch: true }), taskController: async options => {
+      calls.push(options.action); throw Error('observer-handover-pet-running');
+    } }), /observer-handover-pet-running/);
+  assert.deepEqual(calls, ['retire']); calls.length = 0;
+  const result = await configureInstalledLifecycle({ projectRoot: f.root,
+    getPreferences: async () => ({ autoLaunch: false, language: 'en' }), taskController: async options => {
+      calls.push(options.action); return { installed: true, enabled: false };
+    } });
+  assert.deepEqual(calls, ['disable']); assert.equal(result.autoLaunch, false);
+  await assert.rejects(configureInstalledLifecycle({ projectRoot: f.root,
+    getPreferences: async () => ({ autoLaunch: true }), taskController: async () => ({ started: true, installed: true, enabled: true }) }), /observer-task-not-ready/);
+});
+
+test('failed old-source retirement is durably retried after registration already points at the new directory', async () => {
+  const f = await fixture();
+  const calls = [];
+  let blocked = true;
+  const configureLifecycle = options => configureInstalledLifecycle({ ...options,
+    getPreferences: async () => ({ autoLaunch: true, language: 'zh-TW' }),
+    taskController: async task => {
+      calls.push(task);
+      if (task.action === 'retire') {
+        if (blocked) throw Error('observer-handover-pet-running');
+        return { retired: true, enabled: false };
+      }
+      return { installed: true, enabled: true, running: true, observerOwned: true };
+    } });
+  const first = await f.run({ configureLifecycle });
+  assert.equal(first.ok, true); assert.equal(first.lifecycleIssue, 'observer-handover-pet-running');
+  assert.equal(f.state.market.root, f.market);
+  const marker = join(f.root, 'reports/observer-retirement.json');
+  let pending = JSON.parse(await readFile(marker, 'utf8'));
+  assert.equal(pending.pendingMarketplaceRoot, f.oldRoot);
+  assert.equal(pending.pendingPluginSource, join(f.oldRoot, 'plugins', pluginName));
+  const mutationsBeforeRetry = f.mutations().length;
+  blocked = false; calls.length = 0;
+  const second = await f.run({ configureLifecycle });
+  assert.equal(second.ok, true); assert.equal(second.lifecycleIssue, undefined);
+  assert.equal(second.alreadyInstalledAtThisLocation, true);
+  assert.equal(f.mutations().length, mutationsBeforeRetry);
+  assert.deepEqual(calls, [{ projectRoot: join(f.oldRoot, '..'), action: 'retire' },
+    { projectRoot: f.root, action: 'install' }, { projectRoot: f.root, action: 'handover' }]);
+  pending = JSON.parse(await readFile(marker, 'utf8'));
+  assert.equal(pending.pendingMarketplaceRoot, null);
+  assert.equal(pending.pendingPluginSource, null);
+});
+
+test('retry revalidates pending source manifest and marker binding before any native lifecycle action', async () => {
+  for (const corrupt of ['manifest', 'marker-owner', 'marker-source']) {
+    const f = await fixture();
+    const first = await f.run({ configureLifecycle: async () => { throw Error('observer-handover-pet-running'); } });
+    assert.equal(first.lifecycleIssue, 'observer-handover-pet-running');
+    const marker = join(f.root, 'reports/observer-retirement.json');
+    if (corrupt === 'manifest') {
+      await writeFile(join(f.oldRoot, '.agents/plugins/marketplace.json'), JSON.stringify({ name: marketName,
+        plugins: [{ name: pluginName, source: { source: 'local', path: './plugins/another' } }] }));
+    } else {
+      const value = JSON.parse(await readFile(marker, 'utf8'));
+      if (corrupt === 'marker-owner') value.projectRoot = join(f.root, 'foreign');
+      else value.pendingPluginSource = join(f.oldRoot, 'foreign-plugin');
+      await writeFile(marker, JSON.stringify(value));
+    }
+    let native = 0;
+    const second = await f.run({ configureLifecycle: async () => { native++; } });
+    assert.equal(second.ok, false);
+    assert.equal(second.failure, corrupt === 'manifest' ? 'old-source-root-unverified' : 'observer-retirement-marker-unverified');
+    assert.equal(native, 0);
+    assert.equal(f.state.market.root, f.market);
+  }
+});
+
+test('successful retirement clears its durable marker even when the new observer handover subsequently fails', async () => {
+  const f = await fixture();
+  const result = await f.run({ configureLifecycle: options => configureInstalledLifecycle({ ...options,
+    getPreferences: async () => ({ autoLaunch: true }), taskController: async task => {
+      if (task.action === 'retire') return { retired: true, enabled: false };
+      if (task.action === 'handover') throw Error('observer-task-not-ready');
+      return { installed: true, enabled: true };
+    } }) });
+  assert.equal(result.lifecycleIssue, 'observer-task-not-ready');
+  const pending = JSON.parse(await readFile(join(f.root, 'reports/observer-retirement.json'), 'utf8'));
+  assert.equal(pending.pendingMarketplaceRoot, null);
 });

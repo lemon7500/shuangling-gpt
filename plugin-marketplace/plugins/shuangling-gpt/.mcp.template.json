@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "shuangling_gpt": {
+      "command": "INSTALL_WITH_THE_INCLUDED_INSTALLER",
+      "args": [],
+      "enabled": false
+    }
+  }
+}

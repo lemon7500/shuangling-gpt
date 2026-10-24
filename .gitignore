@@ -1,0 +1,31 @@
+# Private state and generated local endpoints
+/windows/data/
+**/node_modules/
+/windows/runtime/
+/windows/lifecycle/*.exe
+/plugin-marketplace/plugins/shuangling-gpt/.mcp.json
+/reports/*
+!/reports/windows-assets.json
+!/reports/windows-action-frames-v179.json
+!/reports/publication-check.json
+/vendor/dsh-pet/lib/
+/vendor/dsh-pet/.cache/
+/.gstack/
+/.cache/
+/art/
+/qa/
+/release/
+/previews/
+*.log
+*.tmp
+*.zip
+.env
+.env.*
+auth.json
+credentials.json
+Thumbs.db
+.DS_Store
+
+# Local preparation cache and historical generation-only checks
+/.setup-cache/
+/tests/bridge/*assets.test.mjs

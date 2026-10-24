@@ -1,0 +1,25 @@
+{
+  "source": "approved full-resolution generated strips",
+  "canvasWidth": 1280,
+  "canvasHeight": 720,
+  "normalizedCompatibilityCanvas": [
+    640,
+    360
+  ],
+  "normalizedBaseline": 340.0,
+  "standingVideoBounds": [
+    469,
+    205,
+    806,
+    658
+  ],
+  "standingVideoVisibleHeight": 453,
+  "visibleHeightRatio": 0.35390625,
+  "width421VisibleDip": 148.99453125,
+  "defaultDprObserved": 1.5,
+  "width421VisiblePhysicalPx": 223.49179687499998,
+  "notes": "HD geometry scales the original video canvas 2x; runtime width and saved location must be kept.",
+  "alphaThreshold": 32,
+  "standingAnimation": "idle",
+  "standingFrame": 0
+}

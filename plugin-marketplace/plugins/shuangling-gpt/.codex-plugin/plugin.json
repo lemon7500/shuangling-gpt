@@ -1,0 +1,25 @@
+{
+  "name": "shuangling-gpt",
+  "version": "1.8.1",
+  "description": "霜铃 GPT 桌宠：霜白控制面板、随 Codex 自动启停、整体任务联动与聊天用量查询。",
+  "author": {
+    "name": "Maxmillian"
+  },
+  "license": "MIT",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "霜铃 GPT",
+    "shortDescription": "随Codex启动的高清龙女桌宠与用量助手",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "查看霜铃和整个 Codex 的工作状态",
+      "查看上下文和账户额度剩余",
+      "打开霜铃设置"
+    ]
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "cellWidth": 192,
+  "cellHeight": 208,
+  "columns": 8,
+  "canvasWidth": 1280,
+  "canvasHeight": 720,
+  "cellDrawHeight": 600,
+  "baseline": 680,
+  "animations": [
+    {
+      "name": "idle",
+      "row": 0,
+      "durations": [
+        280,
+        110,
+        110,
+        140,
+        140,
+        320
+      ],
+      "motionDurationMs": 4833.333333333333,
+      "legacyMotionDurationMs": 8000,
+      "aiVideoFps": 24,
+      "aiVideoDurationMs": 4833.333333333333
+    },
+    {
+      "name": "running-right",
+      "row": 1,
+      "durations": [
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        220
+      ],
+      "motionDurationMs": 4208.333333333333,
+      "legacyMotionDurationMs": 4400,
+      "aiVideoDurationMs": 4208.333333333333,
+      "aiVideoFps": 24
+    },
+    {
+      "name": "running-left",
+      "row": 2,
+      "durations": [
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        220
+      ],
+      "motionDurationMs": 4208.333333333333,
+      "legacyMotionDurationMs": 4400,
+      "aiVideoDurationMs": 4208.333333333333,
+      "aiVideoFps": 24
+    },
+    {
+      "name": "waving",
+      "aiVideoFps": 24,
+      "aiVideoDurationMs": 5166.666666666667,
+      "legacyMotionDurationMs": 6000,
+      "row": 3,
+      "durations": [
+        140,
+        140,
+        140,
+        280
+      ],
+      "motionDurationMs": 5166.666666666667
+    },
+    {
+      "name": "jumping",
+      "row": 4,
+      "durations": [
+        140,
+        140,
+        140,
+        140,
+        280
+      ],
+      "motionDurationMs": 5166.666666666667,
+      "legacyMotionDurationMs": 3400,
+      "aiVideoDurationMs": 5166.666666666667,
+      "aiVideoFps": 24
+    },
+    {
+      "name": "failed",
+      "row": 5,
+      "durations": [
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        240
+      ],
+      "motionDurationMs": 4875,
+      "legacyMotionDurationMs": 4800,
+      "aiVideoDurationMs": 4875,
+      "aiVideoFps": 24
+    },
+    {
+      "name": "waiting",
+      "row": 6,
+      "durations": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        260
+      ],
+      "motionDurationMs": 5166.666666666667,
+      "legacyMotionDurationMs": 6000,
+      "aiVideoFps": 24,
+      "aiVideoDurationMs": 5166.666666666667
+    },
+    {
+      "name": "running",
+      "row": 7,
+      "durations": [
+        120,
+        120,
+        120,
+        120,
+        120,
+        220
+      ],
+      "motionDurationMs": 5166.666666666667,
+      "legacyMotionDurationMs": 6000,
+      "aiVideoFps": 24,
+      "aiVideoDurationMs": 5166.666666666667
+    },
+    {
+      "name": "review",
+      "row": 8,
+      "durations": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        280
+      ],
+      "motionDurationMs": 5166.666666666667,
+      "legacyMotionDurationMs": 7000,
+      "aiVideoFps": 24,
+      "aiVideoDurationMs": 5166.666666666667
+    }
+  ],
+  "sourceMode": "high-resolution-generated-strips",
+  "motionMode": "mixed-source-neutral-action-loop",
+  "motionFps": 30,
+  "legacyDurationsPurpose": "Archived 57 source-keyframe timing; production durations are motionDurationMs and real neutral-action-neutral frames in reports/windows-action-frames.json",
+  "releaseVersion": "1.7.9"
+}

@@ -1,0 +1,51 @@
+{
+  "whisperPrompt": "你是霜铃 GPT，一位银白卷发、浅紫眼睛的温柔小龙伙伴。",
+  "chatMemoryRounds": 0,
+  "whisperModel": { "provider": "", "model": "" },
+  "chatModel": { "provider": "", "model": "" },
+  "whisperImageEnabled": false,
+  "chatImageEnabled": false,
+  "chatImageLimit": 0,
+  "memes": {},
+  "notificationsEnabled": false,
+  "confineToScreen": true,
+  "workStatusTexts": [["霜铃在想一想。"], ["正在认真处理。"], ["一起检查结果。"], ["等你回来。"], ["这一轮完成啦。"], ["先陪你休息一会儿。"]],
+  "physics": {
+    "gravity": 1400,
+    "restitution": 0.78,
+    "groundFriction": 2.5,
+    "ceilingBounce": true,
+    "throwPower": 1,
+    "petCollision": false
+  },
+  "font": { "family": "system", "size": 21, "followPet": true },
+  "pets": [{
+    "name": "霜铃 GPT",
+    "id": "shuangling",
+    "size": 562,
+    "balanceEnabled": false,
+    "whisperEnabled": false,
+    "workStatusEnabled": false,
+    "fixedEnabled": true,
+    "display": "desktop",
+    "position": { "corner": "bottom-right", "marginX": 20, "marginY": 12 }
+  }],
+  "animations": {
+    "idle": ["idle"],
+    "turn": ["idle"],
+    "drag": ["jumping"],
+    "clicks": ["waving", "jumping"],
+    "moves": {
+      "default": { "minDist": 60, "maxDist": 120, "margin": 20, "leadSec": 0, "tailSec": 0 },
+      "actions": [{ "name": "running-right" }, { "name": "running-left" }]
+    },
+    "categories": [{ "id": "霜铃的动作", "weight": 0, "actions": ["waving", "jumping", "waiting", "running", "review", "failed"] }],
+    "events": {
+      "balance": ["idle"],
+      "whisper": ["idle"],
+      "workStatus": ["running", "running", "review", "waiting", "waving", "failed"]
+    }
+  },
+  "eventsRefreshSec": { "balance": 1800, "whisper": 300 },
+  "animationWeights": { "idle": 100, "turn": 0, "move": 0 }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "shuangling-local",
+  "interface": { "displayName": "霜铃 GPT · 本机插件" },
+  "plugins": [{
+    "name": "shuangling-gpt",
+    "source": { "source": "local", "path": "./plugins/shuangling-gpt" },
+    "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+    "category": "Productivity"
+  }]
+}

@@ -1,0 +1,22 @@
+{
+  "version": "1.8.1",
+  "date": "2026-10-24",
+  "coreTests": { "passed": 213, "failed": 0 },
+  "localBuild": { "mode": "offline-reused-dependencies", "bundle": true, "desktopCore": true, "windowObserver": true },
+  "sourceChecks": {
+    "nineAnimationBytesUnchanged": true,
+    "mediaIntegrityContract": true,
+    "noPrivateDataDirectories": true,
+    "noPrivatePathReferencesOrCredentialPatterns": true,
+    "noPrivateDefaultChat": true,
+    "noOversizedGitBlobs": true,
+    "relativeDocumentLinksResolve": true,
+    "languages": ["zh-CN", "zh-TW", "en"]
+  },
+  "runtimeDistributionChecksumsAvailable": { "node": "24.19.0", "electron": "43.2.0" },
+  "freshNetworkPreparation": "Validated separately by the Windows source check workflow; consult the actual workflow result.",
+  "accountVerification": { "live": ["pro"], "simulated": ["plus", "pro", "max"], "realPlusMaxSwitching": "pending" },
+  "localSettingsChanged": false,
+  "modelRequests": 0,
+  "newAnimationGenerationRequests": 0
+}

@@ -1,0 +1,53 @@
+{
+  "name": "霜铃 GPT",
+  "petId": "shuangling",
+  "defaultThreadId": null,
+  "appearance": {
+    "atlasSha256": "7937e7f0de27502faad132d02effdd81c10c04c9e7d9340759b0edf9c06dc366",
+    "standingAnimation": "idle",
+    "standingFrame": 0,
+    "alphaThreshold": 32,
+    "sourceCellHeight": 720,
+    "sourceBounds": [
+      469,
+      205,
+      806,
+      658
+    ],
+    "sourceVisibleHeight": 453,
+    "cellDrawHeight": 600,
+    "canvasWidth": 1280,
+    "measuredCanvasVisibleHeight": 453,
+    "visibleHeightRatio": 0.35390625,
+    "defaultVisibleHeight": 200,
+    "defaultWidth": 562,
+    "minWidth": 160,
+    "maxWidth": 1200,
+    "assetSource": "high-resolution-generated-strips",
+    "sourceManifestSha256": "0250964d6c1f09f68bc4e5f87ed76977c96dab986bcb1369370b1d6133069daf",
+    "canvasHeight": 720,
+    "measuredDefaultVisibleHeight": 198.8953125,
+    "petsAtlasGeometry": {
+      "visibleHeight": 158,
+      "bounds": [
+        36,
+        43,
+        155,
+        201
+      ],
+      "cellHeight": 208
+    }
+  },
+  "animationMap": {
+    "idle": "idle",
+    "running": "running",
+    "working": "running",
+    "waiting": "waiting",
+    "complete": [
+      "waving",
+      "jumping"
+    ],
+    "interrupted": "failed",
+    "unknown": "idle"
+  }
+}

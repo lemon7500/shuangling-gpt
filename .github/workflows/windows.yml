@@ -1,0 +1,23 @@
+name: Windows source check
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare a fresh checkout
+        shell: powershell
+        run: .\setup.ps1
+      - name: Core tests
+        shell: powershell
+        run: |
+          $tests = @(git ls-files -- 'tests/bridge/*.test.mjs' 'tests/plugin/*.test.mjs' 'tests/lifecycle/*.test.mjs' 'tests/panel/*.test.mjs')
+          & .\windows\runtime\node\node.exe --test --test-concurrency=4 @tests
+          exit $LASTEXITCODE

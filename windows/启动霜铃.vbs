@@ -1,0 +1,7 @@
+Option Explicit
+Dim shell, fso, base, command
+Set shell = CreateObject("WScript.Shell")
+Set fso = CreateObject("Scripting.FileSystemObject")
+base = fso.GetParentFolderName(WScript.ScriptFullName)
+command = Chr(34) & base & "\runtime\node\node.exe" & Chr(34) & " " & Chr(34) & base & "\start.mjs" & Chr(34) & " start"
+shell.Run command, 0, False

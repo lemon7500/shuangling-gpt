@@ -151,7 +151,17 @@ test('observer routes synthetic verified snapshots without pet processes, disabl
     managerImpl: async () => manager, spawnImpl: async () => assert.fail('healthy pet must not spawn'),
     taskImpl: async mode => tasks.push(mode), stopImpl: async id => { stops.push(id); manager = null; return true; } });
   const sample = windows => inputStream.write(JSON.stringify({ schemaVersion: 1, source: 'OpenAI.Codex_2p2nqsd0c76g0', detectorAvailable: true, windows })+'\n');
-  async function until(predicate) { for (let count = 0; count < 100; count++) { if (await predicate()) return; await new Promise(accept => setTimeout(accept, 5)); } assert.fail('observer fixture timeout'); }
+  async function until(predicate) {
+    // These predicates include atomic file writes and lock cleanup. A hosted
+    // Windows runner can spend more than 500 ms on that I/O under parallel
+    // tests; the injected clock still checks the exact three-second grace.
+    const deadline = performance.now() + 10000;
+    while (performance.now() < deadline) {
+      if (await predicate()) return;
+      await new Promise(accept => setTimeout(accept, 20));
+    }
+    assert.fail('observer fixture timeout');
+  }
   sample(['100:200:300']); await until(async () => (await getLifecycleSession(options)).ownerInstanceId === 'fixture-manager');
   enabled = false; clock = 2000; sample(['100:200:300']); await until(() => tasks.includes('disable'));
   clock = 3000; sample([]); await until(async () => (await getLifecycleSession(options)).zeroSince === 3000);

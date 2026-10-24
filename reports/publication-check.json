@@ -14,7 +14,7 @@
     "languages": ["zh-CN", "zh-TW", "en"]
   },
   "runtimeDistributionChecksumsAvailable": { "node": "24.19.0", "electron": "43.2.0" },
-  "freshNetworkPreparation": "Validated separately by the Windows source check workflow; consult the actual workflow result.",
+  "freshNetworkPreparation": { "passed": true, "workflowRun": 40072001149, "coreTests": "One observer fixture timed out; follow-up validation pending." },
   "accountVerification": { "live": ["pro"], "simulated": ["plus", "pro", "max"], "realPlusMaxSwitching": "pending" },
   "localSettingsChanged": false,
   "modelRequests": 0,

@@ -8,6 +8,8 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+# Avoid expensive per-chunk progress rendering for large runtime downloads.
+$ProgressPreference = 'SilentlyContinue'
 $NodeVersion = '24.19.0'
 $ElectronVersion = '43.2.0'
 

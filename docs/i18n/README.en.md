@@ -104,6 +104,6 @@ Turn off **Start with Codex** in Settings to disable automatic startup. Disable 
 ## Credits and licenses
 
 - **Desktop runtime reference:** [PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet), pinned to commit `d7a308ecd4504cf4468c03707ce228ed1e1c0402`. This project builds on its desktop window, physical interaction, standalone mode and local animation interfaces. Retain the upstream MIT license and third-party notices; see [UPSTREAM.md](../../UPSTREAM.md).
-- **Original character design:** Bilibili [@ZipZipPipe](https://space.bilibili.com/4168597). Shuangling's chibi interpretation and animations were developed from the user-provided reference with AI-assisted production and local processing.
+- **Original reference artwork:** Bilibili [@ZipZipPipe](https://space.bilibili.com/4168597), author of the reference image initially supplied by the user. Shuangling's chibi interpretation and desktop animations are this project's adaptations of that reference, developed with AI-assisted production and local processing.
 
 Code licensing does not grant ownership of the reference artwork or character design. Their rights remain with the respective rights holders; attribution does not imply their endorsement or an additional redistribution license.

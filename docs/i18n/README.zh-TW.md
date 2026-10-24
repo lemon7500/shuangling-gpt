@@ -104,6 +104,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 ## 參考與署名
 
 - **桌寵執行環境參考：**[PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)，固定提交為 `d7a308ecd4504cf4468c03707ce228ed1e1c0402`。本專案沿用其視窗、物理互動、獨立模式及本機動畫介面；保留上游 MIT 授權與第三方聲明，詳見 [UPSTREAM.md](../../UPSTREAM.md)。
-- **角色原始設計：**B 站 [@ZipZipPipe](https://space.bilibili.com/4168597)。霜鈴 Q 版形象及動畫依使用者提供的參考圖，透過 AI 輔助製作與本機處理完成。
+- **初始參考圖原作者：**B 站 [@ZipZipPipe](https://space.bilibili.com/4168597)。該作者創作了使用者最初提供的參考圖；霜鈴的 Q 版形象與桌寵動畫由本專案在此基礎上改編，透過 AI 輔助製作與本機處理完成。
 
 程式碼授權不代表取得參考原畫或角色設計的權利；相關權利歸各權利人所有。署名不代表原作者背書，亦不額外授予素材再散布許可。

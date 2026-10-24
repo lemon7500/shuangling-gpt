@@ -9,7 +9,7 @@
 
 霜铃是一只银白卷发、淡紫双翼的 Q 版龙女桌宠。她通过本地 Codex 插件跟随整个应用的任务状态，提供九种动画、拖拽与抛出交互，以及霜白淡紫的右键控制卡片。
 
-**桌宠运行时参考并基于 [PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)。角色设计出自 B 站 [@ZipZipPipe](https://space.bilibili.com/4168597)。** 角色素材由该设计参考进行 Q 版与动画适配；代码与美术的权利说明分别见 [许可证](LICENSE) 和 [素材说明](ASSETS.md)。
+**桌宠运行时参考并基于 [PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)。初始参考图原作者为 B 站 [@ZipZipPipe](https://space.bilibili.com/4168597)。** 霜铃的 Q 版形象和动画由本项目在该参考图基础上改编制作；代码与美术的权利说明分别见 [许可证](LICENSE) 和 [素材说明](ASSETS.md)。
 
 [快速开始](#快速开始安装插件) · [功能](#功能) · [操作](#日常操作) · [常见问题](#常见问题) · [开发](#开发) · [致谢](#致谢与参考)
 
@@ -114,7 +114,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 ## 致谢与参考
 
 - **桌宠运行时参考**：[PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)，固定提交 [d7a308e](https://github.com/PC2005-cloud/dsh-pet/tree/d7a308ecd4504cf4468c03707ce228ed1e1c0402)。复用并修改其独立模式、透明窗口、拖拽物理与本机接口，保留 [上游 MIT 许可证](vendor/dsh-pet/LICENSE)。
-- **角色设计**：B 站 [@ZipZipPipe](https://space.bilibili.com/4168597)。本项目基于用户提供的设计参考制作 Q 版与动画适配；署名不代表原设计作者参与开发或背书。
+- **初始参考图原作者**：B 站 [@ZipZipPipe](https://space.bilibili.com/4168597)。该作者创作了用户最初提供的参考图；霜铃的 Q 版形象与桌宠动画由本项目在此基础上改编制作，署名不代表原作者参与开发或背书。
 - **制作辅助**：OpenAI 图像生成与 MiniMax 视频素材，以及本地逐帧处理。生成服务和官方 Pets 工具不随本仓库再分发。
 
 本项目独立维护，不是 OpenAI、Codex、MiniMax 或上述作者的官方产品。新增代码采用 MIT；第三方代码保留原许可证，美术素材不纳入代码 MIT 的授权范围。见 [NOTICE](NOTICE.md)、[ASSETS](ASSETS.md) 与 [UPSTREAM](UPSTREAM.md)。

@@ -1,0 +1,37 @@
+{
+  "format": "gif",
+  "size": [
+    368,
+    400
+  ],
+  "sourceFps": 24,
+  "speed": "original",
+  "loop": true,
+  "processing": "Separate complete existing loops, common safe crop, proportional downscale, lavender alpha composition, per-clip GIF palette. No generated poses, interpolation, speed changes or cross-fades.",
+  "animationGenerationRequests": 0,
+  "originalMediaModified": false,
+  "totalBytes": 5621327,
+  "outputs": [
+    {
+      "file": "docs/media/shuangling-demo.gif",
+      "source": "windows/assets/shuangling/idle.webm",
+      "sourceSha256": "77f1e40eb2f2e39477e03688dff384b74ef260d129a4b5593af974f090e9457d",
+      "bytes": 2130768,
+      "sha256": "ab9246af4cf55315f098b6db912c58ce26ebbb50b927a97148230cea8c8c4a5a"
+    },
+    {
+      "file": "docs/media/shuangling-wave.gif",
+      "source": "windows/assets/shuangling/waving.webm",
+      "sourceSha256": "3301e7a7a4ad5e2b89a0f17d9c1c5bc045ca79a15aca10689219ea1907d85414",
+      "bytes": 1635199,
+      "sha256": "02e17e02920ddb79dc3e134f678ad89eeecd7198cbc91cd839a7a2ff495323e3"
+    },
+    {
+      "file": "docs/media/shuangling-thinking.gif",
+      "source": "windows/assets/shuangling/running.webm",
+      "sourceSha256": "650e042d8b317ca4465094af97ed9a33eeb0fa794ecc37d495f9287176bc40a9",
+      "bytes": 1855360,
+      "sha256": "430b68603f25f41ef15f8b880040daff943ccc3e58cd055c6febe3d93d8d90d2"
+    }
+  ]
+}

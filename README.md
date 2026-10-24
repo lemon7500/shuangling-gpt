@@ -11,7 +11,35 @@
 
 **桌宠运行时参考并基于 [PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)。初始参考图原作者为 B 站 [@ZipZipPipe](https://space.bilibili.com/4168597)。** 霜铃的 Q 版形象和动画由本项目在该参考图基础上改编制作；代码与美术的权利说明分别见 [许可证](LICENSE) 和 [素材说明](ASSETS.md)。
 
-[快速开始](#快速开始安装插件) · [功能](#功能) · [操作](#日常操作) · [常见问题](#常见问题) · [开发](#开发) · [致谢](#致谢与参考)
+[效果预览](#效果预览) · [快速开始](#快速开始安装插件) · [功能](#功能) · [操作](#日常操作) · [常见问题](#常见问题) · [开发](#开发) · [致谢](#致谢与参考)
+
+## 效果预览
+
+### 动画演示
+
+<table>
+  <tr><th>常态陪伴</th><th>开心挥手</th><th>认真思考</th></tr>
+  <tr>
+    <td><a href="docs/media/shuangling-demo.gif"><img src="docs/media/shuangling-demo.gif" width="240" alt="霜铃常态陪伴动画" /></a></td>
+    <td><a href="docs/media/shuangling-wave.gif"><img src="docs/media/shuangling-wave.gif" width="240" alt="霜铃挥手动画" /></a></td>
+    <td><a href="docs/media/shuangling-thinking.gif"><img src="docs/media/shuangling-thinking.gif" width="240" alt="霜铃认真思考动画" /></a></td>
+  </tr>
+</table>
+
+三个预览分别循环播放当前版本已有动画，保留原动作节奏。仅做裁切、背景合成和 GIF 转换；点击可查看原尺寸动图。
+
+### 右键控制面板
+
+<table>
+  <tr><th>总览</th><th>动作</th><th>设置</th></tr>
+  <tr>
+    <td><a href="docs/media/panel-overview.png"><img src="docs/media/panel-overview.png" width="240" alt="霜铃右键面板：总览，使用演示数据" /></a></td>
+    <td><a href="docs/media/panel-actions.png"><img src="docs/media/panel-actions.png" width="240" alt="霜铃右键面板：九种动作" /></a></td>
+    <td><a href="docs/media/panel-settings.png"><img src="docs/media/panel-settings.png" width="240" alt="霜铃右键面板：大小、停靠与自动启动设置" /></a></td>
+  </tr>
+</table>
+
+截图来自实际面板代码，聊天和用量为演示数据；点击图片可查看清晰原图。界面目前为简体中文。[素材来源与预览说明](docs/media/README.md)
 
 ## 功能
 

@@ -9,3 +9,4 @@
 *.vbs text eol=crlf
 *.webm binary
 *.png binary
+*.gif binary

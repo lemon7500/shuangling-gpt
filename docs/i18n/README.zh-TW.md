@@ -6,6 +6,34 @@
 
 **版本：**1.8.1 · **平台：**Windows x64 · **整合方式：**本機 Codex 外掛程式 + MCP
 
+## 效果預覽
+
+### 動畫展示
+
+<table>
+  <tr><th>常態陪伴</th><th>開心揮手</th><th>認真思考</th></tr>
+  <tr>
+    <td><a href="../media/shuangling-demo.gif"><img src="../media/shuangling-demo.gif" width="240" alt="霜鈴常態陪伴動畫" /></a></td>
+    <td><a href="../media/shuangling-wave.gif"><img src="../media/shuangling-wave.gif" width="240" alt="霜鈴揮手動畫" /></a></td>
+    <td><a href="../media/shuangling-thinking.gif"><img src="../media/shuangling-thinking.gif" width="240" alt="霜鈴認真思考動畫" /></a></td>
+  </tr>
+</table>
+
+三個預覽分別循環播放目前版本的既有動畫，保留原動作節奏，僅做裁切、背景合成與 GIF 轉換；點擊可查看原尺寸動圖。
+
+### 右鍵控制面板
+
+<table>
+  <tr><th>總覽</th><th>動作</th><th>設定</th></tr>
+  <tr>
+    <td><a href="../media/panel-overview.png"><img src="../media/panel-overview.png" width="240" alt="霜鈴右鍵面板：總覽，使用展示資料" /></a></td>
+    <td><a href="../media/panel-actions.png"><img src="../media/panel-actions.png" width="240" alt="霜鈴右鍵面板：九種動作" /></a></td>
+    <td><a href="../media/panel-settings.png"><img src="../media/panel-settings.png" width="240" alt="霜鈴右鍵面板：大小、停靠與自動啟動設定" /></a></td>
+  </tr>
+</table>
+
+截圖來自實際面板程式碼，聊天與用量為展示資料；點擊圖片可查看清晰原圖。介面目前為簡體中文。[素材來源與預覽說明](../media/README.md)
+
 ## 功能
 
 - 九種角色動畫、透明視窗、拖曳、拋擲與螢幕邊緣停靠。

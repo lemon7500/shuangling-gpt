@@ -9,3 +9,5 @@ Original reference artwork by Bilibili [@ZipZipPipe](https://space.bilibili.com/
 The root MIT license applies to new code and documentation; it does **not** grant rights to the character design, avatar, or animation artwork. Rights remain with their respective holders. Attribution alone does not authorize further redistribution, commercial use, or a claim of original character ownership; obtain the applicable permission from the relevant rights holders for such uses. No additional artwork license is asserted here.
 
 Final application media: `windows/assets/shuangling/*.webm` (nine clips); avatar: `vendor/dsh-pet/runtime/electron-helper/panel-avatar.png`. See the relative-path media metadata in `reports/`. Metadata paths are normalized for publication and its integrity binding is recomputed; the nine animation files themselves are unchanged.
+
+README previews under `docs/media/` reuse these existing animations and the actual control-panel code. Panel captures use synthetic demonstration data. The preview GIF and character artwork within screenshots follow the same artwork notice above. See [preview sources](docs/media/README.md).

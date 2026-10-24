@@ -6,6 +6,34 @@ A silver-haired chibi dragon companion for Codex on Windows. Shuangling lives on
 
 **Version:** 1.8.1 · **Platform:** Windows x64 · **Integration:** local Codex plugin + MCP
 
+## Preview
+
+### Animation demo
+
+<table>
+  <tr><th>Idle companion</th><th>Waving</th><th>Thinking</th></tr>
+  <tr>
+    <td><a href="../media/shuangling-demo.gif"><img src="../media/shuangling-demo.gif" width="240" alt="Shuangling idle companion animation" /></a></td>
+    <td><a href="../media/shuangling-wave.gif"><img src="../media/shuangling-wave.gif" width="240" alt="Shuangling waving animation" /></a></td>
+    <td><a href="../media/shuangling-thinking.gif"><img src="../media/shuangling-thinking.gif" width="240" alt="Shuangling thinking animation" /></a></td>
+  </tr>
+</table>
+
+Three independent loops made from the existing release animations, using cropping, background compositing and GIF conversion while retaining the original timing. Click a preview to view it at full size.
+
+### Right-click control panel
+
+<table>
+  <tr><th>Overview</th><th>Actions</th><th>Settings</th></tr>
+  <tr>
+    <td><a href="../media/panel-overview.png"><img src="../media/panel-overview.png" width="240" alt="Shuangling Overview panel with demonstration data" /></a></td>
+    <td><a href="../media/panel-actions.png"><img src="../media/panel-actions.png" width="240" alt="Shuangling Actions panel with nine animations" /></a></td>
+    <td><a href="../media/panel-settings.png"><img src="../media/panel-settings.png" width="240" alt="Shuangling Settings panel for size, docking and automatic launch" /></a></td>
+  </tr>
+</table>
+
+Captured from the actual panel code with demonstration chat and usage data. Click an image for the full-resolution screenshot. The current interface is in Simplified Chinese. [Preview sources and details](../media/README.md)
+
 ## Features
 
 - Nine character animations, a transparent desktop window, dragging, throwing and edge docking.

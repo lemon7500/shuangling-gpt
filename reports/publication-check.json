@@ -14,7 +14,17 @@
     "languages": ["zh-CN", "zh-TW", "en"]
   },
   "runtimeDistributionChecksumsAvailable": { "node": "24.19.0", "electron": "43.2.0" },
-  "freshNetworkPreparation": { "passed": true, "workflowRun": 40072001149, "coreTests": "One observer fixture timed out; follow-up validation pending." },
+  "freshNetworkPreparation": {
+    "passed": true,
+    "workflowRun": 40072997460,
+    "workflowUrl": "https://github.com/lemon7500/shuangling-gpt/actions/runs/40072997460",
+    "sourceCommit": "2dd49e8d64702101f1062bb09ecd76204f502cd9",
+    "runtimeDownloads": true,
+    "lockedDependencyInstall": true,
+    "standaloneAndDesktopCoreBuild": true,
+    "windowObserverBuild": true,
+    "coreTests": "passed"
+  },
   "accountVerification": { "live": ["pro"], "simulated": ["plus", "pro", "max"], "realPlusMaxSwitching": "pending" },
   "localSettingsChanged": false,
   "modelRequests": 0,

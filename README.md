@@ -4,7 +4,7 @@
   <p>陪你思考、等你回答，也陪你安静工作。</p>
   <p>Windows 桌宠 × Codex 本地插件 × 任务与用量面板</p>
   <p><a href="README.md">简体中文</a> · <a href="docs/i18n/README.zh-TW.md">繁體中文</a> · <a href="docs/i18n/README.en.md">English</a></p>
-  <p><img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-8B73A6" /> <img alt="Version 1.8.1" src="https://img.shields.io/badge/version-1.8.1-8B73A6" /> <a href="LICENSE"><img alt="Code license MIT" src="https://img.shields.io/badge/code-MIT-8B73A6" /></a></p>
+  <p><img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-8B73A6" /> <img alt="Version 1.8.1" src="https://img.shields.io/badge/version-1.8.1-8B73A6" /> <a href="LICENSE"><img alt="Code license MIT" src="https://img.shields.io/badge/code-MIT-8B73A6" /></a> <a href="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml"><img alt="Windows source check" src="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml/badge.svg" /></a></p>
 </div>
 
 霜铃是一只银白卷发、淡紫双翼的 Q 版龙女桌宠。她通过本地 Codex 插件跟随整个应用的任务状态，提供九种动画、拖拽与抛出交互，以及霜白淡紫的右键控制卡片。
@@ -109,7 +109,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 
 源码目录：`src/bridge`（工作状态、聊天用量和当前账号）、`src/plugin`（MCP）、`src/lifecycle` 与 `windows/lifecycle`（自动启停），以及 `vendor/dsh-pet`（保留上游与本项目修改的宿主）。最终九段动画在 `windows/assets/shuangling`。
 
-详见 [联动与接口](BRIDGE.md)、[隐私](docs/PRIVACY.md)、[更新记录](docs/CHANGELOG.md)。本次公开版本保留本地既有九段媒体的字节；来源记录中的本机绝对路径改为相对路径，并重新绑定相应元数据校验值。
+详见 [联动与接口](BRIDGE.md)、[隐私](docs/PRIVACY.md)、[更新记录](docs/CHANGELOG.md)和[发布验证记录](reports/publication-check.json)。全新 Windows 环境已通过运行时下载、锁定依赖安装、宿主／观察器编译与核心测试。本次公开版本保留本地既有九段媒体的字节；来源记录只保留运行所需的相对路径元数据，并重新绑定校验值。
 
 ## 致谢与参考
 

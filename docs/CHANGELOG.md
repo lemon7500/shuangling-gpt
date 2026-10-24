@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.8.3 — Translation completion and remembered usage chat
 
 - Persist the explicitly selected usage chat across restarts, independently of the default chat, global task following and shared account quotas. Revalidate saved chats before showing usage; temporarily unavailable chats stay selected with unknown values.
 - Complete language switching for the native tray, default hover/accessibility name, window title and configuration error banner. Custom pet names are preserved.

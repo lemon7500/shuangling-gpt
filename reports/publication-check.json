@@ -1,8 +1,8 @@
 {
-  "version": "1.8.2",
+  "version": "1.8.3",
   "date": "2026-10-24",
   "coreTests": {
-    "passed": 223,
+    "passed": 238,
     "failed": 0
   },
   "localBuild": {
@@ -78,7 +78,7 @@
     "limitations": [
       "No human drag, click-through or multi-monitor operation acceptance during this release check."
     ],
-    "filesVerified": 9185,
+    "filesVerified": 9186,
     "passed": true,
     "realRenderedWavingEndedReceipt": true,
     "isolatedUnboundStartup": true,
@@ -90,7 +90,7 @@
       "zh-TW",
       "en"
     ],
-    "status": "unreleased-native-label-fix",
+    "status": "included-in-v1.8.3-portable",
     "date": "2026-10-24",
     "nativeRenderer": {
       "realWavingEndedReceipt": true,
@@ -141,7 +141,7 @@
   },
   "usageSelectionPersistenceAudit": {
     "date": "2026-10-24",
-    "status": "unreleased-source-and-local-deployment",
+    "status": "included-in-v1.8.3-portable",
     "coreTests": {
       "passed": 238,
       "failed": 0
@@ -182,6 +182,31 @@
       "appearanceUnchanged": true,
       "pauseUnchanged": true
     },
-    "releaseArchiveUpdated": false
+    "releaseArchiveUpdated": false,
+    "packagedFullProcessRestart": {
+      "languages": [
+        "zh-CN",
+        "zh-TW",
+        "en"
+      ],
+      "selectedChatAndTokenDataPreserved": true,
+      "languageAndOtherSettingsPreserved": true,
+      "latestSourceOverlay": false,
+      "passed": true
+    }
+  },
+  "portableFixes": {
+    "version": "1.8.3",
+    "sourceFilesVerified": 10,
+    "nativeTranslationsIncluded": true,
+    "usageSelectionStoreIncluded": true,
+    "nineAnimationBytesMatchPreviousRelease": true,
+    "threeLanguageReadmesAndAttributionRetained": true,
+    "installerEntrypoints": [
+      "安装Codex插件.vbs",
+      "Install plugin.vbs"
+    ],
+    "userDataIncluded": false,
+    "currentPetTouched": false
   }
 }

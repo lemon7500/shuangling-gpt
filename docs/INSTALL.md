@@ -4,7 +4,7 @@ Follow the [简体中文 quick start](../README.md#快速开始安装插件), [�
 
 ## Portable installation (recommended)
 
-You need Windows 10/11 x64 and an installed Codex desktop app. Download [shuangling-gpt-1.8.2-windows-x64.zip](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.2/shuangling-gpt-1.8.2-windows-x64.zip) from the [v1.8.2 Release](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.2). GitHub's automatically generated **Source code** archives do not include the portable runtime.
+You need Windows 10/11 x64 and an installed Codex desktop app. Download [shuangling-gpt-1.8.3-windows-x64.zip](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.3/shuangling-gpt-1.8.3-windows-x64.zip) from the [v1.8.3 Release](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.3). GitHub's automatically generated **Source code** archives do not include the portable runtime.
 
 1. Extract the entire ZIP to a permanent folder writable by your Windows user. Do not run it inside the archive.
 2. Double-click root **`安装Codex插件.vbs`**, then check that **霜铃 GPT** is enabled in Codex.
@@ -25,7 +25,7 @@ The script refuses an existing `node_modules` directory instead of replacing an 
 
 ## Move / upgrade
 
-Do not run two installations at once. Exit the pet normally, retain a private backup of your original `windows/data`, and keep backups outside Git. Run the installer from the final intended directory to regenerate paths and the per-user observer task. The installer verifies marketplace ownership before migration and attempts rollback on a partially committed failure; it will not silently enable an explicitly disabled existing plugin. Do not publish credentials, logs, local data or path manifests. The public package does not contain another user's settings or authentication.
+Do not run two installations at once. Exit the pet normally and close every Codex window. Extract the new package to a new folder, retain a private backup of your original `windows/data` outside Git, then copy that data directory into the new folder as `windows/data` before running the installer. This carries forward existing persisted preferences; version 1.8.3 also persists the usage chat you select. Run the installer from the final intended directory to regenerate paths and the per-user observer task, then reopen Codex. The installer verifies marketplace ownership before migration and attempts rollback on a partially committed failure; it will not silently enable an explicitly disabled existing plugin. Do not publish credentials, logs, local data or path manifests. The public package does not contain another user's settings or authentication.
 
 ## Disable / uninstall
 

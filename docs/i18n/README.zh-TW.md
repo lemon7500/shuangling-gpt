@@ -4,7 +4,7 @@
 
 陪伴你使用 Codex 的銀髮 Q 版龍女桌寵。霜鈴顯示在 Windows 桌面上，跟隨本機 Codex 的工作狀態，並透過小型控制面板提供動作、聊天用量與帳戶額度資訊。
 
-**版本：**1.8.2 · **平台：**Windows x64 · **整合方式：**本機 Codex 外掛程式 + MCP
+**版本：**1.8.3 · **平台：**Windows x64 · **整合方式：**本機 Codex 外掛程式 + MCP
 
 ## 效果預覽
 
@@ -40,7 +40,8 @@
 - 霜白淡紫右鍵控制面板，包含**總覽、動作、設定**三頁。
 - 開啟 Codex 主視窗後自動啟動；所有主視窗關閉持續三秒後退出。
 - 彙整目前本機 Codex 工作階段中已觀測的根聊天狀態。
-- 顯示用量區所選聊天的剩餘上下文與累計 token。
+- 顯示用量區所選聊天的剩餘上下文與累計 token，重新啟動後記住所選聊天。
+- 簡體、繁體中文與英語涵蓋面板、系統匣、懸浮名稱及錯誤提示，重新啟動後保留語言選擇。
 - 獨立讀取目前登入帳戶的共用額度，不受聊天選擇影響。
 - 無須 API Key，不發起額外模型請求。
 
@@ -48,7 +49,7 @@
 
 需要 **Windows 10/11 x64 與已安裝的 Codex 桌面應用程式**。免安裝包包含 Node、Electron、已建置的桌寵宿主、視窗觀察器及執行依賴，不必安裝 Node/npm 或自行編譯。目前採用本機外掛程式安裝，並非官方商店項目；不支援 macOS、Linux 或 Windows ARM。
 
-1. 下載 **[Windows x64 免安裝包](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.2/shuangling-gpt-1.8.2-windows-x64.zip)**（`shuangling-gpt-1.8.2-windows-x64.zip`）。[查看 Release 與附件](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.2)。GitHub 的 **Source code** 壓縮檔不是免安裝包。
+1. 下載 **[Windows x64 免安裝包](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.3/shuangling-gpt-1.8.3-windows-x64.zip)**（`shuangling-gpt-1.8.3-windows-x64.zip`）。[查看 Release 與附件](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.3)。GitHub 的 **Source code** 壓縮檔不是免安裝包。
 2. **完整解壓縮**至固定、目前使用者可寫入的資料夾。不要直接在 ZIP 中執行；路徑可包含中文或空格，安裝後請保留此目錄。
 3. 按兩下解壓後根目錄的 **`安装Codex插件.vbs`**，再確認 Codex 外掛程式清單中的 **霜铃 GPT** 已啟用。安裝範圍為目前 Windows 使用者，不需管理員身分；若本機原則阻止登錄登入工作，仍可手動啟動霜鈴。
 4. **完整關閉所有 Codex 視窗後重新開啟**，無須傳送訊息或呼叫外掛程式工具。按右鍵開啟霜鈴面板，在**總覽**選擇本機聊天，並於**設定**調整**隨 Codex 自動啟動**。

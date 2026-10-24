@@ -4,7 +4,7 @@
   <p>陪你思考、等你回答，也陪你安静工作。</p>
   <p>Windows 桌宠 × Codex 本地插件 × 任务与用量面板</p>
   <p><a href="README.md">简体中文</a> · <a href="docs/i18n/README.zh-TW.md">繁體中文</a> · <a href="docs/i18n/README.en.md">English</a></p>
-  <p><img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-8B73A6" /> <img alt="Version 1.8.2" src="https://img.shields.io/badge/version-1.8.2-8B73A6" /> <a href="LICENSE"><img alt="Code license MIT" src="https://img.shields.io/badge/code-MIT-8B73A6" /></a> <a href="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml"><img alt="Windows source check" src="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml/badge.svg" /></a></p>
+  <p><img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-8B73A6" /> <img alt="Version 1.8.3" src="https://img.shields.io/badge/version-1.8.3-8B73A6" /> <a href="LICENSE"><img alt="Code license MIT" src="https://img.shields.io/badge/code-MIT-8B73A6" /></a> <a href="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml"><img alt="Windows source check" src="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml/badge.svg" /></a></p>
 </div>
 
 霜铃是一只银白卷发、淡紫双翼的 Q 版龙女桌宠。她通过本地 Codex 插件跟随整个应用的任务状态，提供九种动画、拖拽与抛出交互，以及霜白淡紫的右键控制卡片。
@@ -48,7 +48,8 @@
 | 九种角色动画 | 常态陪伴、左右小跑、挥手、小跳、收起、等你回答、认真思考、检查工作 |
 | 整个 Codex 的任务联动 | 汇总当前本机 Codex 应用会话中的根聊天；子代理不会提前触发完成 |
 | 独立右键控制卡片 | 总览、动作、设置三页；面板尺寸独立于角色缩放 |
-| 聊天用量 | 按聊天名称选择，查看该聊天最近请求的上下文和累计 token |
+| 聊天用量 | 按聊天名称选择，查看该聊天最近请求的上下文和累计 token；重启后记住所选聊天 |
+| 三语界面 | 简体、繁体和英语覆盖面板、托盘、悬浮名称与错误提示；重启后保留语言选择 |
 | 当前账号额度 | 独立读取当前登录账号；切换用量聊天不会改变账户余额 |
 | 随 Codex 自动启停 | 打开首个主窗口启动，全部主窗口关闭三秒后退出 |
 | 桌面交互 | 拖拽、抛出反弹、边缘停靠、大小与位置调整、透明区域点击穿透 |
@@ -58,7 +59,7 @@
 
 **需要 Windows 10/11 x64 和已安装的 Codex 桌面版。** 免安装包已包含 Node、Electron、桌宠宿主、窗口观察器和运行依赖，无需安装 Node/npm 或自行编译。当前通过 GitHub 下载及本地插件安装，不是官方插件商店项目；不支持 macOS、Linux 或 Windows ARM。
 
-1. 下载 **[Windows x64 免安装包](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.2/shuangling-gpt-1.8.2-windows-x64.zip)**（`shuangling-gpt-1.8.2-windows-x64.zip`）。[查看 Release 与附件](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.2)。请勿将 GitHub 的 **Source code** 压缩包当作免安装包。
+1. 下载 **[Windows x64 免安装包](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.3/shuangling-gpt-1.8.3-windows-x64.zip)**（`shuangling-gpt-1.8.3-windows-x64.zip`）。[查看 Release 与附件](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.3)。请勿将 GitHub 的 **Source code** 压缩包当作免安装包。
 2. **完整解压**到一个固定、当前用户可写的目录。不要直接在 ZIP 中运行；中文和空格路径均可，安装后请保留此目录。
 3. 双击解压后根目录的 **`安装Codex插件.vbs`**，然后确认 Codex 插件列表中的 **霜铃 GPT** 已启用。安装使用当前 Windows 用户，无需管理员身份；若本机策略阻止登录任务登记，仍可手动启动霜铃。
 4. **完整关闭所有 Codex 窗口并重新打开，无需发消息或手动调用工具。** 右键霜铃打开「总览」，在用量区选择本机聊天；在「设置」调整「随 Codex 自动启动」。

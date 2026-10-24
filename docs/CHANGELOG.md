@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Complete language switching for the native tray, default hover/accessibility name, window title and configuration error banner. Custom pet names are preserved.
+- Add real-renderer checks for three languages at 100/150/200% panel scaling, narrow/desktop advanced settings, full-process language persistence and native animation playback.
+
 ## 1.8.2 — Windows portable package and interface languages
 
 - Add a Windows x64 portable package with bundled Node/Electron, production dependencies, compiled desktop host and window observer; no source compilation is needed for package users.

@@ -10,6 +10,9 @@ const S = window.PetShared;
 
 const params = new URLSearchParams(location.search);
 const SHUANGLING_PROFILE = params.get('shuangling') === '1';
+function nativePetName(value) {
+  return SHUANGLING_PROFILE && window.shuanglingI18n ? window.shuanglingI18n.petName(value) : value;
+}
 const CONFIG = {
   configUrl: params.get('configUrl') || 'http://127.0.0.1:3080/dsh-pet-7340/config',
   scale: Number(params.get('scale') || '1'),
@@ -174,6 +177,24 @@ let balanceNoticeKey = null; // 上次已提示的不可用原因（reason:provi
 let workTick = 0; // 工作状态联动 tick：容器 1s 轮询 /state 的 sections.workStatus，counter 变化才递增（各启用宠物以此触发）
 let bootTimer = null;
 let loopsStarted = false;
+
+function applyNativeLanguage(value) {
+  const locale = window.shuanglingI18n;
+  if (!SHUANGLING_PROFILE || !locale?.languages.includes(value)) return;
+  locale.setLanguage(value);
+  document.documentElement.lang = value;
+  document.title = locale.t('霜铃 GPT · 桌面伙伴');
+  for (const sprite of sprites) {
+    sprite.hit?.setAttribute('aria-label', nativePetName(sprite.pet.name));
+    if (sprite.tipOn) sprite.renderTip();
+  }
+  if (errorEl.classList.contains('visible')) errorEl.textContent = locale.t('桌宠配置暂时不可用，正在重试。');
+}
+if (SHUANGLING_PROFILE) {
+  applyNativeLanguage(window.shuanglingI18n?.normalizeLanguage(params.get('language')) || 'zh-CN');
+  const stopLanguage = window.petBridge?.onLanguage?.(applyNativeLanguage);
+  window.addEventListener('beforeunload', () => stopLanguage?.(), { once: true });
+}
 
 // ---------- 调试钩子（冒烟自检/排障用；真实运行也可排查错误/配置/气泡） ----------
 window.__dshPetDebug = {

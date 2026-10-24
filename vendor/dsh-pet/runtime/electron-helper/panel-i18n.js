@@ -5,6 +5,8 @@
     ['霜铃 GPT', '霜鈴 GPT', 'Shuangling GPT'],
     ['霜铃 GPT · 控制面板', '霜鈴 GPT · 控制面板', 'Shuangling GPT · Control panel'],
     ['霜铃 GPT 控制面板', '霜鈴 GPT 控制面板', 'Shuangling GPT control panel'],
+    ['霜铃 GPT · 桌面伙伴', '霜鈴 GPT · 桌面夥伴', 'Shuangling GPT · Desktop companion'],
+    ['桌宠配置暂时不可用，正在重试。', '桌寵設定暫時無法使用，正在重試。', 'Pet settings are temporarily unavailable. Retrying.'],
     ['正在连接…', '正在連線…', 'Connecting…'],
     ['关闭面板', '關閉面板', 'Close panel'],
     ['关闭面板 · Esc', '關閉面板 · Esc', 'Close panel · Esc'],
@@ -85,6 +87,7 @@
   const api = Object.freeze({ languages, dictionaries, normalizeLanguage,
     getLanguage: () => language,
     setLanguage(value) { language = normalizeLanguage(value); return language; },
+    petName(value) { return ['霜铃 GPT', '霜鈴 GPT', 'Shuangling GPT'].includes(value) ? api.t('霜铃 GPT') : value; },
     t(key, values = {}) { return (dictionaries[language][key] ?? key).replace(/\{(\w+)\}/g, (match, name) => Object.hasOwn(values, name) ? String(values[name]) : match); },
   });
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

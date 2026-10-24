@@ -48,7 +48,7 @@ try {
 const { app, BrowserWindow, ipcMain, screen, shell, protocol, Tray, Menu, nativeImage } = electronApi;
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
-const { readFileSync, writeFileSync } = require('node:fs');
+const { readFileSync, writeFileSync, watchFile, unwatchFile } = require('node:fs');
 const fsPromises = require('node:fs/promises');
 const { createAssetResponse } = require('./asset-response.js');
 // 点击穿透兜底通道的纯判定（不依赖 Electron 的 forward 鼠标钩子；见文件头注释）
@@ -68,6 +68,7 @@ const { shouldLinearize, resolveForcedScale, resolvePetScale } = require('./dpi-
 const { trayPlatform } = require('./tray-platform.js');
 const { buildDeskGeometry } = require('./desktop-geometry.js');
 const { createPanelController } = require('./panel-main.cjs');
+const nativeI18n = require('./panel-i18n.js');
 
 // 允许无用户手势直接播放（余额动画等）
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
@@ -298,6 +299,36 @@ if (BRIDGE) {
 const windows = new Map();
 let shuanglingPanel = null;
 
+// The main process reads only the fixed language enum from the launcher's data
+// directory. Neither the preference path nor manager credentials reach a page.
+const nativeLanguageProfile = process.env.SHUANGLING_PROFILE === '1';
+const nativePreferenceFile = nativeLanguageProfile && path.isAbsolute(process.env.SHUANGLING_MANAGER_STATE || '')
+  ? path.join(path.dirname(process.env.SHUANGLING_MANAGER_STATE), 'plugin-config.json') : null;
+let nativeLanguage = 'zh-CN';
+let nativeLanguageWatching = false;
+function readNativeLanguage() {
+  if (!nativePreferenceFile) return nativeLanguage;
+  try { return nativeI18n.normalizeLanguage(JSON.parse(readFileSync(nativePreferenceFile, 'utf8')).language); }
+  catch { return nativeLanguage; }
+}
+function refreshNativeLanguage() {
+  const next = readNativeLanguage();
+  if (next === nativeLanguage) return;
+  nativeLanguage = next; nativeI18n.setLanguage(next);
+  refreshNativeTray();
+  for (const win of windows.values()) if (!win.isDestroyed()) win.webContents.send('pet:language', next);
+}
+function watchNativeLanguage() {
+  if (!nativePreferenceFile || nativeLanguageWatching) return;
+  nativeLanguage = readNativeLanguage(); nativeI18n.setLanguage(nativeLanguage);
+  watchFile(nativePreferenceFile, { persistent: false, interval: 1000 }, refreshNativeLanguage);
+  nativeLanguageWatching = true;
+}
+function unwatchNativeLanguage() {
+  if (nativeLanguageWatching) unwatchFile(nativePreferenceFile, refreshNativeLanguage);
+  nativeLanguageWatching = false;
+}
+
 /** win.id -> 上一次**请求**的内容区矩形（"x,y,w,h"）：pet:set-bounds 的去重基准，见那里的注释 */
 const lastRequestedBounds = new Map();
 
@@ -474,6 +505,8 @@ function createPetWindows() {
     // webPreferences.zoomFactor 对 show:false 的窗口不生效（实测），须在加载完成后设置。
     win.webContents.on('did-finish-load', () => {
       win.webContents.setZoomFactor(scale);
+      // Reconcile a preference change that arrived while the page was loading.
+      if (nativeLanguageProfile) win.webContents.send('pet:language', nativeLanguage);
     });
     // 默认整窗点击穿透（renderer 在光标进/出身体命中区时经 IPC 翻转可交互）；
     // forward:true 保证穿透期间 mousemove 仍转发进渲染端做命中判定。
@@ -557,6 +590,7 @@ function createPetWindows() {
           configUrl,
           bridge: BRIDGE ? '1' : '0',
           shuangling: process.env.SHUANGLING_PROFILE === '1' ? '1' : '0',
+          language: nativeLanguage,
           // 工具项「打开网站」的文案按宿主形态自动变（见 sprite.js）：desktop=唤起桌面应用 / site=打开站点
           openTarget: OPEN_TARGET,
           scale: String(scale),
@@ -720,6 +754,17 @@ const toggleDisplay = (display) =>
   display === 'both' ? 'web' : display === 'web' ? 'both' : display === 'desktop' ? 'none' : 'desktop';
 
 let tray = null;
+let trayPets = [];
+
+function refreshNativeTray() {
+  if (!tray || tray.isDestroyed()) return;
+  tray.setToolTip(nativeLanguageProfile ? nativeI18n.t('霜铃 GPT') : '霜铃 GPT');
+  tray.setContextMenu(Menu.buildFromTemplate(trayPets.map(pet => ({
+    label: nativeLanguageProfile ? nativeI18n.petName(pet.name || pet.id) : pet.name || pet.id,
+    type: 'checkbox', checked: isDesktopDisplay(pet.display),
+    click: () => traySetPetDisplay(pet.id, toggleDisplay(pet.display)),
+  }))));
+}
 
 /** 写回某只宠物的 display：宿主写完配置会重启本进程，响应可能永远不回（同 sprite.js 的 setPetDisplay） */
 function traySetPetDisplay(id, display) {
@@ -769,17 +814,8 @@ async function startTray() {
       .filter((pet) => pet.id);
     if (!pets.length) return; // 配置里没有任何宠物：没有可切换的对象，不建托盘
     tray = new Tray(trayIcon());
-    tray.setToolTip('霜铃 GPT');
-    tray.setContextMenu(
-      Menu.buildFromTemplate(
-        pets.map((pet) => ({
-          label: pet.name || pet.id,
-          type: 'checkbox',
-          checked: isDesktopDisplay(pet.display),
-          click: () => traySetPetDisplay(pet.id, toggleDisplay(pet.display)),
-        })),
-      ),
-    );
+    trayPets = pets;
+    refreshNativeTray();
     // Windows 上 setContextMenu 只接管右键，左键默认什么都不做（macOS 相反：左键即弹菜单）
     if (TRAY_PLATFORM.leftClickPopsMenu) tray.on('click', () => tray.popUpContextMenu());
   } catch (e) {
@@ -824,6 +860,7 @@ app.whenReady().then(() => {
   if (TRAY_PLATFORM.hideDock && app.dock) app.dock.hide();
 
   // 托盘：不 await（建窗与建托盘互不依赖），内部自己等 bridge 回调服务就绪
+  watchNativeLanguage();
   void startTray();
 
   createPetWindows();
@@ -1330,6 +1367,7 @@ app.whenReady().then(() => {
 // 注意宿主改 display 时是 SIGTERM/SIGKILL 硬杀（helper-process.ts），Windows 上那是
 // TerminateProcess、拦不到，所以这条只覆盖优雅退出（窗口全关、宿主存活探测判定退出等）。
 app.on('before-quit', () => {
+  unwatchNativeLanguage();
   shuanglingPanel?.destroy();
   shuanglingPanel = null;
   if (!tray) return;

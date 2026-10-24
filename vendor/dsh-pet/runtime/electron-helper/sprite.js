@@ -196,7 +196,7 @@ class PetSprite {
     this.hit.style.width = ((S.HIT_BOX.x1 - S.HIT_BOX.x0) / 640) * 100 + '%';
     this.hit.style.height = ((S.HIT_BOX.y1 - S.HIT_BOX.y0) / 360) * 100 + '%';
     // 原先这里挂 title（原生系统提示）：已换成自绘浮层，但无障碍名称不能跟着丢
-    this.hit.setAttribute('aria-label', this.pet.name);
+    this.hit.setAttribute('aria-label', typeof nativePetName === 'function' ? nativePetName(this.pet.name) : this.pet.name);
     this.bubble = document.createElement('div');
     this.bubble.className = 'pet-bubble';
     // 余额气泡可点时：点一下切换展开/收起。内容与显隐都归 renderBubble，这里只做两件事——
@@ -1830,7 +1830,8 @@ class PetSprite {
    * 在这里按当前窗口原点重算一次，贴光标不会漂（sendBounds 每帧会调本函数）。
    */
   renderTip() {
-    if (this.tip.textContent !== this.pet.name) this.tip.textContent = this.pet.name;
+    const name = typeof nativePetName === 'function' ? nativePetName(this.pet.name) : this.pet.name;
+    if (this.tip.textContent !== name) this.tip.textContent = name;
     const cursor = this.tipCursor;
     if (cursor) {
       const winX = this.pos.x - this.margin.l;

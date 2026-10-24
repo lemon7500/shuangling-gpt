@@ -55,6 +55,12 @@ contextBridge.exposeInMainWorld('petBridge', {
   getUsage() { return ipcRenderer.invoke('pet:get-usage'); },
   openPanel(anchor) { return ipcRenderer.invoke('pet:open-panel', { anchor }); },
   closePanel() { ipcRenderer.send('pet:close-panel'); },
+  onLanguage(cb) {
+    if (typeof cb !== 'function') return () => {};
+    const listener = (_event, value) => { if (['zh-CN', 'zh-TW', 'en'].includes(value)) cb(value); };
+    ipcRenderer.on('pet:language', listener);
+    return () => ipcRenderer.removeListener('pet:language', listener);
+  },
   onPanelEvent(cb) {
     const listener = (_event, payload) => cb(payload);
     ipcRenderer.on('pet:panel-event', listener);

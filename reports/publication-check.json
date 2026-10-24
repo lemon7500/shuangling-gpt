@@ -83,5 +83,60 @@
     "realRenderedWavingEndedReceipt": true,
     "isolatedUnboundStartup": true,
     "nativePluginRegistrationCalls": 0
+  },
+  "followUpLanguageAudit": {
+    "languages": [
+      "zh-CN",
+      "zh-TW",
+      "en"
+    ],
+    "status": "unreleased-native-label-fix",
+    "date": "2026-10-24",
+    "nativeRenderer": {
+      "realWavingEndedReceipt": true,
+      "englishErrorBanner": true,
+      "loaded": true,
+      "fullExit": true,
+      "titleAriaAndHover": true,
+      "threeLanguageWatcher": true,
+      "trayCoverage": "focused-tests-only"
+    },
+    "coreTests": {
+      "passed": 230,
+      "failed": 0
+    },
+    "liveDeployment": {
+      "animationsUnchanged": true,
+      "liveInstanceNotRestartedToRetainManualControl": true,
+      "settingsUnchanged": true,
+      "usageSelectionUnchanged": true
+    },
+    "fullProcessRestart": {
+      "languagePreserved": [
+        "zh-CN",
+        "zh-TW",
+        "en"
+      ],
+      "persistentAppearancePauseAutostartAndSuppressionUnchanged": true,
+      "realUserSettingsWrites": 0
+    },
+    "layout": {
+      "advancedSettingsCombinations": 6,
+      "productTextClipped": false,
+      "englishProductTextContainsChinese": false,
+      "longUserNamesUseTitleAndSourceLabel": true,
+      "garbledText": false,
+      "panelScales": [
+        1,
+        1.5,
+        2
+      ],
+      "advancedWidths": [
+        800,
+        360
+      ],
+      "panelCombinations": 27
+    },
+    "existingBehavior": "The explicit usage chat picker stays unchanged during language switching, but returns to the saved default chat after a full process restart."
   }
 }

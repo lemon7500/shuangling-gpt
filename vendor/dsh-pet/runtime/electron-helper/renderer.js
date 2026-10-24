@@ -28,7 +28,8 @@
 function showError(message) {
   console.error('[dsh-pet] ' + message);
   window.__dshPetDebug.configOk = false;
-  errorEl.textContent = 'dsh-pet 配置错误：' + message;
+  errorEl.textContent = SHUANGLING_PROFILE && window.shuanglingI18n
+    ? window.shuanglingI18n.t('桌宠配置暂时不可用，正在重试。') : 'dsh-pet 配置错误：' + message;
   errorEl.classList.add('visible');
 }
 function hideError() {

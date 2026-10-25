@@ -1,7 +1,7 @@
 {
   "version": "1.8.4",
-  "date": "2026-10-24",
-  "sourceCommit": "7d386b5130263ef5488136e1f7675a694f94cf73",
+  "date": "2026-10-25",
+  "sourceCommit": "1f1aebf274859461d79c0f907642b9f6096e41c1",
   "coreTests": {
     "passed": 250,
     "failed": 0
@@ -20,7 +20,7 @@
   "sourceChecks": {
     "passed": true,
     "sourceFiles": 299,
-    "relativeLinks": 65,
+    "relativeLinks": 76,
     "nineAnimationBytesMatchV183": true,
     "mediaIntegrityContract": true,
     "noPrivateDataOrReferences": true,
@@ -134,12 +134,12 @@
   "portableArchive": {
     "version": "1.8.4",
     "name": "shuangling-gpt-1.8.4-windows-x64.zip",
-    "bytes": 298815402,
-    "sha256": "af4e6aa4df3e69fa6d441c7a9ca36bc9a99eb8fdc0780d651de178a145ca9a3a",
-    "manifestSha256": "b92c73564005425904c1d3aaecf26b9235d9873cdf02bb72efbe706b61fb68fe",
+    "bytes": 298819088,
+    "sha256": "ca5a926caff68e1d8abeebd07730ce44bd1ed149b96a71c7bb4cd7b2bb30aa44",
+    "manifestSha256": "cb613725c7dd4850ac27644115820e3ddf0c705c06ed401f949dffeb2ea4c1d9",
     "payloadFilesVerified": 9186,
     "allZipEntryHashesMatch": true,
-    "sourceCommit": "7d386b5130263ef5488136e1f7675a694f94cf73",
+    "sourceCommit": "1f1aebf274859461d79c0f907642b9f6096e41c1",
     "threeLanguageGuidesAndCreditsVerifiedInsideZip": true,
     "doubleClickEntriesPresent": true,
     "noUserData": true
@@ -149,15 +149,45 @@
     "url": "https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.4",
     "releaseId": 422802416,
     "sourceCommit": "7d386b5130263ef5488136e1f7675a694f94cf73",
+    "packageSourceCommit": "1f1aebf274859461d79c0f907642b9f6096e41c1",
     "publicDownloadVerified": true,
     "serverDigestMatchesLocal": true,
     "latestReleaseVerified": true,
     "releaseTagMatchesSource": true,
     "threeLanguageNotesMatchLocalFile": true,
     "attributionPreserved": true,
-    "checkedAt": "2026-10-24T15:18:46.670Z"
+    "checkedAt": "2026-10-25T06:13:44.537Z"
   },
   "currentPetTouchedDuringPublication": false,
   "modelRequests": 0,
-  "newAnimationGenerationRequests": 0
+  "newAnimationGenerationRequests": 0,
+  "runtimeReleaseCommit": "7d386b5130263ef5488136e1f7675a694f94cf73",
+  "runtimeValidationDate": "2026-10-24",
+  "documentationOnlyPackageRefresh": {
+    "date": "2026-10-25",
+    "permissionReply": "非商业用途随意",
+    "originalReferenceArtist": "Bilibili @ZipZipPipe",
+    "artistUrl": "https://space.bilibili.com/4168597",
+    "documentationCommit": "1f1aebf274859461d79c0f907642b9f6096e41c1",
+    "runtimeReleaseCommit": "7d386b5130263ef5488136e1f7675a694f94cf73",
+    "changedPayloadFiles": [
+      "ASSETS.md",
+      "NOTICE.md",
+      "README.md",
+      "UPSTREAM.md",
+      "docs/PORTABLE.md",
+      "docs/i18n/README.en.md",
+      "docs/i18n/README.zh-TW.md",
+      "docs/media/README.md"
+    ],
+    "unchangedPayloadFiles": 9178,
+    "programsRuntimesAnimationsAndDefaultConfigsByteIdentical": true,
+    "codeAndUpstreamLicensesUnchanged": true,
+    "previousArchiveSha256": "af4e6aa4df3e69fa6d441c7a9ca36bc9a99eb8fdc0780d651de178a145ca9a3a",
+    "originalArchivePreservedLocally": true,
+    "existingRuntimeValidationRetainedWithoutRerunningThePet": true,
+    "currentPetTouched": false,
+    "settingsTouched": false,
+    "tagMoved": false
+  }
 }

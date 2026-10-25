@@ -19,6 +19,8 @@
 
 霜铃不发起额外模型请求，不保存或上传对话正文。请勿分享个人 `windows/data`、认证文件或日志。代码采用 [MIT](../LICENSE)，第三方声明见 [NOTICE](../NOTICE.md) 与 [UPSTREAM](../UPSTREAM.md)；美术权利单独见 [ASSETS](../ASSETS.md)。桌宠运行时参考 [PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)；**初始参考图原作者为 B 站 [@ZipZipPipe](https://space.bilibili.com/4168597)**。本项目据此改编 Q 版形象和桌宠动画，署名不代表原作者参与开发或背书。
 
+原作者就本项目的改编、动画制作及 GitHub 免费分享申请回复“非商业用途随意”（由项目维护者提供）。本项目据此在非商业范围内制作和分享，并保留原作者署名；美术不纳入代码 MIT，商用须另行取得相关权利人的许可。见 [完整素材许可说明](../ASSETS.md)。
+
 ## 繁體中文
 
 需要 **Windows 10/11 x64**。Codex 外掛程式與自動啟停需要已安裝的 Codex 桌面版；不支援 macOS、Linux 或 Windows ARM。
@@ -36,6 +38,8 @@
 
 霜鈴不建立額外模型請求，不保存或上傳對話正文。請勿分享個人 `windows/data`、認證檔案或日誌。程式碼採用 [MIT](../LICENSE)，第三方聲明見 [NOTICE](../NOTICE.md) 與 [UPSTREAM](../UPSTREAM.md)；美術權利另見 [ASSETS](../ASSETS.md)。桌寵執行環境參考 [PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)；**初始參考圖原作者為 B 站 [@ZipZipPipe](https://space.bilibili.com/4168597)**。本專案據此改編 Q 版形象與桌寵動畫，署名不代表原作者參與開發或背書。
 
+原作者就本專案的改編、動畫製作及 GitHub 免費分享申請回覆「非商业用途随意」（由專案維護者提供，保留簡體原文）。本專案據此在非商業範圍內製作與分享，並保留原作者署名；美術不納入程式碼 MIT，商用須另行取得相關權利人的許可。見 [完整素材許可說明](../ASSETS.md)。
+
 ## English
 
 Requires **Windows 10/11 x64**. The Codex plugin and automatic lifecycle need the Codex desktop app installed. macOS, Linux and Windows ARM are not supported.
@@ -52,5 +56,7 @@ In 1.8.4, Windows Task Scheduler independently hosts the window observer. Openin
 Choose **简体中文 / 繁體中文 / English** in panel Settings or advanced settings. These languages cover the panel, system tray, hover name and error banner. The language and selected usage chat are remembered after restart; account limits remain independent of chat selection. Keep the extracted folder in place. To upgrade, exit Shuangling normally and close all Codex windows, extract the new package to a new folder, privately back up the original `windows/data`, then copy it into the new folder as `windows/data` before running the installer from that new location and reopening Codex. Do not run both installations at once. The included MCP template is disabled until the installer generates your local paths.
 
 Shuangling makes no additional model requests and does not save or upload conversation bodies. Do not share personal `windows/data`, authentication files or logs. Code uses [MIT](../LICENSE); see [NOTICE](../NOTICE.md) and [UPSTREAM](../UPSTREAM.md) for third-party notices and [ASSETS](../ASSETS.md) for separate artwork rights. The desktop runtime builds on [PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet). **Bilibili [@ZipZipPipe](https://space.bilibili.com/4168597) is the original author of the initial reference image.** This project adapted that reference into Shuangling's chibi design and desktop animations; attribution does not imply participation or endorsement.
+
+In response to the project's request for adaptation, animation production and free GitHub sharing, the artist replied “非商业用途随意,” according to the reply supplied by the maintainer (translation: “You may use it freely for non-commercial purposes.”). The project relies on this reply for non-commercial creation and sharing with continued attribution. Artwork is excluded from the code's MIT grant; commercial use requires separate permission from the relevant rights holders. See the [full artwork notice](../ASSETS.md).
 
 [完整说明 / Full documentation](../README.md) · [安装、迁移与卸载 / Installation](INSTALL.md)

@@ -6,6 +6,8 @@ A silver-haired chibi dragon companion for Codex on Windows. Shuangling lives on
 
 **Version:** 1.8.4 · **Platform:** Windows x64 · **Integration:** local Codex plugin + MCP
 
+**Character guide:** [Record Keeper of the Frostrealm Library](CHARACTER.en.md) · [简体中文](../CHARACTER.md) · [繁體中文](CHARACTER.zh-TW.md). The backstory and nine animation guides are references for future creative work; current features and animation clips are unchanged.
+
 ## Preview
 
 ### Animation demo

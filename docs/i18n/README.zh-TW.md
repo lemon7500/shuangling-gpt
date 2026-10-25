@@ -6,6 +6,8 @@
 
 **版本：**1.8.4 · **平台：**Windows x64 · **整合方式：**本機 Codex 外掛程式 + MCP
 
+**角色設定：**[霜境書庫的記錄者](CHARACTER.zh-TW.md) · [简体中文](../CHARACTER.md) · [English](CHARACTER.en.md)。背景故事與九種動作準則供後續創作參考，目前功能與動畫維持原樣。
+
 ## 效果預覽
 
 ### 動畫展示

@@ -7,6 +7,8 @@
 /reports/*
 !/reports/windows-assets.json
 !/reports/windows-action-frames-v179.json
+!/reports/windows-action-frames-v190.json
+!/reports/windows-frost-bounds-v190.json
 !/reports/publication-check.json
 /vendor/dsh-pet/lib/
 /vendor/dsh-pet/.cache/
@@ -29,3 +31,12 @@ Thumbs.db
 # Local preparation cache and historical generation-only checks
 /.setup-cache/
 /tests/bridge/*assets.test.mjs
+.gstack/
+
+# Local OS artefacts and machine-specific native acceptance drivers
+NUL
+**/__pycache__/
+*.py[cod]
+/tools/verify-native-surface-cadence.mjs
+/tools/verify-jump-handoff.mjs
+/tools/verify-lifecycle-native-chain.mjs

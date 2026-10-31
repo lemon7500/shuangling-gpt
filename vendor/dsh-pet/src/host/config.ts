@@ -36,6 +36,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { SHUANGLING_AMBIENT_ACTIONS, withAmbientAnimations } from './ambient-animations.js';
 
 /** 位置角落白名单 */
 const CORNERS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const;
@@ -587,6 +588,10 @@ export function readAllConfig(paths: ConfigPaths): Record<string, Record<string,
     warnOnce('file:' + userFile, '用户主配置解析失败，已按无用户配置处理：' + userFile);
   }
   out.main = mergeEntry(base, mainOverlay, 'main-config.jsonc', basePets, seenIds);
+  if (process.env.SHUANGLING_PROFILE === '1') {
+    const available = SHUANGLING_AMBIENT_ACTIONS.filter(name => existsSync(join(dirname(paths.userFile), 'main-animation', 'webm', name + '.webm')));
+    out.main = withAmbientAnimations(out.main, available);
+  }
 
   // 文件宠物条目：pet/<名>-config.json，一个文件一个条目（key = 文件名前缀 = 素材根）。
   // 基座 = 内置默认，但白名单字段（用户级成本/偏好/环境）取**用户层**——「全局默认 + 种类可覆盖」。

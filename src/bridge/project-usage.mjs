@@ -45,14 +45,28 @@ async function filesUnder(root, fsApi, depth = 0) {
   return out.flat();
 }
 
-async function firstMetadata(path, fsApi) {
+async function firstMetadata(path, fsApi, size) {
   const file = await fsApi.open(path, 'r');
   try {
     const buffer = Buffer.alloc(256 * 1024);
     const { bytesRead } = await file.read(buffer, 0, buffer.length, 0);
     const text = buffer.subarray(0, bytesRead).toString('utf8');
     const end = text.indexOf('\n');
-    return end < 0 ? null : metadataFrom(JSON.parse(text.slice(0, end)));
+    if (end >= 0) {
+      const metadata = metadataFrom(JSON.parse(text.slice(0, end)));
+      return { metadata, headerOnly: false, headerPending: !metadata };
+    }
+    if (!bytesRead) return { metadata: null, headerOnly: false, headerPending: false };
+    // A complete header at EOF is trustworthy even before its newline is
+    // appended. It proves identity, not that any task has begun. Do not parse
+    // beyond the same bounded first-header buffer or retain its raw contents.
+    if (bytesRead === size) {
+      try {
+        const metadata = metadataFrom(JSON.parse(text));
+        if (metadata) return { metadata, headerOnly: true, headerPending: false };
+      } catch { /* An unfinished first line is temporary discovery uncertainty. */ }
+    }
+    return { metadata: null, headerOnly: false, headerPending: true };
   } finally { await file.close(); }
 }
 
@@ -67,6 +81,7 @@ export class ProjectUsageReader {
     this.index = new Map();
     this.indexAt = -Infinity;
     this.indexProblem = null;
+    this.pendingHeaders = [];
     this.metadataCache = new Map();
     this.readers = new Map();
     this.pending = Promise.resolve();
@@ -75,6 +90,7 @@ export class ProjectUsageReader {
   async refreshIndex() {
     if (this.now() - this.indexAt < this.indexMaxAgeMs) return;
     const next = new Map();
+    const pendingHeaders = [];
     let problem = null;
     const allPaths = [];
     for (const directory of ['sessions', 'archived_sessions']) {
@@ -91,11 +107,15 @@ export class ProjectUsageReader {
           const stat = await this.fs.stat(path);
           const signature = `${stat.dev}:${stat.ino}:${stat.birthtimeMs}:${stat.size}:${stat.mtimeMs}`;
           let cached = this.metadataCache.get(path);
-          if (!cached || cached.signature !== signature) {
-            cached = { signature, metadata: await firstMetadata(path, this.fs) };
+          // Negative metadata is not an immutable cache hit: a half-written
+          // header can be repaired without a distinguishable timestamp/size.
+          if (!cached || cached.signature !== signature || !cached.metadata) {
+            cached = { signature, ...await firstMetadata(path, this.fs, stat.size) };
             this.metadataCache.set(path, cached);
           }
-          return cached.metadata ? { path, metadata: cached.metadata, mtimeMs: stat.mtimeMs, size: stat.size } : null;
+          if (cached.headerPending) pendingHeaders.push({ path, mtimeMs: stat.mtimeMs, reason: 'session-header-pending' });
+          return cached.metadata ? { path, metadata: cached.metadata, mtimeMs: stat.mtimeMs, size: stat.size,
+            ...(cached.headerOnly ? { headerOnly: true } : {}) } : null;
         } catch (error) {
           if (error?.code !== 'ENOENT') problem ??= ['EACCES', 'EPERM'].includes(error?.code) ? 'log-permission-denied' : 'log-format-incompatible';
           return null;
@@ -108,6 +128,7 @@ export class ProjectUsageReader {
       }
     }
     this.index = next;
+    this.pendingHeaders = pendingHeaders;
     this.indexProblem = problem;
     this.indexAt = this.now();
   }

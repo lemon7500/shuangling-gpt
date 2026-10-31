@@ -12,6 +12,8 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as animationContract from '../windows/outline-contract.mjs';
+import { validatePackagedAnimationInventory } from './portable-media-inventory.mjs';
 
 const run = promisify(execFile);
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -20,6 +22,9 @@ const slash = value => value.split(sep).join('/');
 const json = async file => JSON.parse(await readFile(file, 'utf8'));
 const exists = async file => { try { await access(file); return true; } catch { return false; } };
 const packageInfo = await json(join(root, 'package.json'));
+const mediaInfo = await json(join(root, 'reports/windows-assets.json'));
+if (!/^reports\/windows-action-frames(?:-v\d{3,6})?\.json$/.test(mediaInfo.motionManifest ?? '')) throw new Error('Invalid accepted motion manifest');
+const { names: animationNames } = validatePackagedAnimationInventory(mediaInfo, animationContract);
 const args = process.argv.slice(2);
 const allowedFlags = new Set(['--runtime-source', '--stage-only', '--finalize', '--plan']);
 for (let i = 0; i < args.length; i++) {
@@ -46,15 +51,14 @@ const fixedFiles = [
   'windows/animation-timing.json', 'windows/hd-geometry.json',
   'windows/启动霜铃.vbs', 'windows/霜铃设置.vbs', 'windows/退出霜铃.vbs',
   'windows/lifecycle/Watcher.cs', 'windows/lifecycle/task.mjs', 'windows/lifecycle/ShuanglingCodexWatcher.exe',
-  'reports/windows-assets.json', 'reports/windows-action-frames-v179.json',
+  'reports/windows-assets.json', mediaInfo.motionManifest, 'reports/windows-frost-bounds-v190.json',
   'vendor/dsh-pet/LICENSE', 'vendor/dsh-pet/lib/standalone.js',
   'vendor/dsh-pet/assets/config.jsonc', 'vendor/dsh-pet/assets/logo.png',
   'plugin-marketplace/README.md', 'plugin-marketplace/.agents/plugins/marketplace.json',
   'plugin-marketplace/plugins/shuangling-gpt/.mcp.template.json',
   'plugin-marketplace/plugins/shuangling-gpt/.codex-plugin/plugin.json',
 ];
-const fixedTrees = ['src/bridge', 'src/settings', 'src/plugin', 'src/lifecycle', 'vendor/dsh-pet/runtime/electron-helper'];
-const animationNames = ['idle', 'running-right', 'running-left', 'waving', 'jumping', 'failed', 'waiting', 'running', 'review'];
+const fixedTrees = ['src/bridge', 'src/desk', 'src/settings', 'src/plugin', 'src/lifecycle', 'vendor/dsh-pet/runtime/electron-helper'];
 for (const name of animationNames) fixedFiles.push(`windows/assets/shuangling/${name}.webm`);
 
 function under(base, target) {
@@ -174,7 +178,7 @@ async function verifyMediaAt(directory) {
   const assets = await json(join(directory, 'reports', 'windows-assets.json'));
   const motion = join(directory, assets.motionManifest);
   if (!under(directory, motion) || await hash(motion) !== assets.motionManifestSha256) throw new Error('Media manifest binding mismatch');
-  if (assets.animations.length !== animationNames.length) throw new Error('Expected exactly nine animation assets');
+  if (assets.animations.length !== animationNames.length) throw new Error('Accepted animation inventory differs from the source');
   for (const name of animationNames) {
     const rows = assets.animations.filter(row => row.name === name);
     if (rows.length !== 1 || await hash(join(directory, 'windows', 'assets', 'shuangling', `${name}.webm`)) !== rows[0].webmSha256) throw new Error(`Media identity mismatch: ${name}`);

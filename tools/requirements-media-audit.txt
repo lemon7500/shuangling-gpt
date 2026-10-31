@@ -1,0 +1,5 @@
+# Optional offline developer audits only; not pet runtime dependencies.
+numpy
+Pillow
+# Used by audit-frost-large-only.py, not required by the older matte audit.
+opencv-python

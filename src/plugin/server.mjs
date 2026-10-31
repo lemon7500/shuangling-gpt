@@ -23,7 +23,7 @@ function requestStartup() {
 async function handle(message) {
   if (message.method === 'initialize') {
     requestStartup();
-    reply(message.id, { protocolVersion: message.params?.protocolVersion || '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'shuangling-gpt', version: '1.8.4' } });
+    reply(message.id, { protocolVersion: message.params?.protocolVersion || '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'shuangling-gpt', version: '1.9.0' } });
     return;
   }
   if (message.method === 'notifications/initialized') {

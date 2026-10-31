@@ -124,6 +124,70 @@ function fakeNative({ request } = {}) {
   return { controller, owner, ipc, requests, windows };
 }
 
+test('failed manager controls preserve the existing local animation handoff', async () => {
+  for (const type of ['pause', 'resume', 'quit']) {
+    const f = fakeNative({ request(route, body) {
+      if (body && ['/api/settings', '/api/shutdown'].includes(route)) throw Error('offline');
+    } });
+    await f.controller.open(f.owner);
+    const panel = f.controller.window;
+    const result = await f.ipc.handlers.get('shuangling-panel:command')({ sender: panel.webContents, senderFrame: panel.webContents.mainFrame }, { type });
+    assert.equal(result.ok, false, type);
+    assert.equal(f.owner.sent.filter(row => row.value.kind === 'command').length, 0, `${type} must not cancel a local animation handoff after a failed manager write`);
+    assert.equal(f.controller.window, panel);
+    f.controller.destroy();
+  }
+});
+
+test('manager controls reach the pet only after their write succeeds', async () => {
+  for (const type of ['pause', 'resume', 'quit']) {
+    let release;
+    const pending = new Promise(resolve => { release = resolve; });
+    const f = fakeNative({ request(route, body) {
+      if (body && ['/api/settings', '/api/shutdown'].includes(route)) return pending;
+    } });
+    await f.controller.open(f.owner);
+    const panel = f.controller.window;
+    const task = f.ipc.handlers.get('shuangling-panel:command')({ sender: panel.webContents, senderFrame: panel.webContents.mainFrame }, { type });
+    await Promise.resolve();
+    assert.equal(f.owner.sent.filter(row => row.value.kind === 'command').length, 0, `${type} is still pending`);
+    release({ ok: true });
+    assert.equal((await task).ok, true);
+    assert.equal(f.owner.sent.filter(row => row.value.kind === 'command').length, 1);
+    f.controller.destroy();
+  }
+});
+
+test('late controls, appearance and optional actions cannot affect a newer card', async () => {
+  const cases = [
+    { value: { type: 'pause' }, route: '/api/settings', reply: {} },
+    { value: { type: 'resume' }, route: '/api/settings', reply: {} },
+    { value: { type: 'quit' }, route: '/api/shutdown', reply: {} },
+    { value: { type: 'appearance', size: 480, corner: 'bottom-left', marginX: 20, marginY: 12 }, route: '/api/appearance', reply: { size: 480, position: { corner: 'bottom-left', marginX: 20, marginY: 12 } } },
+    { value: { type: 'animation', name: 'reading' }, route: '/api/state', reply: { availableAnimations: ['reading'] } },
+  ];
+  for (const row of cases) {
+    let defer = false, release;
+    const pending = new Promise(resolve => { release = resolve; });
+    const f = fakeNative({ request(route) { if (defer && route === row.route) return pending; } });
+    await f.controller.open(f.owner);
+    const old = f.controller.window;
+    defer = true;
+    const task = f.ipc.handlers.get('shuangling-panel:command')({ sender: old.webContents, senderFrame: old.webContents.mainFrame }, row.value);
+    await Promise.resolve();
+    defer = false;
+    f.controller.close();
+    await f.controller.open(f.owner);
+    const next = f.controller.window;
+    const mark = f.owner.sent.length;
+    release(row.reply);
+    await task;
+    assert.equal(f.controller.window, next, row.value.type);
+    assert.equal(f.owner.sent.length, mark, `${row.value.type} sent an expired local event`);
+    f.controller.destroy();
+  }
+});
+
 test('failed selected-chat reads keep successful shared quotas and the rest of the panel connected', async () => {
   const f = fakeNative({ request(route) {
     if (route === '/api/usage') throw Error('selected-chat-timeout');
@@ -218,7 +282,7 @@ function spritePrototype() {
 test('info-only close settles only its own interaction, never a pre-existing manual handoff', () => {
   const p = spritePrototype();
   for (const preexisting of [false, true]) {
-    const sprite = { nativePanelSession: 1, nativePanelInteraction: preexisting ? null : 'panel-info', interaction: { id: preexisting ? 'old-manual' : 'panel-info', kind: preexisting ? 'click' : 'info', phase: 'blocked' }, syncInputBusy() {}, inputBusy: () => false, setInteractive() {}, updateInteraction(phase, extra) { this.interaction = { ...this.interaction, phase, ...extra }; } };
+    const sprite = { nativePanelSession: 1, nativePanelInteraction: preexisting ? null : 'panel-info', interaction: { id: preexisting ? 'old-manual' : 'panel-info', kind: preexisting ? 'click' : 'info', phase: 'blocked', resumable: preexisting ? undefined : true }, isFiniteClipPlaying: () => false, syncInputBusy() {}, inputBusy: () => false, setInteractive() {}, updateInteraction(phase, extra) { this.interaction = { ...this.interaction, phase, ...extra }; } };
     p.finishNativePanel.call(sprite);
     assert.equal(sprite.interaction.phase, preexisting ? 'blocked' : 'settled');
     assert.equal(sprite.interaction.resumable, preexisting ? undefined : true);

@@ -92,7 +92,6 @@ function prepare() {
   const petHome = join(dshHome, 'dsh-pet');
   mkdirSync(join(petHome, 'main-animation', 'webm'), { recursive: true });
   if (!existsSync(join(petHome, 'main-config.jsonc'))) copyFileSync(defaultConfig, join(petHome, 'main-config.jsonc'));
-  const names = ['idle', 'running-right', 'running-left', 'waving', 'jumping', 'failed', 'waiting', 'running', 'review'];
   const provenanceRoot = existsSync(join(projectRoot, 'reports', 'windows-assets.json')) ? 'reports' : 'provenance';
   const assets = readJson(join(projectRoot, provenanceRoot, 'windows-assets.json'));
   const motionName = basename(assets?.motionManifest ?? '');
@@ -105,6 +104,7 @@ function prepare() {
   verifyOutlineAssetContract({
     ...outlineContract, assetDirectory: join(here, 'assets', 'shuangling'),
   });
+  const names = assets.animations.map(row => row.name);
   for (const name of names) {
     const source = join(here, 'assets', 'shuangling', `${name}.webm`);
     if (!existsSync(source)) throw new Error(`缺少霜铃动画 ${name}.webm；请先运行素材构建。`);
@@ -228,7 +228,10 @@ async function main() {
     await delay(100);
   }
   const { startBridge } = await import('../src/bridge/index.mjs');
-  bridge = await startBridge({ projectRoot, dataDir, dshHome, threadId: config.defaultThreadId, petId: config.petId, animationMap: config.animationMap, onShutdown: () => void shutdown() });
+  bridge = await startBridge({ projectRoot, dataDir, dshHome, threadId: config.defaultThreadId, petId: config.petId, animationMap: config.animationMap,
+    // A one-run local update may retain takeover without editing saved pause.
+    initialPreempted: process.env.SHUANGLING_KEEP_MANUAL_CONTROL === '1',
+    onShutdown: () => void shutdown() });
   writeIdentity({ settingsUrl: bridge.settingsUrl });
   log('霜铃 GPT 已启动；聊天联动与设置页就绪。');
   if (mode === 'settings') openSettings(bridge.settingsUrl);

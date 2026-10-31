@@ -54,7 +54,8 @@ test('full bridge follows all root chats, keeps usage selection independent and 
   await fs.writeFile(join(dshHome, 'dsh-pet', 'standalone-runtime.json'), JSON.stringify({ port: host.address().port, token }));
   let shutdown = false;
   let account = { fiveHour: { status: 'unknown' }, weekly: { status: 'unknown' } };
-  const accountSource = { async start() {}, async close() {}, snapshot: () => account };
+  let accountClosed = false;
+  const accountSource = { async start() {}, async close() { accountClosed = true; }, snapshot: () => account };
   const bridge = await startBridge({ projectRoot: dir, dataDir, dshHome, threadId: 'root', codexHome, accountSource, onShutdown: async () => { shutdown = true; } });
   t.after(() => bridge.close());
   const settings = new URL(bridge.settingsUrl); const headers = { 'x-shuangling-token': settings.hash.slice(1), 'content-type': 'application/json' };
@@ -135,7 +136,12 @@ test('full bridge follows all root chats, keeps usage selection independent and 
   assert.deepEqual(JSON.parse(stored), { threadId: 'second', paused: true });
   assert.ok(!stored.includes('PRIVATE BODY'));
   assert.equal((await api('settings', { arbitrary: 'PRIVATE BODY' })).code, 400);
+  // A failed timer checkpoint cannot hold the existing pet lifecycle open.
+  assert.equal((await api('desk', { type: 'focus.start', phase: 'focus' })).code, 200);
+  await fs.rename(join(dataDir, 'desk.json'), join(dataDir, 'desk-fixture-saved.json'));
+  await fs.mkdir(join(dataDir, 'desk.json'));
   await api('shutdown', {}); await until(() => shutdown);
+  assert.equal(accountClosed, true);
   await assert.rejects(fs.access(join(dataDir, 'bridge-runtime.json')));
 });
 
@@ -210,18 +216,21 @@ test('startup keeps saved, explicit, default and environment binding precedence 
     { saved: 'saved', threadId: 'explicit', defaultThreadId: 'default', expected: 'saved' },
     { saved: null, threadId: 'explicit', defaultThreadId: 'default', expected: 'explicit' },
     { saved: 'malformed id', defaultThreadId: 'default', expected: 'default' },
-    { expected: 'environment' },
+    { expected: 'environment', initialPreempted: true },
   ];
   for (const [index, entry] of cases.entries()) {
     const dataDir = join(dir, String(index));
     await fs.mkdir(dataDir, { recursive: true });
     if (entry.saved !== undefined) await fs.writeFile(join(dataDir, 'bridge-config.json'), JSON.stringify({ threadId: entry.saved, paused: true }));
     const accountSource = { async start() {}, async close() {}, snapshot: () => null };
-    const bridge = await startBridge({ projectRoot: dir, codexHome: join(dir, 'codex'), dataDir, accountSource, threadId: entry.threadId, defaultThreadId: entry.defaultThreadId });
+    const bridge = await startBridge({ projectRoot: dir, codexHome: join(dir, 'codex'), dataDir, accountSource, threadId: entry.threadId, defaultThreadId: entry.defaultThreadId, initialPreempted: entry.initialPreempted });
     try {
       const settings = new URL(bridge.settingsUrl);
       const response = await fetch(`${settings.origin}/api/state`, { headers: { 'x-shuangling-token': settings.hash.slice(1) } });
-      assert.equal((await response.json()).defaultUsageThreadId, entry.expected);
+      const state = await response.json();
+      assert.equal(state.defaultUsageThreadId, entry.expected);
+      assert.equal(state.control.preempted, entry.initialPreempted === true);
+      assert.equal(state.control.paused, entry.saved !== undefined, 'takeover does not change saved pause');
     } finally { await bridge.close(); }
   }
   let accountStarts = 0;

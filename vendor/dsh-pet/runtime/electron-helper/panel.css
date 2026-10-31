@@ -48,6 +48,7 @@ h2{margin:0;color:#63566f;font-size:11px;line-height:16px;font-weight:600}
 .chat-line span{color:#85758f;font-family:Consolas,monospace}
 .state-hint{border-top:1px solid #e8e0ef;padding-top:7px;margin:8px 0 0;color:#8b769b;font-size:10px;line-height:16px}
 .usage-heading{margin:9px 0 5px}
+.desk-shortcuts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}.desk-shortcuts button{display:flex;align-items:center;justify-content:center;gap:5px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 3px;color:#826b94;font-size:10px}.desk-shortcuts button:hover{background:var(--soft)}.desk-shortcut-icon{display:block;flex:none;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .usage-source{display:flex;align-items:center;gap:7px;margin:0 1px 2px;font-size:10px;line-height:15px;color:#a093aa;min-width:0}
 .usage-source strong{font-weight:500;color:#806791;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .usage-source strong[data-state=unknown]{color:#a093aa}

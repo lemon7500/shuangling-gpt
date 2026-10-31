@@ -71,8 +71,14 @@ class PetSprite {
     this.videoOutlineCssPx = typeof SHUANGLING_PROFILE !== 'undefined' && SHUANGLING_PROFILE ? ShuanglingMotion.outlineCssPx : 0;
     // Capture the host's canonical local asset route once. A later custom base
     // or explicit URL cannot inherit the release artwork's measured alpha ROI.
-    this.videoOutlineAssetBase = this.isShuanglingProfile() && this.assetRoot === ShuanglingMotion.outlineMaskRoi?.assetRoot ? this.assetBase : null;
+    const outlineRoot = this.isShuanglingProfile() ? ShuanglingMotion.outlineMaskRoi?.assetRoot : null;
+    // The standalone host flattens the main-config entry to assetRoot "main"
+    // while preserving this pet's id. It serves the same verified local files.
+    const outlineRootMatches = this.assetRoot === outlineRoot ||
+      (outlineRoot === 'shuangling' && this.assetRoot === 'main' && this.pet.id === 'shuangling' && this.pet.extra !== true);
+    this.videoOutlineAssetBase = this.isShuanglingProfile() && outlineRootMatches ? this.assetBase : null;
     this.pending = null;
+    this.pendingInfoBoundary = null;
     this.idlePreload = null;
     this.gen = 0;
     this.anim = this.animations.idle[0] ?? '';
@@ -180,6 +186,9 @@ class PetSprite {
     stage.className = 'pet-stage';
     stage.style.transform = 'translateY(' + this.bottomPad + 'px)';
     this.stage = stage;
+    this.frost = this.isShuanglingProfile() && typeof ShuanglingFrost !== 'undefined' ? ShuanglingFrost.create(stage) : null;
+    this.handoff = this.isShuanglingProfile() && typeof ShuanglingHandoff !== 'undefined' ? ShuanglingHandoff.create(this) : null;
+    this.dragVisual = typeof ShuanglingDrag !== 'undefined' && typeof ShuanglingMotion !== 'undefined' ? ShuanglingDrag.create(this, ShuanglingMotion) : null;
     this.videoA = document.createElement('video');
     this.videoA.className = 'pet-video is-front';
     this.videoB = document.createElement('video');
@@ -301,6 +310,10 @@ class PetSprite {
   }
 
   dispose() {
+    this.dragVisual?.cancel();
+    this.handoff?.dispose();
+    this.frost?.dispose();
+    this.clearManualAction();
     this.offPanelEvent?.();
     this.cancelIdlePreload();
     this.cancelPendingVideo('superseded');
@@ -333,6 +346,18 @@ class PetSprite {
     this.stopSquash();
     this.stopMove();
     this.el.remove();
+  }
+
+  syncFrostVisibility() {
+    // A held companion may retain complete snowflakes. Once released, keep
+    // the whole return/flight free of frost until the normal pose commits.
+    // Lowering always stays clear, including an interrupted regrab.
+    const dragClips = ['drag-lift', 'drag-hover', 'drag-lower'];
+    const physical = this.dragState?.active || this.dragState?.dragging;
+    const lowering = this.displayedAnim === 'drag-lower' || this.pending?.anim === 'drag-lower';
+    const releasedDrag = !physical && (this.dragVisual?.active?.() ||
+      dragClips.includes(this.displayedAnim) || dragClips.includes(this.pending?.anim));
+    this.frost?.setSuppressed(Boolean(this.throwRef != null || this.throwState || lowering || releasedDrag));
   }
 
   // 目标包围盒左上角（视口相对坐标）→ 移动窗口：窗口 = sprite + 四周外扩余量
@@ -405,6 +430,9 @@ class PetSprite {
   }
 
   beginInteraction(kind, phase, resumable = false) {
+    this.dragVisual?.cancel(kind === 'click' && phase === 'pointer');
+    this.pendingInfoBoundary = null;
+    if (!['menu', 'info'].includes(kind)) this.clearManualAction();
     const startedAt = Math.max(Date.now(), (this.interaction?.startedAt || 0) + 1);
     this.interaction = { id: this.interactionSession + '-' + (++this.interactionSequence), revision: 0, kind, phase, startedAt, endedAt: null, resumable };
     this.reportPose();
@@ -539,7 +567,7 @@ class PetSprite {
     const pending = this.pending;
     if (!pending) return;
     this.pending = null;
-    pending.cancel();
+    pending.cancel(reason);
     if (pending.playbackId && pending.playbackId !== this.playback) {
       this.reportPlayback(pending.playbackId, 'cancelled', reason);
     }
@@ -556,8 +584,8 @@ class PetSprite {
 
   preloadIdleFrame() {
     this.cancelIdlePreload();
-    if (!this.isShuanglingProfile() || !this.videoOutlineAssetBase || this.assetBase !== this.videoOutlineAssetBase) return;
-    const name = this.animations?.idle?.[0];
+    if (!this.isShuanglingProfile() || !this.assetBase) return;
+    const name = this.dragVisual?.preloadName() || this.animations?.idle?.[0];
     const el = this.front === 0 ? this.videoB : this.videoA;
     if (!name || !el || this.pending) return;
     const source = this.assetBase + encodeURIComponent(name) + (S.ANIMATION_EXT || '.webm');
@@ -592,6 +620,7 @@ class PetSprite {
     };
     preload.cancel = () => { cleanup(); if ((this.front === 0 ? this.videoA : this.videoB) !== el) el.pause(); };
     el.pause();
+    el.playbackRate = 1;
     el.onended = null;
     el.onerror = null;
     el.loop = false;
@@ -624,7 +653,9 @@ class PetSprite {
     if (!this.isShuanglingProfile()) return null;
     const roi = ShuanglingMotion.outlineMaskRoi;
     const name = video.petOutlineAssetName;
-    if (!roi || this.assetRoot !== roi.assetRoot || !this.videoOutlineAssetBase || this.assetBase !== this.videoOutlineAssetBase ||
+    const rootMatches = this.assetRoot === roi?.assetRoot ||
+      (roi?.assetRoot === 'shuangling' && this.assetRoot === 'main' && this.pet?.id === 'shuangling' && this.pet.extra !== true);
+    if (!roi || !rootMatches || !this.videoOutlineAssetBase || this.assetBase !== this.videoOutlineAssetBase ||
         video.videoWidth !== roi.canvas[0] || video.videoHeight !== roi.canvas[1] ||
         !Number.isFinite(radius) || radius < 0 || radius + 1 > roi.paddingNativePx ||
         !Object.prototype.hasOwnProperty.call(roi.webmSha256ByAnimation, name) ||
@@ -632,7 +663,7 @@ class PetSprite {
     return roi.sourceRect;
   }
 
-  paintVideoFrame(video, presentedMediaTime) {
+  paintVideoFrame(video, presentedMediaTime, paintedGeneration = video.petPlaybackGeneration ?? this.gen) {
     if (!this.videoSurface) {
       this.videoSurface = document.createElement('canvas');
       this.videoSurface.className = 'pet-video-surface';
@@ -645,6 +676,24 @@ class PetSprite {
     // 单层画布用copy整帧替换，不叠加透明轮廓；drawImage失败时也不先清掉已有画面。
     context.globalCompositeOperation = 'copy';
     context.drawImage(video, 0, 0);
+    const mediaTime = Number.isFinite(presentedMediaTime) ? presentedMediaTime : video.currentTime;
+    // Remove only offline-measured matte specks from this exact native frame.
+    // Clean the painted snapshot before deriving its outline; never sample a
+    // second decoder frame or analyse pixels during interactive playback.
+    if (typeof ShuanglingFrostCleanup !== 'undefined' && this.outlineMaskSourceRect(video, 0)) {
+      const name = video.petOutlineAssetName;
+      const frameCount = Math.round(video.duration * 24);
+      // An ended decoder still shows its final frame while currentTime equals
+      // duration (one past that frame). Correct only this cleanup lookup; the
+      // painted time below remains the real time used by movement and receipts.
+      const cleanupTime = !Number.isFinite(presentedMediaTime) && video.ended === true &&
+        Number.isFinite(video.duration) && frameCount > 0 ? Math.min(mediaTime, (frameCount - 1) / 24) : mediaTime;
+      ShuanglingFrostCleanup.apply(context, name, cleanupTime, {
+        sha256: ShuanglingMotion.outlineMaskRoi.webmSha256ByAnimation[name],
+        width: video.videoWidth, height: video.videoHeight, fps: 24,
+        frameCount,
+      });
+    }
     const lineWidth = Number(this.videoOutlineCssPx) || 0;
     if (lineWidth > 0) {
       // One visible canvas, one synchronous paint transaction. The offscreen
@@ -687,9 +736,14 @@ class PetSprite {
     }
     // Movement consumes only a frame that has actually reached this canvas.
     // currentTime alone can run ahead of decoding or compositor callbacks.
-    const mediaTime = Number.isFinite(presentedMediaTime) ? presentedMediaTime : video.currentTime;
     video.petPaintedMediaTime = Number.isFinite(mediaTime) ? mediaTime : 0;
-    video.petPaintedGeneration = this.gen;
+    video.petPaintedGeneration = paintedGeneration;
+    if (video === (this.front === 0 ? this.videoA : this.videoB)) {
+      this.syncFrostVisibility();
+      this.frost?.onFrame(video.petPaintedMediaTime, video.petPlaybackGeneration);
+      this.handoff?.capture(video, video.petPaintedMediaTime);
+      this.dragVisual?.capture?.(video, video.petPaintedMediaTime);
+    }
   }
 
   startVideoPaint(video) {
@@ -698,8 +752,13 @@ class PetSprite {
     this.videoPaint = paint;
     const draw = (_now, metadata) => {
       if (this.videoPaint !== paint) return;
-      const mediaTime = Number.isFinite(metadata?.mediaTime) ? metadata.mediaTime : video.currentTime;
-      if (video.readyState >= 2 && paint.time !== mediaTime) {
+      const decodedFrame = Number.isFinite(metadata?.mediaTime);
+      const mediaTime = decodedFrame ? metadata.mediaTime : video.currentTime;
+      // At a native loop boundary Chromium can present decoded F0 before
+      // `seeked` restores readyState. Its frame callback already proves the
+      // pixels are drawable; gating it on readyState drops F0 and holds the
+      // previous pose until F1. Keep that guard only for a plain rAF clock.
+      if ((decodedFrame || video.readyState >= 2) && paint.time !== mediaTime) {
         this.paintVideoFrame(video, mediaTime);
         paint.time = mediaTime;
       }
@@ -711,13 +770,40 @@ class PetSprite {
   }
 
   // 后台视频验证可播放后暂停回到F0，再一次换层并启动正式时钟。
-  switchTo(next, nextOnce, playbackId, url) {
+  canContinueRunMove(next, smooth) {
+    return smooth === true && this.isShuanglingProfile() && this.moveRef != null &&
+      ['running-left', 'running-right'].includes(this.displayedAnim) &&
+      !['running-left', 'running-right'].includes(next) &&
+      !['drag-lift', 'drag-hover', 'drag-lower'].includes(next) &&
+      !this.dragState?.active && !this.dragState?.dragging && this.throwRef == null;
+  }
+
+  switchTo(next, nextOnce, playbackId, url, manual = false) {
     if (!next) return;
-    if (this.isShuanglingProfile() && (this.moveRef != null || this.pendingMove) && this.pendingMove?.name !== next) this.stopMove();
+    this.dragVisual?.beforeSwitch(next);
+    const dragPlayback = !playbackId && !url ? this.dragVisual?.playback?.(next) : null;
+    const startTime = dragPlayback?.startTime || 0;
+    // Local release artwork shares measured, pose-safe exits for both manual
+    // choices and authenticated task playback. Arbitrary URLs retain their
+    // upstream semantics and cannot inherit those artwork assumptions.
+    const smooth = dragPlayback?.entry === true || manual || (this.isShuanglingProfile() && !url && typeof ShuanglingHandoff !== 'undefined' &&
+      Object.prototype.hasOwnProperty.call(ShuanglingHandoff.policies, next));
+    const outgoing = this.front === 0 ? this.videoA : this.videoB;
+    // This is a local intent marker, never copied from an external leaf. The
+    // native gate independently rechecks the actual outgoing asset and pose.
+    const nativeTaskReturn = this.isShuanglingProfile() && !url && manual === false && typeof playbackId === 'string' && !!playbackId &&
+      outgoing?.petOutlineAssetName === 'reading' && outgoing.petAnimationSource === this.assetBase + 'reading.webm' &&
+      !this.dragState?.active && !this.dragState?.dragging && this.throwRef == null &&
+      ['idle', 'running', 'review', 'waiting', 'waving', 'jumping', 'failed'].includes(next);
+    if (!smooth) this.handoff?.cancel();
+    this.clearManualAction(true);
+    const preserveRunMovement = this.canContinueRunMove(next, smooth && !url);
+    if (!preserveRunMovement && this.isShuanglingProfile() && (this.moveRef != null || this.pendingMove) && this.pendingMove?.name !== next) this.stopMove();
     const source = url || this.assetBase + encodeURIComponent(next) + (S.ANIMATION_EXT || '.webm');
     const outlineAssetName = url ? null : next;
     const pending = this.pending;
-    if (pending && pending.anim === next && pending.once === nextOnce && pending.source === source) {
+    if (pending && pending.anim === next && pending.once === nextOnce && pending.source === source &&
+        (pending.nativeStartTime || 0) === startTime && (pending.nativeRate || 1) === (dragPlayback?.rate || 1)) {
       if (this.pendingSquash) {
         this.pendingSquash = false;
         this.startSquash(this.front === 0 ? this.videoA : this.videoB);
@@ -728,30 +814,47 @@ class PetSprite {
       // 仍在后台准备，不得提前回 playing；最新请求接管同一次准备的回执。
       pending.playbackId = playbackId || null;
       pending.outlineAssetName = outlineAssetName;
+      pending.manualAction = manual; // The new caller owns the reused preparation.
+      pending.smoothAction = smooth;
+      pending.preserveRunMovement = preserveRunMovement;
+      pending.nativeDragReturn = dragPlayback?.entry === true;
+      pending.nativeTaskReturn = nativeTaskReturn;
+      if (pending.ready) pending.offer?.();
       return;
     }
     this.cancelIdlePreload();
     this.cancelPendingVideo();
     const el = this.front === 0 ? this.videoB : this.videoA;
     if (!el) return;
+    // Media timestamps can be returned rounded to microseconds after seeked.
+    // The tolerance is far below one native frame and never accepts a new pose.
+    const atStart = () => Math.abs(el.currentTime - startTime) <= .0001;
     const gen = ++this.gen;
-    const transaction = { anim: next, once: nextOnce, source, gen, outlineAssetName, playbackId: playbackId || null, cancel: null };
+    const transaction = { anim: next, once: nextOnce, source, gen, outlineAssetName, playbackId: playbackId || null, manualAction: manual, smoothAction: smooth,
+      preserveRunMovement, nativeTaskReturn, nativeDragReturn: dragPlayback?.entry === true, nativeStartTime: startTime, nativeRate: dragPlayback?.rate || 1, cancel: null };
     this.pending = transaction;
     const isCurrent = () => this.pending === transaction && this.gen === gen;
     let loadTimer = null;
     let starting = false;
     let rewinding = false;
+    const needsNativeFrame = Boolean(dragPlayback && dragPlayback.startFrame > 0);
+    let nativeFrame = null, nativeFrameTimer = null, nativeMediaTime = null;
     const cleanup = () => {
       if (loadTimer !== null) window.clearTimeout(loadTimer);
+      if (nativeFrameTimer !== null) window.clearTimeout(nativeFrameTimer);
+      nativeFrameTimer = null;
+      if (nativeFrame !== null) el.cancelVideoFrameCallback?.(nativeFrame);
+      nativeFrame = null;
       el.removeEventListener('loadeddata', onReady);
       el.removeEventListener('canplay', onReady);
       el.removeEventListener('seeked', onReady);
       el.removeEventListener('error', onError);
     };
-    transaction.cancel = () => { cleanup(); el.pause(); };
+    transaction.cancel = (reason) => { cleanup(); el.pause(); if (reason !== 'superseded') this.handoff?.cancel(); };
     const fail = (reason) => {
       if (!isCurrent()) return;
       this.pending = null;
+      this.handoff?.cancel();
       if (this.isShuanglingProfile() && this.pendingMove?.name === next) this.stopMove();
       cleanup();
       el.pause();
@@ -761,17 +864,50 @@ class PetSprite {
       }
       console.warn('[dsh-pet] 素材播放失败 pet=' + this.pet.id + ' anim=' + next + '：' + reason + '（保留原画面）');
       if (transaction.playbackId) this.reportPlayback(transaction.playbackId, 'failed', reason);
+      if (this.dragVisual?.failed(next)) return;
+      // The outgoing decoder can really end while its successor is loading.
+      // If that successor fails, its already-delivered ended event cannot run
+      // again. Resume the normal chain only here, with no newer input owner.
+      const visible = this.front === 0 ? this.videoA : this.videoB;
+      if (!this.pending && !this.frozen && !this.dragState.active && visible?.ended) this.handleEnded();
+    };
+    transaction.failHandoff = fail;
+    const awaitNativeFrame = () => {
+      if (!needsNativeFrame || nativeMediaTime !== null) return true;
+      if (typeof el.requestVideoFrameCallback !== 'function') { fail('frame-verification-unavailable'); return false; }
+      if (nativeFrameTimer === null) nativeFrameTimer = window.setTimeout(() => fail('frame-not-ready'), 750);
+      if (nativeFrame === null) {
+        try {
+          nativeFrame = el.requestVideoFrameCallback((_now, metadata) => {
+            nativeFrame = null;
+            if (!isCurrent()) return;
+            const time = metadata?.mediaTime;
+            if (Number.isFinite(time) && Math.round(time * 24) === dragPlayback.startFrame) nativeMediaTime = time;
+            else awaitNativeFrame(); // A newer paused frame may arrive before seeked.
+            // A paused seek may submit the new frame before seeked is emitted.
+            // Keep its real PTS, but onReady still requires !seeking and the
+            // requested position before allowing this one decoded frame out.
+            onReady();
+          });
+        } catch { fail('frame-verification-unavailable'); return false; }
+      }
+      return false;
     };
     const commit = () => {
       if (!isCurrent()) return;
       cleanup();
       const old = this.front === 0 ? this.videoA : this.videoB;
+      // Forward recovery keeps its genuine gait and movement together until
+      // the pose gate commits. Reverse recovery stops movement itself.
+      if (transaction.preserveRunMovement) this.stopMove();
       // F0 must be decoded and painted while paused. Starting play() before
       // an initial rVFC allowed a busy renderer to skip a one-frame neutral
       // endpoint and commit video time .125/.292 instead. drawImage at a
       // completed seek is the real decoded F0, independent of callback delay.
       el.petOutlineAssetName = transaction.outlineAssetName;
-      try { this.paintVideoFrame(el, 0); }
+      if (this.squashRef != null) this.stopSquash();
+      const paintedStart = needsNativeFrame ? nativeMediaTime : dragPlayback ? el.currentTime : startTime;
+      try { this.paintVideoFrame(el, paintedStart, gen); }
       catch { fail('decode-error'); return; }
       el.style.transform = this.videoFacingTransform();
       this.videoSurface.style.transform = el.style.transform;
@@ -791,34 +927,54 @@ class PetSprite {
       this.once = this.displayedOnce = nextOnce;
       this.playback = transaction.playbackId;
       el.petPlaybackGeneration = gen;
+      this.handoff?.onCommit(el, gen);
+      this.syncFrostVisibility();
+      this.frost?.onAnimation(next, { duration: el.duration, generation: gen, loop: !nextOnce });
+      this.frost?.onFrame(paintedStart, gen);
       el.onerror = () => {
         if ((this.front === 0 ? this.videoA : this.videoB) !== el || el.petPlaybackGeneration !== gen || this.playback !== transaction.playbackId) return;
+        if (dragPlayback && !this.dragVisual?.ownsPlayback?.(next)) return;
         this.stopVideoPaint();
+        this.frost?.stop();
         if (this.isShuanglingProfile()) this.stopMove();
         el.petAnimationSource = null;
         const failed = this.playback;
         this.playback = null;
         if (failed) this.reportPlayback(failed, 'failed', 'decode-error');
+        this.dragVisual?.failed(next);
       };
       let ended = false;
       el.onended = nextOnce ? () => {
         // A decoder slot can be reused for a later command. An old callback
         // must never finish that later command, even when it owns this slot.
         if (ended || (this.front === 0 ? this.videoA : this.videoB) !== el || el.petPlaybackGeneration !== gen || this.playback !== transaction.playbackId) return;
+        if (dragPlayback && !this.dragVisual?.ownsPlayback?.(next)) return;
         ended = true;
         this.handleEnded();
       } : null;
+      this.dragVisual?.committed(next);
+      // committed() may synchronously prepare a release that arrived while
+      // lift was decoding. Do not restart that now-retired outgoing gesture.
+      if ((this.front === 0 ? this.videoA : this.videoB) !== el || el.petPlaybackGeneration !== gen ||
+          (dragPlayback && !this.dragVisual?.ownsPlayback?.(next))) return;
       this.startVideoPaint(el);
       const playFailed = () => {
         if ((this.front === 0 ? this.videoA : this.videoB) !== el || el.petPlaybackGeneration !== gen || this.playback !== transaction.playbackId) return;
+        if (dragPlayback && !this.dragVisual?.ownsPlayback?.(next)) return;
         this.stopVideoPaint();
+        this.frost?.stop();
         if (this.isShuanglingProfile()) this.stopMove();
         el.pause();
         const failed = this.playback;
         this.playback = null;
         if (failed) this.reportPlayback(failed, 'failed', 'play-rejected');
+        this.dragVisual?.failed(next);
       };
-      try { Promise.resolve(el.play()).catch(playFailed); }
+      try { Promise.resolve(el.play()).then(() => {
+        if (transaction.manualAction && !transaction.playbackId &&
+            (this.front === 0 ? this.videoA : this.videoB) === el && el.petPlaybackGeneration === gen)
+          this.manualVariantSelector?.record(next, gen);
+      }).catch(playFailed); }
       catch { playFailed(); return; }
       if (this.playback) this.reportPlayback(this.playback, 'playing');
       if (this.pendingSquash) {
@@ -828,15 +984,42 @@ class PetSprite {
       if (this.pendingMove) this.startMoveDrive(el);
       this.preloadIdleFrame();
     };
+    const offer = () => {
+      if (!isCurrent()) return;
+      cleanup();
+      transaction.ready = true;
+      if (transaction.smoothAction && this.handoff) {
+        this.handoff.request(transaction, () => {
+          if (!isCurrent()) return false;
+          commit();
+          return el.petPlaybackGeneration === gen && (this.front === 0 ? this.videoA : this.videoB) === el;
+        });
+      } else commit();
+    };
+    transaction.offer = offer;
     const onReady = () => {
       if (!isCurrent() || el.readyState < 2 || el.seeking) return;
-      if (el.petPreloadedSource === source && el.currentTime === 0 && !el.error) {
+      if (el.petPreloadedSource === source && atStart() && !el.error) {
+        if (!awaitNativeFrame()) return;
         el.petPreloadedSource = null;
-        commit();
+        offer();
         return;
       }
       if (rewinding) {
-        if (el.currentTime === 0) commit();
+        if (atStart() && awaitNativeFrame()) offer();
+        return;
+      }
+      // A trusted pickup/landing segment can be decoded while paused. It need
+      // not play a hidden probe or wait for the task's common-neutral gate.
+      if (dragPlayback) {
+        // Register before seeking. seeked/currentTime alone can precede the
+        // new pixels becoming drawable in Chromium's paused hidden decoder.
+        awaitNativeFrame();
+        if (!isCurrent()) return;
+        rewinding = true;
+        try { if (!atStart()) el.currentTime = startTime; }
+        catch { fail('asset-load'); return; }
+        if (!el.seeking && awaitNativeFrame()) offer();
         return;
       }
       if (starting) return;
@@ -848,7 +1031,7 @@ class PetSprite {
         if (!isCurrent()) return;
         el.pause();
         rewinding = true;
-        try { el.currentTime = 0; }
+        try { el.currentTime = startTime; }
         catch { fail('asset-load'); return; }
         onReady(); // cached zero-time frames may not emit seeked again
       }).catch(() => fail('play-rejected')); }
@@ -856,6 +1039,7 @@ class PetSprite {
     };
     const onError = () => fail('decode-error');
     el.pause();
+    el.playbackRate = dragPlayback?.rate || 1;
     el.onended = null;
     el.onerror = null;
     el.loop = !nextOnce;
@@ -869,7 +1053,9 @@ class PetSprite {
     loadTimer = window.setTimeout(() => fail('asset-load'), 10000);
     // 两个槽各保留已解码的素材；同源回放只寻回首帧，避免每次 load() 丢弃解码缓存。
     if (el.petAnimationSource === source && el.readyState >= 2 && !el.error) {
-      try { el.currentTime = 0; }
+      awaitNativeFrame();
+      if (!isCurrent()) return;
+      try { if (!(el.petPreloadedSource === source && atStart() && !el.seeking)) el.currentTime = startTime; }
       catch { fail('asset-load'); return; }
     } else {
       el.petPreloadedSource = null;
@@ -880,10 +1066,10 @@ class PetSprite {
     onReady();
   }
 
-  playOnce(name, playbackId, url) {
+  playOnce(name, playbackId, url, manual = false) {
     this.anim = name;
     this.once = true;
-    this.switchTo(name, true, playbackId, url);
+    this.switchTo(name, true, playbackId, url, manual);
   }
 
   // 直接播一个**外部地址**（POST /anim 的 url 参数，issue #122 第 1 条）。
@@ -905,8 +1091,9 @@ class PetSprite {
    * 显式指令（say / anim / position / throw 四个叶子）**一概不挡**——那些是持锁者（或用户手动）
    * 明确要的，正是占用要保护的东西。
    */
-  applyFreeze(next) {
+  applyFreeze(next, preserveFiniteClip = false) {
     if (this.frozen === next) return;
+    if (next) this.clearManualAction();
     this.frozen = next;
     const el = this.front === 0 ? this.videoA : this.videoB;
     const stamp = '[dsh-pet] ' + new Date().toTimeString().slice(0, 8) + ' pet=' + this.pet.id;
@@ -933,6 +1120,31 @@ class PetSprite {
       return;
     }
     console.log(stamp + ' 占用锁解除：恢复');
+    // A late lease release must leave an active native input gesture in control.
+    if (this.isShuanglingProfile() && (this.dragState?.active || this.dragVisual?.active() || ['pointer', 'dragging', 'throwing'].includes(this.interaction?.phase))) return;
+    // A local menu yields control immediately, but its currently playing
+    // finite gesture may finish naturally. TTL/default unlocks keep their
+    // upstream behavior; this exception never grants a new command or lease.
+    if (preserveFiniteClip && this.isFiniteClipPlaying(true)) {
+      // A real controller freeze paused this decoder. Reuse that exact pose
+      // and source; selecting idle/work here inserted an unintended gesture
+      // between the panel opening and the user's explicit animation.
+      if (el.paused) {
+        this.startVideoPaint(el);
+        const generation = el.petPlaybackGeneration;
+        const failed = () => { if ((this.front === 0 ? this.videoA : this.videoB) === el && el.petPlaybackGeneration === generation) this.stopVideoPaint(); };
+        if (this.playback === null) {
+          let ended = false;
+          el.onended = () => {
+            if (ended || (this.front === 0 ? this.videoA : this.videoB) !== el || el.petPlaybackGeneration !== generation || this.playback !== null) return;
+            ended = true;
+            this.handleEnded();
+          };
+        }
+        try { Promise.resolve(el.play()).catch(failed); } catch { failed(); }
+      }
+      return;
+    }
     // 解冻：回到"该播什么就播什么"——非终态工作状态回档位循环，否则回 idle 一次，
     // 播完由 handleEnded 接回随机链（与浏览器同一语义）。
     if (this.resumeWorkStatusAnim()) return;
@@ -1024,9 +1236,16 @@ class PetSprite {
     }
     // 旧片播完时，新片可能仍在后台准备；不得让旧片的随机链覆盖最新指令。
     if (this.pending) return;
+    if (this.dragVisual?.ended(this.displayedAnim)) return;
     if (this.dragState.active) return;
+    const info = this.pendingInfoBoundary;
+    this.pendingInfoBoundary = null;
+    if (info && info.video === el && info.generation === el?.petPlaybackGeneration &&
+        this.interaction?.id === info.interactionId && this.interaction.kind === 'info' && this.interaction.phase === 'blocked' && this.interaction.resumable === true) {
+      this.updateInteraction('settled', { resumable: true });
+    }
     if (!this.menuOpen && this.interaction?.phase === 'blocked' && ['click', 'menu'].includes(this.interaction.kind)) {
-      this.updateInteraction('settled', { resumable: false });
+      this.updateInteraction('settled', { resumable: SHUANGLING_PROFILE && this.interaction.kind === 'click' });
     }
     // 占用锁（issue #122 第 4 项）：冻结期间**动画链一律不推进**——事件动画播完就停在最后一帧。
     // 与浏览器 src/client/pet.ts 的 handleEnded 同一处判断、同一原因：下面四条路都会换源播放，
@@ -1106,7 +1325,7 @@ class PetSprite {
 
   // ---- 漫游（rAF 驱动，动画首尾各 leadSec/tailSec 秒原地不动；几何在 shared/planMove） ----
   // preferredName 传入时固定使用该动画（右键菜单点播移动动画），否则与随机链一致随机选
-  tryMove(preferredName, playbackId) {
+  tryMove(preferredName, playbackId, manual = false) {
     if (this.moveRef !== null || this.pendingMove || this.throwRef !== null) return true;
     const moves = this.animations.moves;
     const actions = moves.actions;
@@ -1155,10 +1374,12 @@ class PetSprite {
     this.pendingMove = { ...plan, name: chosen.name, dir, authoredMove,
       leadSec: authoredMove ? authoredTiming.startMs / 1000 : mp.leadSec,
       endSec: authoredMove ? authoredTiming.endMs / 1000 : null,
+      accelUntilSec: authoredMove ? authoredTiming.accelUntilMs / 1000 : null,
+      decelerateFromSec: authoredMove ? authoredTiming.decelerateFromMs / 1000 : null,
       tailSec: authoredMove ? null : mp.tailSec };
     this.anim = chosen.name;
     this.once = true;
-    this.switchTo(chosen.name, true, playbackId);
+    this.switchTo(chosen.name, true, playbackId, undefined, manual);
     return chosen.name;
   }
 
@@ -1166,11 +1387,32 @@ class PetSprite {
     const pm = this.pendingMove;
     if (!pm || this.moveRef !== null) return;
     this.pendingMove = null;
-    const { startRatio, startYRatio, targetRatio, dir, totalRatio, leadSec, endSec, tailSec, authoredMove } = pm;
+    const { startRatio, startYRatio, targetRatio, dir, totalRatio, leadSec, endSec, accelUntilSec, decelerateFromSec, tailSec, authoredMove } = pm;
     const duration = Number.isFinite(el.duration) && el.duration > 0 ? el.duration : 10.09;
     const stopTime = authoredMove ? endSec : Math.round((duration - tailSec) * 1000) / 1000;
     const travelWindow = stopTime - leadSec;
     if (!Number.isFinite(travelWindow) || travelWindow <= 0) return;
+    // Native gaits reach a steady stride before slowing for their final step.
+    // Integrate smooth velocity ramps so the window does not keep accelerating
+    // halfway through a steady run. Older/unreviewed timing retains its curve.
+    const strideTiming = authoredMove && [accelUntilSec, decelerateFromSec].every(Number.isFinite) &&
+      leadSec < accelUntilSec && accelUntilSec <= decelerateFromSec && decelerateFromSec < stopTime;
+    const rampIn = strideTiming ? accelUntilSec - leadSec : 0;
+    const rampOut = strideTiming ? stopTime - decelerateFromSec : 0;
+    const strideArea = travelWindow - (rampIn + rampOut) / 2;
+    const strideProgress = t => {
+      const elapsed = Math.max(0, Math.min(travelWindow, t - leadSec));
+      let area;
+      if (elapsed < rampIn) {
+        const r = elapsed / rampIn;
+        area = rampIn * (r ** 3 - r ** 4 / 2);
+      } else if (elapsed <= travelWindow - rampOut) area = elapsed - rampIn / 2;
+      else {
+        const r = (elapsed - travelWindow + rampOut) / rampOut;
+        area = travelWindow - rampOut - rampIn / 2 + rampOut * (r - r ** 3 + r ** 4 / 2);
+      }
+      return Math.max(0, Math.min(1, area / strideArea));
+    };
     const token = ++this.moveToken;
     const generation = el.petPlaybackGeneration;
     const animation = this.displayedAnim;
@@ -1178,7 +1420,7 @@ class PetSprite {
     const H = VIEW.h;
     const step = () => {
       if (this.moveToken !== token) return;
-      if (authoredMove && ((this.front === 0 ? this.videoA : this.videoB) !== el || el.petPlaybackGeneration !== generation || this.displayedAnim !== animation || this.pending || this.dragState.active || this.dragState.dragging || this.throwRef != null)) {
+      if (authoredMove && ((this.front === 0 ? this.videoA : this.videoB) !== el || el.petPlaybackGeneration !== generation || this.displayedAnim !== animation || (this.pending && !this.pending.preserveRunMovement) || this.dragState.active || this.dragState.dragging || this.throwRef != null)) {
         this.stopMove();
         return;
       }
@@ -1190,7 +1432,7 @@ class PetSprite {
         return;
       }
       const u = Math.max(0, Math.min(1, (t - leadSec) / travelWindow));
-      const progress = authoredMove ? u * u * (3 - 2 * u) : u;
+      const progress = strideTiming ? strideProgress(t) : authoredMove ? u * u * (3 - 2 * u) : u;
       const ratioX = t >= stopTime - 1e-7 ? targetRatio : startRatio + dir * totalRatio * progress;
       // 移动的是窗口（宠物包围盒跟随），sprite 在本窗口内不动
       if (!authoredMove || u > 0) this.sendBounds(ratioX * W - this.halfW, startYRatio * H - this.halfH);
@@ -1204,11 +1446,17 @@ class PetSprite {
     this.moveRef = requestAnimationFrame(step);
   }
 
-  stopMove() {
+  stopMove(options) {
+    // The pose gate can stop an outgoing idle/recovery without discarding a
+    // separately planned incoming authored run. All ordinary stops still
+    // discard pending movement, including drag, hide, and explicit takeover.
+    const incoming = options?.preservePendingForAnimation;
+    const retainedPlan = ['running-left', 'running-right'].includes(incoming) &&
+      this.pendingMove?.name === incoming ? this.pendingMove : null;
     if (this.isShuanglingProfile() && this.moveRef != null && this.pos && this.halfW && this.halfH) {
       this.customPos = { rx: (this.pos.x + this.halfW) / VIEW.w, ry: (this.pos.y + this.halfH) / VIEW.h };
     }
-    this.pendingMove = null;
+    this.pendingMove = retainedPlan;
     this.moveToken++;
     if (this.moveRef !== null) {
       cancelAnimationFrame(this.moveRef);
@@ -1271,6 +1519,7 @@ class PetSprite {
 
   /** 抛掷驱动：重力 + 边缘反弹 + 落地摩擦，落定后写入 customPos */
   startThrow(px, py, vx, vy) {
+    this.clearManualAction(this.dragVisual?.active() === true);
     this.stopDragFollow();
     this.stopMove();
     if (this.interaction?.kind === 'drag' && this.interaction.phase === 'dragging') this.updateInteraction('throwing');
@@ -1281,6 +1530,7 @@ class PetSprite {
     const token = ++this.throwToken;
     let state = { x: px, y: py, vx, vy };
     this.throwState = state;
+    this.frost?.setSuppressed(true);
     let last = performance.now();
     let prevGrounded = false; // 落地 Q 弹：只在空中→地面转换帧触发一次
     const step = () => {
@@ -1339,15 +1589,16 @@ class PetSprite {
       const grounded = curBounds ? res.y >= curBounds.maxY - 1 : false;
       if (res.bounced && grounded && !prevGrounded) {
         const frontEl = this.front === 0 ? this.videoA : this.videoB;
-        this.startSquash(frontEl, S.landingSquash(fallingVy));
+        if (!this.dragVisual?.active()) this.startSquash(frontEl, S.landingSquash(fallingVy));
       }
       prevGrounded = grounded;
       if (res.atRest) {
         this.throwRef = null;
         this.throwState = null;
+        this.syncFrostVisibility();
         this.customPos = { rx: (this.pos.x + this.halfW) / VIEW.w, ry: (this.pos.y + this.halfH) / VIEW.h };
         window.__dshPetDebug.lastDragRelease = { x: this.pos.x, y: this.pos.y };
-        if (this.interaction?.kind === 'drag' && this.interaction.phase === 'throwing') this.updateInteraction('settled');
+        if (this.interaction?.kind === 'drag' && this.interaction.phase === 'throwing' && !this.dragVisual?.landed()) this.updateInteraction('settled');
         return;
       }
       this.throwRef = requestAnimationFrame(step);
@@ -1373,6 +1624,7 @@ class PetSprite {
    * 归一化空间 = **全部显示器工作区并集的外接矩形**；落点会被夹到 AREAS 并集（空洞不可达）。
    */
   moveToCenter(rx, ry, mode, duration) {
+    this.clearManualAction();
     if (this.dragState.active) return; // 用户交互优先
     this.stopThrow(); // 先显式接管：停掉飞行与走路（stopMove 顺带停掉上一次的位置跟随）
     this.stopMove();
@@ -1448,6 +1700,7 @@ class PetSprite {
    * 下游（重力 / 反弹 / 地面摩擦 / 落地 Q 弹 / 宠物间碰撞 / 落定写 customPos）全是**既有行为**。
    */
   throwWith(angleDeg, power) {
+    this.clearManualAction();
     if (this.dragState.active) return; // 用户交互优先
     const v = S.throwVelocity(angleDeg, power);
     this.startThrow(this.pos.x, this.pos.y, v.vx, v.vy);
@@ -1499,12 +1752,35 @@ class PetSprite {
   }
 
   // ---- 点击 vs 拖拽（与浏览器一致：阈值/抓取偏移/释放回循环待机；移动的是窗口） ----
-  yieldUserControl() {
+  clearManualAction(preservePending = false) {
+    if (!preservePending) this.handoff?.cancel();
+    if (!preservePending && (this.pending?.manualAction === true || this.pending?.smoothAction === true)) {
+      const name = this.pending.anim;
+      this.cancelPendingVideo('user-interaction');
+      if (this.pendingMove?.name === name) this.stopMove();
+    }
+    const info = this.pendingInfoBoundary;
+    this.pendingInfoBoundary = null;
+    // A priority operation cancels the delayed informational handback. Close
+    // only that same receipt without permission to resume; never rewrite a
+    // newer menu/drag interaction when an old decoder later ends.
+    if (info && this.interaction?.id === info.interactionId && this.interaction.kind === 'info' && this.interaction.phase === 'blocked') {
+      this.updateInteraction('settled', { resumable: false });
+    }
+  }
+
+  isFiniteClipPlaying(allowPaused = false) {
+    const el = this.front === 0 ? this.videoA : this.videoB;
+    return this.isShuanglingProfile() && this.displayedOnce === true && el?.loop === false &&
+      el.readyState >= 2 && !el.error && (allowPaused || !el.paused) && !el.ended && Number.isFinite(el.duration) && el.duration > 0;
+  }
+
+  yieldUserControl(preserveFiniteClip = false) {
     if (this.lockTimer !== null) {
       window.clearTimeout(this.lockTimer);
       this.lockTimer = null;
     }
-    if (this.frozen) this.applyFreeze(false);
+    if (this.frozen) this.applyFreeze(false, preserveFiniteClip);
     // A native input can arrive before the lock snapshot has been rendered.
     // Always release the host lease; absence of a lease is harmless.
     S.postAction(BASE + '/lock/release?pet=' + encodeURIComponent(this.pet.id), { force: true });
@@ -1513,7 +1789,7 @@ class PetSprite {
   onPointerDown(e) {
     // 只认左键：右键进入拖拽判定会与右键菜单打架（右键不拖拽，两端一致）
     if (e.button !== 0) return;
-    this.beginInteraction('click', 'pointer');
+    this.beginInteraction('click', 'pointer', SHUANGLING_PROFILE);
     // 占用锁（issue #122 第 4 项）：用户**点了或拖了**这只宠物 = 用户接管，立刻撤掉第三方占用。
     // 这是唯一一处"渲染端 → 宿主"的锁上报——宿主看不见鼠标，而锁在它手里
     // （/lock/release 的 force 形态；桌面端走 bridge，与播放回执 reportPlayback 同一条路）。
@@ -1535,7 +1811,7 @@ class PetSprite {
         (grabState ? Math.round(Math.hypot(grabState.vx, grabState.vy)) : 0),
     );
     // 点击积分：**按下瞬间即触发**（不等松开）。读取 stopThrow 之前的飞行速度，
-    // 在飞行中且达标 → 立即粒子爆发 + 积分弹窗；pressScoreFired 标记本次按下已触发，
+    // 在飞行中且达标 → 积分弹窗（霜铃不生成圆点粒子）；pressScoreFired 标记本次按下已触发，
     // 松开的 click 据此不再重复弹、也不再播普通点击动画（与浏览器同构）。
     this.pressScoreFired = false;
     if (grabState) {
@@ -1554,7 +1830,7 @@ class PetSprite {
             ' -> +' +
             S.clickScore(grabSpeed, this.size),
         );
-        S.spawnScoreBurst(e.clientX, e.clientY);
+        if (!this.isShuanglingProfile()) S.spawnScoreBurst(e.clientX, e.clientY);
         S.mountScorePopup({
           x: e.clientX,
           y: e.clientY,
@@ -1589,6 +1865,7 @@ class PetSprite {
       petX: this.pos.x,
       petY: this.pos.y,
     };
+    this.syncFrostVisibility();
     // 拖拽信号（桌面端专有）：主进程的兜底穿透通道按**光标与窗口矩形**判定，而窗口比宠物身体大一圈；
     // 拖拽中宠物滞后于光标，光标可能跑到窗口外→窗口翻回穿透→本窗口收不到 pointermove/pointerup
     // （宠物"飞"出去，见 pointer-target.js）。这里上报"我正在用输入"，主进程据此绝不翻回穿透。
@@ -1603,16 +1880,12 @@ class PetSprite {
     // 阈值判定用屏幕坐标增量（clientX 会随窗口移动而变化，屏幕坐标稳定）；屏幕坐标 ÷scale 进 CSS 系
     const dx = toLocal(e.screenX) - d.sx;
     const dy = toLocal(e.screenY) - d.sy;
+    let started = false;
     if (!d.dragging) {
       if (Math.hypot(dx, dy) < S.DRAG_THRESHOLD) return;
       d.dragging = true;
+      started = true;
       this.updateInteraction('dragging', { kind: 'drag', resumable: true });
-      // Keep the stage offset while grabbing: removing it moved the whole body
-      // up on pickup and down on release, breaking the pointer's grab point.
-      if (this.animations.drag.length) {
-        this.playOnce(S.pick(this.animations.drag));
-      }
-      this.syncInputBusy(); // 拖拽成立：主进程兜底通道闭嘴（见 inputBusy）
     }
     // 记录指针轨迹（screenX/Y 采样：与视口坐标只差常数偏移，速度一致；初速估算用；÷scale 进 CSS 系）
     const now = performance.now();
@@ -1622,11 +1895,17 @@ class PetSprite {
     // 由 rAF 弹簧跟随逐帧追赶（抹平高频抖动，与浏览器同构）
     this.dragTarget = { x: d.petX + dx, y: d.petY + dy };
     this.startDragFollow();
+    // Queue physical following before touching an animation decoder. Artwork
+    // preparation can neither delay movement nor change the pointer grab point.
+    if (started) {
+      if (!this.dragVisual?.start() && this.animations.drag.length) this.playOnce(S.pick(this.animations.drag));
+      this.syncInputBusy();
+    }
   }
 
   onPointerUp(e) {
     const d = this.dragState;
-    if (!d.active) return;
+    if (!d.active) { this.syncFrostVisibility(); return; }
     const wasDragging = d.dragging;
     d.active = false;
     d.dragging = false;
@@ -1634,6 +1913,8 @@ class PetSprite {
     this.stopDragFollow(); // 弹簧跟随立即停（位置定格在实时 this.pos）
     this.stage.style.transform = 'translateY(' + this.bottomPad + 'px)';
     this.syncInputBusy(); // 拖拽结束：交还给常规判定（幂等，非拖拽时多调一次不发 IPC）
+    // Evaluate after all release branches, including starting a throw.
+    Promise.resolve().then(() => this.syncFrostVisibility());
     // 提示复位：点击/拖拽期间收起的悬浮提示，指针仍在命中区内就恢复（与浏览器 handlePointerUp 同一处理）。
     // 用 hitRect 几何判定而不是 getBoundingClientRect：命中区是窗口坐标里的权威几何，与 onMouseMove 同源。
     // 位置有讲究：必须留在 syncInputBusy() 之后——pointer-target.test.ts 只扫本函数开头 400 字符
@@ -1668,7 +1949,7 @@ class PetSprite {
       // 拖拽松手：workStatus 非终态时恢复状态循环，否则回 idle（与浏览器 handlePointerUp 一致）
       // 修复：旧实现 switchTo(idle,false)（loop=true，ended 永不触发）→ 随机链永远回不来，
       // 永远卡在同一段待机动画；改为 playOnce（once=true）播一遍 → ended → handleEnded → playIdle 随机链
-      if (!this.resumeWorkStatusAnim()) {
+      if (!this.dragVisual?.active() && !this.resumeWorkStatusAnim()) {
         if (this.animations.idle.length) this.playOnce(S.pick(this.animations.idle, this.anim));
       }
       // 释放位置 = 弹簧跟随后的实际包围盒左上角（this.pos 实时；不是指针目标——
@@ -1697,6 +1978,7 @@ class PetSprite {
             Math.round(Math.hypot(vel.vx, vel.vy)),
         );
         this.startThrow(px, py, vel.vx, vel.vy);
+        this.dragVisual?.release(true);
       } else {
         const dropped = S.dockDrop(this.throwSpaceOf(), px, py);
         // customPos 语义 = 宠物**中心**比例（position() 用 rx*W - halfW 还原左上角；
@@ -1705,10 +1987,10 @@ class PetSprite {
         this.position();
         // 释放后的最终窗口位置（position() 换算后，松手无夹取），冒烟断言"释放不位移"用
         window.__dshPetDebug.lastDragRelease = { x: this.pos.x, y: this.pos.y };
-        this.updateInteraction('settled');
+        if (!this.dragVisual?.release(false)) this.updateInteraction('settled');
       }
     } else {
-      this.updateInteraction(e?.type === 'pointercancel' ? 'settled' : 'blocked', { resumable: false });
+      this.updateInteraction(e?.type === 'pointercancel' ? 'settled' : 'blocked', { resumable: SHUANGLING_PROFILE });
     }
   }
 
@@ -1911,6 +2193,15 @@ class PetSprite {
     this.stopThrow(); // 点击飞行中的宠物 = 收手停住（再播点击回应）
     this.stopMove();
     if (!this.animations.clicks.length) return;
+    if (SHUANGLING_PROFILE) {
+      const now = Date.now();
+      if (now - (this.lastCompanionClickAt || 0) < 15000) {
+        this.updateInteraction('settled', { resumable: true });
+        this.playIdle();
+        return;
+      }
+      this.lastCompanionClickAt = now;
+    }
     this.pendingSquash = true; // 等新点击动画切到前台后 Q 弹（压新首帧，与浏览器一致）
     this.playOnce(S.pick(this.animations.clicks));
   }
@@ -1954,9 +2245,9 @@ class PetSprite {
       return;
     }
     this.beginInteraction('menu', 'blocked');
-    this.yieldUserControl();
+    this.yieldUserControl(true);
     this.stopThrow(); // 菜单弹出前停住飞行中的宠物
-    this.stopMove(); // 菜单悬停期间宠物不漫游
+    if (!this.isFiniteClipPlaying()) this.stopMove();
     // 桌面专属工具根项（打开网站 / 查看余额 / 碎碎念 / 对话 / 回到初始位置 / 重载配置）+ 共享菜单树（动作→分类→具体动画）
     // 碎碎念/对话项无条件显示：手动触发不受 whisperEnabled 限制（该字段只影响自动周期轮询）
     // 首项文案随宿主形态变（OPEN_TARGET）：宿主是 DSH 桌面应用时点是"唤起桌面应用窗口"，仍叫「打开网站」会误导
@@ -1976,8 +2267,9 @@ class PetSprite {
       // 放在最后：它是"重新加载"这类维护动作，与上面几个宠物互动项语义不同。
       { label: '重载配置', action: 'reload' },
     );
-    const dragonActions = { idle: '安静陪伴', 'running-right': '向右小跑', 'running-left': '向左小跑', waving: '开心挥手', jumping: '轻轻小跳', failed: '收起动作', waiting: '等你回答', running: '认真思考', review: '检查工作' };
-    const tree = tools.concat(SHUANGLING_PROFILE ? [{ label: '动作', children: Object.entries(dragonActions).map(([anim, label]) => ({ anim, label })) }] : S.buildMenuTree(this.animations));
+    const dragonActions = { idle: '安静陪伴', 'running-right': '向右小跑', 'running-left': '向左小跑', waving: '开心挥手', jumping: '轻轻小跳', failed: '收起动作', waiting: '等你回答', running: '认真思考', review: '检查工作', reading: '翻看见闻', 'looking-around': '侧望微光', 'stretching-wings': '轻舒双翼' };
+    const acceptedAmbient = new Set((this.animations?.categories || []).filter(c => c.id === 'shuangling-companion').flatMap(c => c.actions || []));
+    const tree = tools.concat(SHUANGLING_PROFILE ? [{ label: '动作', children: Object.entries(dragonActions).filter(([anim]) => !['reading', 'looking-around', 'stretching-wings'].includes(anim) || acceptedAmbient.has(anim)).map(([anim, label]) => ({ anim, label })) }] : S.buildMenuTree(this.animations));
     if (!tree.length) return;
     this.menuOpen = true;
     this.setInteractive(true); // 菜单是窗口内 DOM：悬停期间整窗保持可交互，关闭后恢复命中区穿透
@@ -2006,6 +2298,7 @@ class PetSprite {
   /** `keepFacing` = 调用方已**显式指定**朝向（POST /anim 的 facing）：跳过下面"文字类动画点播前
    *  强制朝左"那条镜像修正——显式值优先。右键菜单点播不传（保持原语义）。 */
   onMenuAction(leaf, keepFacing) {
+    this.dragVisual?.cancel();
     if (leaf?.action === 'show-usage' && this.interaction?.kind === 'menu') this.updateInteraction('blocked', { kind: 'info', resumable: true });
     this.closeMenu();
     if (!leaf || typeof leaf !== 'object') return;
@@ -2042,26 +2335,38 @@ class PetSprite {
     if (!leaf.anim) return;
     // 回执归属：这一段动画若来自第三方点播，编号要跟着换源一起走（自播动画传 null）
     const playbackId = typeof leaf.playbackId === 'string' && leaf.playbackId ? leaf.playbackId : null;
+    const manual = !playbackId && this.isShuanglingProfile();
+    if (!playbackId && this.isShuanglingProfile()) this.pendingSquash = false;
+    if (!playbackId && this.isShuanglingProfile() && typeof ShuanglingManualVariants !== 'undefined') {
+      this.manualVariantSelector ||= ShuanglingManualVariants.createSelector();
+      leaf = this.manualVariantSelector.select(leaf);
+    }
+    // A deliberate click takes over now, rather than waiting up to a whole
+    // five-second clip before even preparing the requested action. switchTo
+    // keeps the old canvas moving until the latest target's real F0 is ready.
     if (this.isShuanglingProfile()) {
-      this.stopMove();
+      if (!this.canContinueRunMove(leaf.anim, true)) this.stopMove();
       this.stopThrow();
     }
     // 文字类（noMirror）朝右站姿是镜像的：点播前强制朝左，避免文字镜像（与浏览器随机链"朝右不选文字"同语义）。
     // `keepFacing` 时跳过：调用方已显式指定朝向，显式值优先（要 right 就给 right，哪怕文字会镜像）。
-    if (!keepFacing && S.isNoMirrorAnimation(this.animations.categories, leaf.anim) && this.facing === 'right') {
+    const logicalName = this.isShuanglingProfile() && typeof ShuanglingManualVariants !== 'undefined' ? ShuanglingManualVariants.logicalName(leaf.anim) : leaf.anim;
+    if (!keepFacing && S.isNoMirrorAnimation(this.animations.categories, logicalName) && this.facing === 'right') {
       this.facing = 'left';
     }
     // 点播移动动画：走真实移动（与随机游走同一套：边界检查 / 随机距离 / leadSec·tailSec / dir），
     // 仅"选哪个动画"由菜单决定；挪不动（false）退化纯播放
     if (this.animations.moves.actions.some((a) => a.name === leaf.anim)) {
-      const moved = this.tryMove(leaf.anim, playbackId);
-      if (moved === false) this.playOnce(leaf.anim, playbackId);
+      const moved = this.tryMove(leaf.anim, playbackId, manual);
+      if (moved === false) this.playOnce(leaf.anim, playbackId, undefined, manual);
       // moved === true = 已有移动/抛掷在进行中（tryMove 提前返回，**根本没换源**）：
       // 本段点播不会真的播起来 → 如实回 failed/busy，而不是让调用方干等到 timeout
       else if (moved === true && playbackId) this.reportPlayback(playbackId, 'failed', 'busy');
+      if (!playbackId && this.isShuanglingProfile() && this.pending?.anim === leaf.anim) this.pending.manualAction = true;
       return;
     }
-    this.playOnce(leaf.anim, playbackId);
+    this.playOnce(leaf.anim, playbackId, undefined, manual);
+    if (!playbackId && this.isShuanglingProfile() && this.pending?.anim === leaf.anim) this.pending.manualAction = true;
   }
 
   closeMenu() {
@@ -2084,16 +2389,31 @@ class PetSprite {
   onNativePanelEvent(payload) {
     if (!this.isShuanglingProfile() || !payload || !Number.isSafeInteger(payload.session)) return;
     if (payload.kind === 'opened') {
+      // Opening the separate window is asynchronous. A pointer/drag/flight
+      // begun in the meantime owns the pet, regardless of an older manager
+      // allowResume snapshot. The card may show without changing that input.
+      if (this.dragState?.active || this.dragState?.dragging || this.throwState ||
+          ['pointer', 'dragging', 'throwing'].includes(this.interaction?.phase)) {
+        this.nativePanelSession = payload.session;
+        this.nativePanelInteraction = null;
+        return;
+      }
+      const info = this.pendingInfoBoundary;
+      const retainInfo = info && this.interaction?.id === info.interactionId && this.interaction.kind === 'info' && this.interaction.phase === 'blocked' && this.interaction.resumable === true;
+      this.pendingInfoBoundary = null;
       this.nativePanelSession = payload.session;
-      this.nativePanelInteraction = null;
+      this.nativePanelInteraction = retainInfo ? info.interactionId : null;
       this.menuOpen = true;
       window.__dshPetDebug.menuOpen = true;
       this.setTip(false);
-      this.stopThrow(); this.stopMove();
-      if (payload.allowResume) {
+      this.stopThrow(); if (!this.isFiniteClipPlaying()) this.stopMove();
+      // The manager snapshot can lag a local manual choice. Its stale
+      // allowResume must never replace confirmed non-resumable user control.
+      const manualOwner = this.interaction?.kind === 'menu' && this.interaction.resumable === false && !this.frozen;
+      if (payload.allowResume && !manualOwner) {
         this.beginInteraction('info', 'blocked', true);
         this.nativePanelInteraction = this.interaction.id;
-        this.yieldUserControl();
+        this.yieldUserControl(true);
       }
       this.syncInputBusy();
       this.setInteractive(false);
@@ -2109,8 +2429,10 @@ class PetSprite {
       // the upstream menu. Preserve the authored tryMove/playOnce route.
       this.nativePanelInteraction = null;
       this.beginInteraction('menu', 'blocked', false);
-      this.yieldUserControl();
+      this.yieldUserControl(true);
       this.onMenuAction({ anim: command.name });
+    } else if (['pause', 'resume', 'quit'].includes(command?.type)) {
+      this.clearManualAction();
     } else if (command?.type === 'home') this.onMenuAction({ action: 'home' });
     else if (command?.type === 'hide') this.onMenuAction({ action: 'set-display', display: 'none' });
   }
@@ -2121,7 +2443,12 @@ class PetSprite {
     this.nativePanelInteraction = null;
     this.menuOpen = false;
     window.__dshPetDebug.menuOpen = false;
-    if (interactionId && this.interaction?.id === interactionId && this.interaction.kind === 'info' && this.interaction.phase === 'blocked') this.updateInteraction('settled', { resumable: true });
+    if (interactionId && this.interaction?.id === interactionId && this.interaction.kind === 'info' && this.interaction.phase === 'blocked' && this.interaction.resumable === true) {
+      if (this.isFiniteClipPlaying()) {
+        const video = this.front === 0 ? this.videoA : this.videoB;
+        this.pendingInfoBoundary = { interactionId, video, generation: video.petPlaybackGeneration };
+      } else this.updateInteraction('settled', { resumable: true });
+    }
     this.syncInputBusy();
     if (!this.inputBusy()) this.setInteractive(false);
   }
@@ -2227,6 +2554,7 @@ class PetSprite {
 
   // 「回到初始位置」菜单：停掉漫游/移动，清掉拖拽/漫游留下的会话位置，回到配置角落
   goHome() {
+    this.clearManualAction();
     this.stopThrow();
     this.stopMove();
     this.customPos = null;
@@ -2241,6 +2569,7 @@ class PetSprite {
   // 本请求由**即将被重启的这个进程**发出：响应可能永远不回（宿主杀进程时回调地址已失效），
   // 故不 await、不重试，失败只记日志——重载本身就是把本进程换掉。
   reloadDesktop() {
+    this.clearManualAction();
     fetch(BASE + '/reload', { method: 'POST' }).catch((e) => {
       console.warn('[dsh-pet] 重载配置请求失败（宿主不可达？）', e);
     });
@@ -2254,6 +2583,7 @@ class PetSprite {
   // 与 reloadDesktop 同一处境：选"仅网页/都不"时本进程就会在重载中被换掉，响应可能永远不回
   // （宿主杀进程时回调地址已失效），故不 await、不重试，失败只记日志。
   setPetDisplay(display) {
+    this.clearManualAction();
     if (!display) return;
     fetch(BASE + '/pet-display', {
       method: 'POST',

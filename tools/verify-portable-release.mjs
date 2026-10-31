@@ -6,6 +6,7 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
+import { validatePackagedAnimationInventory } from './portable-media-inventory.mjs';
 
 // This opt-in smoke check never installs a plugin/task or uses a real Codex home.
 // Its private state stays under release/validation; it does not clean up files.
@@ -117,7 +118,8 @@ try {
   // Hard links save disk during the smoke test. The distributable itself has
   // full files, and the normal launcher still verifies every runtime asset.
   const assets = JSON.parse(await readFile(join(packageRoot, 'reports', 'windows-assets.json'), 'utf8'));
-  assert.equal(assets.animations.length, 9);
+  const packageOutlineContract = await import(pathToFileURL(join(packageRoot, 'windows', 'outline-contract.mjs')));
+  const { names: animationNames, legacyContract } = validatePackagedAnimationInventory(assets, packageOutlineContract);
   const runtimeAssets = join(dataDir, 'dsh-home', 'dsh-pet', 'main-animation', 'webm');
   await mkdir(runtimeAssets, { recursive: true });
   for (const animation of assets.animations) {
@@ -153,7 +155,7 @@ try {
     assert.equal(response.status, 200);
     assert.match(response.headers.get('content-type'), /video\/webm/);
   }
-  report.checks.nativeApiAndAnimationResources = { passed: true, resourceCount: 9, invalidCapabilityDenied: true };
+  report.checks.nativeApiAndAnimationResources = { passed: true, resourceCount: animationNames.length, legacyOutlineContract: legacyContract, invalidCapabilityDenied: true };
   await runNode([launcher, 'start']);
   const same = await json(lockFile);
   assert.equal(same.pid, managerIdentity.pid); assert.equal(same.instanceId, managerIdentity.instanceId);

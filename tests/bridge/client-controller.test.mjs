@@ -184,6 +184,44 @@ test('click and menu actions do not auto-resume; explicit resume waits for their
   await until(() => plays === 2);
 });
 
+test('a natural tap returns to prior following only after its resumable native end receipt', async t => {
+  const { client } = mockClient(); let receipt = null; let plays = 0;
+  client.interaction = async () => ({ ok: true, interaction: receipt });
+  client.play = async () => { plays++; if (plays === 1) receipt = interaction('blocked', 'click', { resumable: true }); return { playbackId: `p${plays}` }; };
+  client.playback = async id => ({ status: id === 'p1' ? 'cancelled' : 'playing' });
+  const c = new PetController({ client, interactionPollMs: 5 }); t.after(() => c.close());
+  c.update(status('working')); await until(() => c.preempted);
+  await tick(25); assert.equal(plays, 1, 'a gesture still in progress owns the surface');
+  receipt = { ...receipt, phase: 'settled', revision: 2, endedAt: Date.now(), updatedAt: Date.now() };
+  await until(() => plays === 2);
+  assert.equal(c.preempted, false); assert.equal(c.status.state, 'working');
+  c.setPaused(true); const pausedPlays = plays;
+  c.update({ ...status('working'), turnId: 'next-turn' });
+  await tick(25); assert.equal(plays, pausedPlays, 'a new task never unpauses prior user control');
+});
+
+test('task changes retain only resumable native handoffs, including tap, drag and read-only info', async t => {
+  for (const kind of ['click', 'drag', 'info', 'menu', 'hidden']) {
+    const { client } = mockClient(); let receipt = null; let plays = 0; let hidden = false;
+    client.interaction = async () => { if (hidden) throw new PetApiError('pet-not-displayed'); return { ok: true, interaction: receipt }; };
+    client.play = async () => { plays++; if (plays === 1) receipt = interaction('blocked', kind === 'hidden' ? 'click' : kind, { resumable: kind !== 'menu' }); return { playbackId: `p${plays}` }; };
+    client.playback = async id => ({ status: id === 'p1' ? 'cancelled' : 'playing' });
+    const c = new PetController({ client, interactionPollMs: 5 }); t.after(() => c.close());
+    c.update(status('working')); await until(() => c.preempted);
+    c.update({ ...status('waiting'), turnId: 'changed-during-gesture' });
+    await tick(25); assert.equal(plays, 1, `${kind}: task change cannot cut a native gesture short`);
+    if (kind === 'hidden') hidden = true;
+    receipt = { ...receipt, phase: 'settled', revision: 2, endedAt: Date.now(), updatedAt: Date.now() };
+    if (['click', 'drag', 'info'].includes(kind)) {
+      await until(() => plays === 2); assert.equal(c.preempted, false); assert.equal(c.status.state, 'waiting');
+    } else {
+      await tick(35); assert.equal(plays, 1); assert.equal(c.preempted, true);
+      c.update({ ...status('working'), turnId: 'another-turn' }); await tick(20); assert.equal(plays, 1);
+    }
+    await c.close();
+  }
+});
+
 test('the explicit read-only info receipt resumes after usage is ready without generalizing manual menus', async t => {
   const { client } = mockClient(); let receipt = null; let plays = 0;
   client.interaction = async () => ({ ok: true, interaction: receipt });
@@ -226,4 +264,54 @@ test('an interaction endpoint failure cannot grant a fresh lease over unknown us
   await tick(25); assert.ok(!calls.some(c => c[0] === 'lock'));
   healthy = true; await until(() => calls.some(c => c[0] === 'play'));
   assert.equal(c.status.state, 'working');
+});
+
+test('a new task in the same interaction read cannot erase confirmed manual or hidden preemption', async t => {
+  for (const mode of ['manual', 'hidden', 'pause', 'click', 'drag', 'transient']) {
+    let now = 1_792_600_000_000, controller, reads = 0;
+    const calls = [];
+    let receipt = { id: 'initial-pose', kind: 'click', phase: 'settled', startedAt: now, updatedAt: now, endedAt: now, revision: 0, resumable: false };
+    const client = {
+      interaction: async () => {
+        if (++reads === 2) {
+          now++;
+          controller.update({ ...status('waiting'), turnId: 'changed-in-interaction-read', updatedAt: new Date(now).toISOString() });
+          if (mode === 'hidden') throw new PetApiError('pet-hidden');
+          if (mode === 'transient') throw new PetApiError('runtime-unreachable');
+          receipt = { id: 'new-user-gesture', kind: ['click', 'drag'].includes(mode) ? mode : 'menu', phase: ['click', 'drag'].includes(mode) ? 'blocked' : 'settled',
+            startedAt: now, updatedAt: now, endedAt: ['click', 'drag'].includes(mode) ? null : now, revision: 1, resumable: ['click', 'drag'].includes(mode) };
+          if (mode === 'pause') controller.setPaused(true);
+        }
+        return { interaction: receipt };
+      },
+      lock: async id => { calls.push(['lock', id]); return { lockId: id || 'existing-lease' }; },
+      release: async () => { calls.push(['release']); return { ok: true }; },
+      broadcast: async () => ({ ok: true }),
+      play: async name => { calls.push(['play', name]); return { playbackId: name }; },
+      playback: async id => { now += 1000; return { status: id === 'waiting' ? 'playing' : 'ended' }; },
+    };
+    controller = new PetController({ client, now: () => now, interactionPollMs: 5, random: () => 0,
+      sleepImpl: async milliseconds => { now += milliseconds; await tick(1); } });
+    t.after(() => controller.close());
+    controller.update({ ...status('working'), updatedAt: new Date(now).toISOString() });
+    if (mode === 'transient') {
+      await until(() => calls.some(call => call[0] === 'play' && call[1] === 'waiting'));
+      assert.equal(controller.preempted, false, 'ordinary stale errors still yield to the new task');
+    } else {
+      await until(() => controller.preempted || controller.paused);
+      await tick(15);
+      assert.deepEqual(calls.filter(call => call[0] === 'play').map(call => call[1]), ['running', 'idle'], mode);
+      assert.equal(calls.filter(call => call[0] === 'lock' && !call[1]).length, 1, mode + ': task update cannot grant a new lease');
+      if (['click', 'drag'].includes(mode)) {
+        receipt = { ...receipt, phase: 'settled', endedAt: now, updatedAt: now, revision: 2, resumable: true };
+        await until(() => calls.some(call => call[0] === 'play' && call[1] === 'waiting'));
+        assert.equal(controller.preempted, false, mode + ': a real resumable end receipt still restores following');
+      } else {
+        controller.update({ ...status('working'), turnId: 'later-task', updatedAt: new Date(now).toISOString() });
+        await tick(15);
+        assert.deepEqual(calls.filter(call => call[0] === 'play').map(call => call[1]), ['running', 'idle'], mode + ': later tasks preserve user priority');
+      }
+    }
+    await controller.close();
+  }
 });

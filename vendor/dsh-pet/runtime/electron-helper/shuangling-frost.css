@@ -1,0 +1,47 @@
+/* Retain full branched snowflakes at the companion's previous size. */
+.pet-frost {
+  --frost-size: clamp(24px, calc(var(--pet-size, 462px) * .068), 36px);
+  --frost-radius: calc(var(--frost-size) * .61 + 3px);
+  position: absolute;
+  inset: 0;
+  /* Full side/low snowflake patterns remain visible over a moving wing edge. */
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint;
+}
+.pet-frost[hidden] { display: none; }
+.pet-frost-group {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.pet-frost-crystal {
+  position: absolute;
+  width: var(--frost-size);
+  aspect-ratio: 1;
+  opacity: 0;
+  pointer-events: none;
+}
+.pet-frost-crystal svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* Crisp branches only: a soft halo can look like a leftover tiny point. */
+}
+.pet-frost-edge { stroke: #807094; stroke-width: 2.2; }
+.pet-frost-core { stroke: #f9f5ff; stroke-width: 1.05; }
+@media (max-width: 280px) {
+  /* In a very small pet window, full-size flakes live below the face.
+     Keep their opacity lifecycle; do not let upward drift cover the face. */
+  .pet-frost-crystal {
+    top: calc(100% - var(--frost-radius)) !important;
+    transform: translate(-50%, -50%) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pet-frost { display: none; }
+}

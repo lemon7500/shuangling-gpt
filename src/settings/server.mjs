@@ -3,6 +3,7 @@ import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { validPreferences } from '../lifecycle/preferences.mjs';
+import { validDeskCommand } from '../desk/service.mjs';
 
 const htmlPath = fileURLToPath(new URL('./index.html', import.meta.url));
 const authEquals = (a, b) => {
@@ -24,8 +25,10 @@ async function jsonBody(req) {
 export async function startSettings({ getState, getUsage, getThreads, update, getAppearance, setAppearance,
   getAccountUsage = () => ({ fiveHour: { status: 'unknown', reason: 'account-source-unavailable' }, weekly: { status: 'unknown', reason: 'account-source-unavailable' } }),
   setUsageTarget = () => { throw Object.assign(new Error('usage-selection-unavailable'), { reason: 'usage-selection-unavailable' }); },
-  getPreferences = () => ({ autoLaunch: false, language: 'zh-CN', lifecycle: { available: false, reason: 'unavailable' } }),
+  getPreferences = () => ({ autoLaunch: false, language: 'zh-CN', ambientEnabled: true, ambientFrequency: 'normal', lifecycle: { available: false, reason: 'unavailable' } }),
   setPreferences = () => { throw Object.assign(new Error('preferences-unavailable'), { reason: 'preferences-unavailable' }); },
+  getDesk = () => ({ ok: false, reason: 'desk-unavailable' }),
+  deskCommand = () => { throw Object.assign(new Error('desk-unavailable'), { reason: 'desk-unavailable' }); },
   shutdown, port = 0 }) {
   const token = randomBytes(32).toString('base64url');
   const html = await readFile(htmlPath);
@@ -60,6 +63,12 @@ export async function startSettings({ getState, getUsage, getThreads, update, ge
       }
       if (req.method === 'GET' && path === '/api/threads') return send(200, { threads: await getThreads() });
       if (req.method === 'GET' && path === '/api/appearance') return send(200, await getAppearance());
+      if (req.method === 'GET' && path === '/api/desk') return send(200, await getDesk());
+      if (req.method === 'POST' && path === '/api/desk') {
+        const input = await jsonBody(req);
+        if (!validDeskCommand(input)) return send(400, { error: 'invalid-desk-command' });
+        return send(200, await deskCommand(input));
+      }
       if (req.method === 'GET' && path === '/api/preferences') return send(200, await getPreferences());
       if (req.method === 'POST' && path === '/api/settings') return send(200, await update(await jsonBody(req)));
       if (req.method === 'POST' && path === '/api/appearance') return send(200, await setAppearance(await jsonBody(req)));

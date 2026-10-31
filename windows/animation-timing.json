@@ -62,7 +62,7 @@
     {
       "name": "waving",
       "aiVideoFps": 24,
-      "aiVideoDurationMs": 5166.666666666667,
+      "aiVideoDurationMs": 4916.666666666667,
       "legacyMotionDurationMs": 6000,
       "row": 3,
       "durations": [
@@ -71,7 +71,7 @@
         140,
         280
       ],
-      "motionDurationMs": 5166.666666666667
+      "motionDurationMs": 4916.666666666667
     },
     {
       "name": "jumping",
@@ -83,9 +83,9 @@
         140,
         280
       ],
-      "motionDurationMs": 5166.666666666667,
+      "motionDurationMs": 4458.333333333333,
       "legacyMotionDurationMs": 3400,
-      "aiVideoDurationMs": 5166.666666666667,
+      "aiVideoDurationMs": 4458.333333333333,
       "aiVideoFps": 24
     },
     {
@@ -117,10 +117,10 @@
         150,
         260
       ],
-      "motionDurationMs": 5166.666666666667,
+      "motionDurationMs": 4833.333333333333,
       "legacyMotionDurationMs": 6000,
       "aiVideoFps": 24,
-      "aiVideoDurationMs": 5166.666666666667
+      "aiVideoDurationMs": 4833.333333333333
     },
     {
       "name": "running",
@@ -149,15 +149,30 @@
         150,
         280
       ],
-      "motionDurationMs": 5166.666666666667,
+      "motionDurationMs": 4916.666666666667,
       "legacyMotionDurationMs": 7000,
       "aiVideoFps": 24,
-      "aiVideoDurationMs": 5166.666666666667
+      "aiVideoDurationMs": 4916.666666666667
     }
   ],
   "sourceMode": "high-resolution-generated-strips",
-  "motionMode": "mixed-source-neutral-action-loop",
-  "motionFps": 30,
-  "legacyDurationsPurpose": "Archived 57 source-keyframe timing; production durations are motionDurationMs and real neutral-action-neutral frames in reports/windows-action-frames.json",
-  "releaseVersion": "1.7.9"
+  "motionMode": "reviewed-source-native24",
+  "motionFps": 24,
+  "legacyDurationsPurpose": "Grid rows and durations archive the original Pets sprite atlas. Windows playback uses the accepted WebM metadata in runtimeMotionManifest; the added companion videos do not add atlas rows.",
+  "releaseVersion": "1.9.0",
+  "runtimeMotionManifest": "reports/windows-action-frames-v190.json",
+  "companionAnimations": [
+    {
+      "name": "looking-around",
+      "aiVideoFps": 24,
+      "aiVideoDurationMs": 4708.333333333333,
+      "runtimeOnly": true
+    },
+    {
+      "name": "stretching-wings",
+      "aiVideoFps": 24,
+      "aiVideoDurationMs": 4500,
+      "runtimeOnly": true
+    }
+  ]
 }

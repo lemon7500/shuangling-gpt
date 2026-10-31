@@ -23,13 +23,15 @@ try {
   await writeFile(join(home,'config.toml'),'# Isolated native UI check; no plugins, accounts or credentials.\n');
   await writeFile(join(data,'plugin-config.json'),JSON.stringify({autoLaunch:false,language:'zh-CN',retained:'fixture-only'}));
   for(const directory of ['src','vendor/dsh-pet/runtime/electron-helper'])await cp(join(root,directory),join(skeleton,directory),{recursive:true});
-  for(const file of ['package.json','windows/start.mjs','windows/outline-contract.mjs','windows/default-config.json','windows/runtime-config.json','windows/hd-geometry.json','windows/animation-timing.json','vendor/dsh-pet/lib/standalone.js','vendor/dsh-pet/package.json','vendor/dsh-pet/assets/config.jsonc','vendor/dsh-pet/assets/logo.png','reports/windows-assets.json','reports/windows-action-frames-v179.json']){await mkdir(dirname(join(skeleton,file)),{recursive:true});await copyFile(join(root,file),join(skeleton,file));}
+  const sourceAssets=JSON.parse(await readFile(join(root,'reports/windows-assets.json'),'utf8'));
+  assert.match(sourceAssets.motionManifest,/^reports\/windows-action-frames(?:-v\d{3,6})?\.json$/);
+  for(const file of ['package.json','windows/start.mjs','windows/outline-contract.mjs','windows/default-config.json','windows/runtime-config.json','windows/hd-geometry.json','windows/animation-timing.json','vendor/dsh-pet/lib/standalone.js','vendor/dsh-pet/package.json','vendor/dsh-pet/assets/config.jsonc','vendor/dsh-pet/assets/logo.png','reports/windows-assets.json',sourceAssets.motionManifest]){await mkdir(dirname(join(skeleton,file)),{recursive:true});await copyFile(join(root,file),join(skeleton,file));}
   await symlink(join(release,'windows/runtime'),join(skeleton,'windows/runtime'),'junction');
   await symlink(join(release,'vendor/dsh-pet/node_modules'),join(skeleton,'vendor/dsh-pet/node_modules'),'junction');
   const assets=await json(join(skeleton,'reports/windows-assets.json'));
   for(const directory of ['windows/assets/shuangling'])await mkdir(join(skeleton,directory),{recursive:true});
   await mkdir(join(data,'dsh-home/dsh-pet/main-animation/webm'),{recursive:true});
-  for(const {name} of assets.animations){await link(join(release,'windows/assets/shuangling',name+'.webm'),join(skeleton,'windows/assets/shuangling',name+'.webm'));await link(join(release,'windows/assets/shuangling',name+'.webm'),join(data,'dsh-home/dsh-pet/main-animation/webm',name+'.webm'));}
+  for(const {name} of assets.animations){await link(join(root,'windows/assets/shuangling',name+'.webm'),join(skeleton,'windows/assets/shuangling',name+'.webm'));await link(join(root,'windows/assets/shuangling',name+'.webm'),join(data,'dsh-home/dsh-pet/main-animation/webm',name+'.webm'));}
   // Test copies only: use the existing invisible/input-transparent render mode.
   const launcher=join(skeleton,'windows/start.mjs');
   await writeFile(launcher,(await readFile(launcher,'utf8')).replace("DSH_PET_CADENCE_TEST: '0'","DSH_PET_CADENCE_TEST: '1'"));

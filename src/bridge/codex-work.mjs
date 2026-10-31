@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { RolloutWatcher } from './rollouts.mjs';
 import { ProjectUsageReader } from './project-usage.mjs';
@@ -27,13 +27,14 @@ async function concurrent(items, limit, operation) {
 
 /** Read-only, all-root Codex work state. Navigation never selects its owner. */
 export class CodexWorkWatcher {
-  constructor({ codexHome, threadId = null, onChange = () => {}, intervalMs = 300, discoveryMs = 5000,
+  constructor({ codexHome, threadId = null, onChange = () => {}, onCompletedTurn = () => {}, intervalMs = 300, discoveryMs = 5000,
     sessionStartedAt, terminalHoldMs = 15000,
     maxConcurrent = 4, maxWatchers = 200, metadataReader, watcherFactory, now = Date.now } = {}) {
     if (typeof codexHome !== 'string' || !codexHome) throw new Error('codex-home-required');
     this.codexHome = codexHome;
     this.sourceThreadId = threadId;
     this.onChange = onChange;
+    this.onCompletedTurn = typeof onCompletedTurn === 'function' ? onCompletedTurn : () => {};
     this.intervalMs = intervalMs;
     this.discoveryMs = discoveryMs;
     this.now = now;
@@ -86,6 +87,14 @@ export class CodexWorkWatcher {
       await this.metadata.refreshIndex();
       this.discoveryReason = this.metadata.indexProblem ?? null;
       const sessionDirectory = `${keyPath(join(this.codexHome, 'sessions'))}/`;
+      // A recent file whose first header is still incomplete cannot prove a
+      // root task exists, but cannot safely be omitted from a final verdict.
+      // Empty/history/archive files and positively identified children do not
+      // enter this list. No synthetic active task is created for uncertainty.
+      if (!this.discoveryReason && this.metadata.pendingHeaders?.some(entry =>
+        keyPath(entry.path).startsWith(sessionDirectory) && Number.isFinite(entry.mtimeMs) && entry.mtimeMs >= this.boundary)) {
+        this.discoveryReason = 'session-header-pending';
+      }
       const entries = [...this.metadata.index.values()].filter(entry => entry?.metadata?.source === 'root'
         && !entry.metadata.parentThreadId && !entry.metadata.parent_thread_id
         && !['subagent', 'guardian_review'].includes(entry.metadata.thread_source));
@@ -96,6 +105,7 @@ export class CodexWorkWatcher {
         if (entry.mtimeMs !== known.mtimeMs) { known.mtimeMs = entry.mtimeMs; known.nextPollAt = -Infinity; }
       }
       const candidates = entries.filter(entry => !this.records.has(entry.metadata.id)
+        && entry.headerOnly !== true
         && keyPath(entry.path).startsWith(sessionDirectory)
         && Number.isFinite(entry.mtimeMs) && entry.mtimeMs >= this.boundary)
         .sort((a, b) => b.mtimeMs - a.mtimeMs);
@@ -108,7 +118,8 @@ export class CodexWorkWatcher {
         watcher.path = entry.path;
         const record = { id: entry.metadata.id, path: entry.path, mtimeMs: entry.mtimeMs, watcher,
           latest: null, nextPollAt: -Infinity, stale: false, completed: new Set(),
-          hasBaseline: false, reloaded: false, transitions: [], overflow: false, unverified: false };
+          hasBaseline: false, reloaded: false, transitions: [], overflow: false, unverified: false,
+          memoryLiveTurn: null, memoryLiveAt: null };
         if (watcher.reducer && typeof watcher.reducer.reset === 'function') {
           const reset = watcher.reducer.reset.bind(watcher.reducer);
           watcher.reducer.reset = (...args) => {
@@ -196,6 +207,10 @@ export class CodexWorkWatcher {
       record.stale = !trusted;
       if (!trusted) return;
       record.unverified = false;
+      // The memory hook requires positive live-turn evidence, independently of
+      // unknown members retained by the global work-state director.
+      record.memoryLiveTurn = status.turnId;
+      record.memoryLiveAt = milliseconds(status.updatedAt);
       if (!this.batch || this.batch.terminalState) { this.beginBatch(); member = null; }
       if (!member) {
         member = { turnId: status.turnId, state: status.state, updatedAt: status.updatedAt, unresolvedPrior: false };
@@ -220,11 +235,25 @@ export class CodexWorkWatcher {
     }
     record.stale = false;
     if (terminal(status.state) && status.turnId) {
+      const completedBefore = record.completed.has(status.turnId);
       record.completed.add(status.turnId);
       if (record.completed.size > 256) record.completed.delete(record.completed.values().next().value);
       // Initial replayed terminal records establish a baseline only; they did
       // not correspond to an active turn observed by this watcher.
       if (member && !terminal(member.state) && member.turnId === status.turnId) {
+        const at = milliseconds(status.updatedAt);
+        if (!this.closed && status.state === 'complete' && !completedBefore && !member.unresolvedPrior &&
+            record.hasBaseline && !record.reloaded && !record.overflow &&
+            record.memoryLiveTurn === status.turnId && Number.isSafeInteger(at) && at > 0 &&
+            this.withinBoundary(at) && at <= this.now() &&
+            (record.memoryLiveAt === null || at >= record.memoryLiveAt)) {
+          // Persistable facts carry only an opaque, restart-stable identity and
+          // the explicit terminal timestamp. Callback failures cannot affect
+          // task following, and callbacks are never awaited by this watcher.
+          const id = createHash('sha256').update(JSON.stringify(['shuangling-completed-turn-v1', record.id, status.turnId])).digest('hex');
+          try { void Promise.resolve(this.onCompletedTurn({ id, at })).catch(() => {}); }
+          catch { /* A local journal failure must not change work state. */ }
+        }
         member.state = member.unresolvedPrior ? 'unknown' : status.state;
         member.updatedAt = status.updatedAt;
       } else if (member && !terminal(member.state)) {

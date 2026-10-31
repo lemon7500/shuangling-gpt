@@ -3,7 +3,9 @@
   'use strict';
   const i18n = typeof module !== 'undefined' && module.exports ? require('./panel-i18n.js') : globalThis.shuanglingI18n;
   const { t, getLanguage, setLanguage, normalizeLanguage } = i18n;
-  const ANIMATIONS = Object.freeze(['idle', 'running-right', 'running-left', 'waving', 'jumping', 'failed', 'waiting', 'running', 'review']);
+  const ANIMATIONS = Object.freeze(['idle', 'running-right', 'running-left', 'waving', 'jumping', 'failed', 'waiting', 'running', 'review', 'reading', 'looking-around', 'stretching-wings']);
+  const OPTIONAL_ANIMATIONS = Object.freeze(['reading', 'looking-around', 'stretching-wings']);
+  function animationAvailable(name, snapshot) { return ANIMATIONS.includes(name) && (!OPTIONAL_ANIMATIONS.includes(name) || snapshot?.availableAnimations?.includes(name) === true); }
   const CORNERS = Object.freeze(['top-left', 'top-right', 'bottom-left', 'bottom-right']);
   const STATE_LABELS = { idle: '安静陪伴中', working: '正在认真思考', running: '正在认真思考', waiting: '等你回答', complete: '本轮已完成', completed: '本轮已完成', interrupted: '动作已收起', unknown: '任务状态未知' };
   const HINTS = {
@@ -164,7 +166,7 @@
     };
   }
 
-  const model = { i18n, ANIMATIONS, presentUsage, presentState, presentSelection, presentProjectUsage, usageChoices, appearanceModel, appearanceCommand, createPoller };
+  const model = { i18n, ANIMATIONS, animationAvailable, presentUsage, presentState, presentSelection, presentProjectUsage, usageChoices, appearanceModel, appearanceCommand, createPoller };
   if (typeof module !== 'undefined' && module.exports) module.exports = model;
   if (typeof document === 'undefined') return;
 
@@ -262,13 +264,23 @@
   function renderPreferences() {
     $('auto-launch').disabled = !currentPreferences || preferencePending || busy;
     $('language').disabled = !currentPreferences || preferencePending || busy;
+    $('ambient-enabled').disabled = !currentPreferences || preferencePending || busy;
+    $('ambient-frequency').disabled = !currentPreferences || preferencePending || busy || currentPreferences.ambientEnabled === false;
     if (currentPreferences && !preferencePending) $('language').value = normalizeLanguage(currentPreferences.language);
     if (!currentPreferences) return;
+    $('ambient-enabled').setAttribute('aria-checked', String(currentPreferences.ambientEnabled !== false));
+    if (!preferencePending) $('ambient-frequency').value = ['quiet', 'normal', 'lively'].includes(currentPreferences.ambientFrequency) ? currentPreferences.ambientFrequency : 'normal';
     const enabled = currentPreferences.autoLaunch !== false;
     $('auto-launch').setAttribute('aria-checked', String(enabled));
     const lifecycle = currentPreferences.lifecycle;
     const ready = lifecycle?.available === true && lifecycle?.taskInstalled === true && lifecycle?.taskEnabled === true && lifecycle?.pluginEnabled === true;
-    $('launch-hint').textContent = !enabled ? t('自动启动已关闭，可手动打开霜铃。') : ready ? t('Codex 打开时陪伴，全部窗口关闭后退出。') : t('自动联动未就绪，仍可手动启动霜铃。');
+    $('launch-hint').textContent = !enabled ? t('自动启动已关闭') : ready ? t('自动启动已开启') : t('自动联动未就绪，仍可手动启动霜铃。');
+  }
+  function renderActions() {
+    let count = 0;
+    for (const button of document.querySelectorAll('[data-animation]')) { const available = animationAvailable(button.dataset.animation, lastSnapshot); if (available) count++; button.disabled = busy || !api || !available; button.title = available ? '' : t('素材待完善'); }
+    $('action-count').textContent = t('{count} / {total} 可用', { count, total: ANIMATIONS.length });
+    for (const button of document.querySelectorAll('[data-desk]')) button.disabled = busy || !api;
   }
   const poller = createPoller({
     snapshot: options => api?.snapshot ? api.snapshot(options) : Promise.reject(new Error('bridge-unavailable')),
@@ -295,14 +307,14 @@
           if (getLanguage() !== normalizeLanguage(currentPreferences.language)) applyLanguage(currentPreferences.language);
         }
       }
-      renderState(); renderUsage(); renderAppearance(); renderPreferences();
+      renderState(); renderUsage(); renderAppearance(); renderPreferences(); renderActions();
     },
     failure() { disconnected = true; renderState(); renderUsage(); },
   });
   async function command(payload, { success = '', refresh = true } = {}) {
     if (!api?.command || busy) return false;
     busy = true; revision++; notice(); renderState(); renderAppearance(); renderPreferences();
-    document.querySelectorAll('[data-animation],#home,#hide,#quit,#advanced').forEach(button => button.disabled = true);
+    document.querySelectorAll('[data-animation],[data-desk],#home,#hide,#quit,#advanced').forEach(button => button.disabled = true);
     try {
       const result = await api.command(payload);
       if (result?.ok === false) throw new Error(typeof result.error === 'string' ? result.error : 'operation-unavailable');
@@ -312,7 +324,8 @@
     } catch (error) { notice(messageFor(error)); return false; }
     finally {
       busy = false; renderState(); renderAppearance(); renderPreferences();
-      document.querySelectorAll('[data-animation],#home,#hide,#quit,#advanced').forEach(button => button.disabled = false);
+      document.querySelectorAll('#home,#hide,#quit,#advanced').forEach(button => button.disabled = false);
+      renderActions();
     }
   }
   async function saveAppearance() {
@@ -395,7 +408,8 @@
     markUsageOption();
   });
   document.addEventListener('pointerdown', event => { if (usagePickerOpen && !$('usage-picker').contains(event.target)) closeUsagePicker(); });
-  for (const button of document.querySelectorAll('[data-animation]')) button.addEventListener('click', () => { if (ANIMATIONS.includes(button.dataset.animation)) command({ type: 'animation', name: button.dataset.animation }, { refresh: false }); });
+  for (const button of document.querySelectorAll('[data-animation]')) button.addEventListener('click', () => { if (animationAvailable(button.dataset.animation, lastSnapshot)) command({ type: 'animation', name: button.dataset.animation }, { refresh: false }); });
+  for (const button of document.querySelectorAll('[data-desk]')) button.addEventListener('click', () => command({ type: 'desk', tab: button.dataset.desk }, { refresh: false }));
   for (const type of ['home', 'hide', 'quit', 'advanced']) $(type).addEventListener('click', () => command({ type }, { refresh: !['quit', 'hide'].includes(type) }));
   for (const id of ['height-range', 'height-number']) {
     $(id).addEventListener('focus', () => { editingHeight = true; });
@@ -430,7 +444,17 @@
     }
     preferencePending = false; renderPreferences(); poller.refresh();
   });
+  async function saveAmbient(enabled, frequency) {
+    if (preferencePending || busy || !currentPreferences) return;
+    preferencePending = true; renderPreferences();
+    const saved = await command({ type: 'ambient', enabled, frequency }, { success: t('自主陪伴设置已保存。'), refresh: false });
+    if (saved) currentPreferences = { ...currentPreferences, ambientEnabled: enabled, ambientFrequency: frequency };
+    preferencePending = false; renderPreferences(); poller.refresh();
+  }
+  $('ambient-enabled').addEventListener('click', () => saveAmbient(currentPreferences?.ambientEnabled === false, $('ambient-frequency').value));
+  $('ambient-frequency').addEventListener('change', () => saveAmbient(currentPreferences?.ambientEnabled !== false, $('ambient-frequency').value));
   applyLanguage(getLanguage());
+  renderActions();
   document.addEventListener('visibilitychange', () => { if (document.hidden) poller.stop(); else poller.start(); });
   globalThis.addEventListener('pagehide', () => poller.stop());
   globalThis.addEventListener('beforeunload', () => poller.stop());

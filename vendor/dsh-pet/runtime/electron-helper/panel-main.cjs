@@ -3,7 +3,9 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { readFileSync } = require('node:fs');
 const { panelBounds } = require('./panel-position.cjs');
-const ACTIONS = new Set(['idle', 'running-left', 'running-right', 'waving', 'jumping', 'failed', 'waiting', 'running', 'review']);
+const { createDeskController } = require('./desk-main.cjs');
+const ACTIONS = new Set(['idle', 'running-left', 'running-right', 'waving', 'jumping', 'failed', 'waiting', 'running', 'review', 'reading', 'looking-around', 'stretching-wings']);
+const OPTIONAL_ACTIONS = new Set(['reading', 'looking-around', 'stretching-wings']);
 const CHANNELS = ['shuangling-panel:snapshot', 'shuangling-panel:command'];
 const safeText = value => typeof value === 'string' ? value.slice(0, 160) : null;
 const safeName = value => typeof value === 'string' ? value.replace(/[\s\u0000-\u001f\u007f-\u009f]+/gu, ' ').trim().slice(0, 200) || null : null;
@@ -20,6 +22,8 @@ function validateCommand(value) {
   if (['pause', 'resume', 'home', 'hide', 'advanced', 'quit'].includes(value.type) && only(['type'])) return { type: value.type };
   if (value.type === 'autoLaunch' && only(['type', 'enabled']) && typeof value.enabled === 'boolean') return { type: value.type, enabled: value.enabled };
   if (value.type === 'language' && only(['type', 'language']) && ['zh-CN', 'zh-TW', 'en'].includes(value.language)) return { type: value.type, language: value.language };
+  if (value.type === 'desk' && only(['type', 'tab']) && ['focus', 'journal', 'notes'].includes(value.tab)) return { type: value.type, tab: value.tab };
+  if (value.type === 'ambient' && only(['type', 'enabled', 'frequency']) && typeof value.enabled === 'boolean' && ['quiet', 'normal', 'lively'].includes(value.frequency)) return { type: value.type, enabled: value.enabled, frequency: value.frequency };
   if (value.type === 'animation' && only(['type', 'name']) && ACTIONS.has(value.name)) return { type: value.type, name: value.name };
   if (value.type === 'usageThread' && only(['type', 'threadId']) && typeof value.threadId === 'string' && /^[A-Za-z0-9_-]{1,120}$/.test(value.threadId)) return { type: value.type, threadId: value.threadId };
   if (value.type === 'appearance' && only(['type', 'size', 'corner', 'marginX', 'marginY']) && Number.isFinite(value.size) && value.size >= 160 && value.size <= 1200 && ['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(value.corner) && [value.marginX, value.marginY].every(n => Number.isFinite(n) && n >= 0 && n <= 3000)) {
@@ -42,8 +46,9 @@ function sanitizeSnapshot({ state, usage, account, appearance, preferences, erro
     ok: !error,
     status: { state: ['unknown', 'idle', 'working', 'waiting', 'complete', 'interrupted'].includes(status.state) ? status.state : 'unknown', threadId: safeText(status.threadId), updatedAt: safeText(status.updatedAt), reason: safeText(status.reason) },
     control: { paused: control.paused === true, preempted: control.preempted === true, issue: safeText(control.issue) },
+    availableAnimations: Array.isArray(state?.availableAnimations) ? [...new Set(state.availableAnimations.filter(name => ACTIONS.has(name)))].slice(0, ACTIONS.size) : [],
     appearance: { size: number(appearance?.size), position: { corner: safeText(appearance?.position?.corner), marginX: number(appearance?.position?.marginX), marginY: number(appearance?.position?.marginY) }, display: safeText(appearance?.display), metrics: {} },
-    preferences: { autoLaunch: typeof preferences?.autoLaunch === 'boolean' ? preferences.autoLaunch : null, language: ['zh-CN', 'zh-TW', 'en'].includes(preferences?.language) ? preferences.language : 'zh-CN', lifecycle: {} },
+    preferences: { autoLaunch: typeof preferences?.autoLaunch === 'boolean' ? preferences.autoLaunch : null, language: ['zh-CN', 'zh-TW', 'en'].includes(preferences?.language) ? preferences.language : 'zh-CN', ambientEnabled: preferences?.ambientEnabled !== false, ambientFrequency: ['quiet', 'normal', 'lively'].includes(preferences?.ambientFrequency) ? preferences.ambientFrequency : 'normal', lifecycle: {} },
   };
   if (status.scope === 'codex') {
     result.status.scope = 'codex';
@@ -81,7 +86,7 @@ function managerClient(statePath, fetchImpl = fetch) {
     if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || !url.port || !url.hash || url.username || url.password) throw new Error('settings-unavailable');
     return url;
   };
-  const routes = new Set(['/api/state', '/api/usage', '/api/account-usage', '/api/usage-target', '/api/appearance', '/api/preferences', '/api/settings', '/api/shutdown']);
+  const routes = new Set(['/api/state', '/api/usage', '/api/account-usage', '/api/usage-target', '/api/appearance', '/api/preferences', '/api/settings', '/api/shutdown', '/api/desk']);
   return {
     settingsUrl: () => capability().href,
     async request(route, body) {
@@ -95,6 +100,7 @@ function managerClient(statePath, fetchImpl = fetch) {
 }
 
 function createPanelController({ BrowserWindow, ipcMain, screen, shell, statePath, getScale = () => 1, isPetWindow, client = managerClient(statePath), onError = () => {}, directory = __dirname }) {
+  const desk = createDeskController({ BrowserWindow, ipcMain, screen, client, getScale, onError, directory });
   const panelUrl = pathToFileURL(path.join(directory, 'panel.html')).href;
   let panel = null;
   let owner = null;
@@ -158,21 +164,36 @@ function createPanelController({ BrowserWindow, ipcMain, screen, shell, statePat
   async function command(value) {
     const v = validateCommand(value);
     if (!v) return { ok: false, error: 'invalid-command' };
+    // A manager request may finish after this card has been dismissed and a
+    // newer one opened. Only the submitting card may change its local owner.
+    const target = { owner, panel, session };
+    const current = () => !closed && owner === target.owner && panel === target.panel && session === target.session &&
+      target.owner && !target.owner.isDestroyed() && target.panel && !target.panel.isDestroyed();
     try {
-      if (v.type === 'pause' || v.type === 'resume') await client.request('/api/settings', { paused: v.type === 'pause' });
+      if (v.type === 'pause' || v.type === 'resume') {
+        await client.request('/api/settings', { paused: v.type === 'pause' });
+        if (current()) send({ kind: 'command', command: v });
+      }
       else if (v.type === 'appearance') {
         const { type, ...body } = v;
         const appearance = await client.request('/api/appearance', { ...body, live: true });
-        send({ kind: 'appearance', appearance: { size: appearance.size, position: appearance.position, display: appearance.display } });
+        if (current()) send({ kind: 'appearance', appearance: { size: appearance.size, position: appearance.position, display: appearance.display } });
         return { ok: true, appearance: sanitizeSnapshot({ appearance }).appearance };
       }
       else if (v.type === 'autoLaunch') await client.request('/api/preferences', { autoLaunch: v.enabled });
       else if (v.type === 'language') await client.request('/api/preferences', { language: v.language });
+      else if (v.type === 'ambient') await client.request('/api/preferences', { ambientEnabled: v.enabled, ambientFrequency: v.frequency });
+      else if (v.type === 'desk') { const win = owner; close('desk'); return await desk.open(win, { tab: v.tab }); }
       // The usage selection is intentionally separate from task-following settings.
       else if (v.type === 'usageThread') await client.request('/api/usage-target', { threadId: v.threadId });
       else if (v.type === 'advanced') await shell.openExternal(client.settingsUrl());
-      else if (v.type === 'quit') { await client.request('/api/shutdown', {}); close('quit'); }
+      else if (v.type === 'quit') { await client.request('/api/shutdown', {}); if (current()) { send({ kind: 'command', command: v }); close('quit'); } }
       else if (v.type === 'animation' || v.type === 'home' || v.type === 'hide') {
+        if (v.type === 'animation' && OPTIONAL_ACTIONS.has(v.name)) {
+          const state = await client.request('/api/state');
+          if (!Array.isArray(state?.availableAnimations) || !state.availableAnimations.includes(v.name)) return { ok: false, error: 'animation-unavailable' };
+        }
+        if (!current()) return { ok: false, error: 'operation-unavailable' };
         send({ kind: 'command', command: v });
         close(v.type === 'animation' ? 'action' : 'dismiss');
       }
@@ -194,10 +215,10 @@ function createPanelController({ BrowserWindow, ipcMain, screen, shell, statePat
   ipcMain.handle(CHANNELS[1], (event, value) => authorized(event) ? command(value) : { ok: false, error: 'unauthorized' });
   ipcMain.on('shuangling-panel:close', closeHandler);
   return {
-    open, close, snapshot,
+    open, close, snapshot, desk,
     ownerDestroyed(win) { if (owner === win) close('owner-gone'); },
-    reposition() { if (panel && !panel.isDestroyed() && anchor) { const display = screen.getDisplayMatching(anchor); panel.setBounds(panelBounds(anchor, display.workArea, getScale(display))); } },
-    destroy() { closed = true; close('shutdown'); for (const channel of [...CHANNELS, 'pet:open-panel']) ipcMain.removeHandler(channel); ipcMain.removeListener('pet:close-panel', petCloseHandler); ipcMain.removeListener('shuangling-panel:close', closeHandler); },
+    reposition() { if (panel && !panel.isDestroyed() && anchor) { const display = screen.getDisplayMatching(anchor); panel.setBounds(panelBounds(anchor, display.workArea, getScale(display))); } desk.reposition(); },
+    destroy() { closed = true; close('shutdown'); desk.destroy(); for (const channel of [...CHANNELS, 'pet:open-panel']) ipcMain.removeHandler(channel); ipcMain.removeListener('pet:close-panel', petCloseHandler); ipcMain.removeListener('shuangling-panel:close', closeHandler); },
     get window() { return panel; },
   };
 }

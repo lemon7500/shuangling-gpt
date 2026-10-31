@@ -45,7 +45,7 @@ try {
   );
   process.exit(3);
 }
-const { app, BrowserWindow, ipcMain, screen, shell, protocol, Tray, Menu, nativeImage } = electronApi;
+const { app, BrowserWindow, ipcMain, screen, shell, protocol, Tray, Menu, nativeImage, powerMonitor } = electronApi;
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { readFileSync, writeFileSync, watchFile, unwatchFile } = require('node:fs');
@@ -67,7 +67,8 @@ const { shouldLinearize, resolveForcedScale, resolvePetScale } = require('./dpi-
 // 托盘的平台差异（模板图 / 左键是否自动弹菜单 / Dock）：规则住在模块里，main.js 只接线
 const { trayPlatform } = require('./tray-platform.js');
 const { buildDeskGeometry } = require('./desktop-geometry.js');
-const { createPanelController } = require('./panel-main.cjs');
+const { createPanelController, managerClient } = require('./panel-main.cjs');
+const { recordFocusSleepSync } = require('./focus-sleep.cjs');
 const nativeI18n = require('./panel-i18n.js');
 
 // 允许无用户手势直接播放（余额动画等）
@@ -874,6 +875,22 @@ app.whenReady().then(() => {
       getScale: () => petScale(),
       isPetWindow: win => [...windows.values()].includes(win),
       onError: () => console.error('[shuangling] control panel unavailable'),
+    });
+    powerMonitor.on('suspend', () => {
+      // The manager owns the durable timer; sleeping never starts a break or
+      // changes Codex task-following, and no authentication reaches a renderer.
+      let request;
+      try { request = recordFocusSleepSync(process.env.SHUANGLING_MANAGER_STATE); }
+      catch {
+        // The existing long-gap detector remains a fallback, but a failed local
+        // checkpoint cannot promise exact suspension for short sleeps.
+        console.error('[shuangling] focus sleep checkpoint unavailable; gap fallback only');
+        return;
+      }
+      if (!request) return;
+      void managerClient(process.env.SHUANGLING_MANAGER_STATE)
+        .request('/api/desk', request)
+        .catch(() => console.error('[shuangling] focus suspension unavailable'));
     });
   }
 

@@ -1,7 +1,7 @@
 {
   "name": "shuangling-gpt",
-  "version": "1.8.4",
-  "description": "霜铃 GPT 桌宠：霜白控制面板、随 Codex 自动启停、整体任务联动与聊天用量查询。",
+  "version": "1.9.0",
+  "description": "霜铃 GPT 桌宠：自然陪伴、专注计时、霜境手记、随 Codex 自动启停与任务用量面板。",
   "author": {
     "name": "Maxmillian"
   },

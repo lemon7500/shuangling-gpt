@@ -8,7 +8,7 @@ import { quietDelay, naturalAnimation, quietIntervals } from '../../src/bridge/n
 const tick = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function until(predicate) { const end = Date.now() + 1500; while (!predicate()) { if (Date.now() > end) assert.fail('scheduler did not settle'); await tick(1); } }
 const epoch = 1792600000000;
-const duration = { idle: 6000, running: 4000, review: 3600, waiting: 3800, waving: 2500, jumping: 2000, failed: 3500 };
+const duration = { idle: 6000, running: 4000, review: 3600, waiting: 3800, waving: 2500, jumping: 2000, failed: 3500, reading: 10000, 'looking-around': 5000, 'stretching-wings': 5000 };
 const maps = { idle: 'idle', working: 'running', waiting: 'waiting' };
 const fixtures = [];
 const status = state => ({ state, threadId: 'root', turnId: 'turn', updatedAt: new Date(epoch).toISOString() });
@@ -19,7 +19,7 @@ function virtualController(state, { stopAt = 60000, onAdvance, onInteraction, ho
   const events = [], plays = new Map();
   const advance = async milliseconds => {
     now = Math.min(epoch + stopAt, now + milliseconds);
-    onAdvance?.({ at: now - epoch, controller, setInteraction: value => { interaction = value; } });
+    await onAdvance?.({ at: now - epoch, controller, setInteraction: value => { interaction = value; } });
     if (now >= epoch + stopAt) controller.setPaused(true);
     await Promise.resolve();
   };
@@ -45,7 +45,7 @@ function virtualController(state, { stopAt = 60000, onAdvance, onInteraction, ho
       return { status: event.endedAt === null ? 'playing' : 'ended' };
     },
   };
-  controller = new PetController({ client, now: () => now, sleepImpl: advance, random });
+  controller = new PetController({ client, availableAnimations: ['reading', 'looking-around', 'stretching-wings'], now: () => now, sleepImpl: advance, random });
   controller.update(status(state));
   return { controller, events, elapsed: () => now - epoch };
 }
@@ -53,47 +53,136 @@ function virtualController(state, { stopAt = 60000, onAdvance, onInteraction, ho
 test('quiet cadence has bounded randomness and excludes unsafe or repeated autonomous gestures', () => {
   assert.equal(quietDelay('working', () => 0), 7000);
   assert.equal(quietDelay('working', () => 1), 12000);
-  assert.equal(quietDelay('waiting', () => 0), 8000);
-  assert.equal(quietDelay('idle', () => 1), 18000);
-  assert.equal(quietDelay('idle', () => NaN), 14000);
+  assert.equal(quietDelay('waiting', () => 0), 60000);
+  assert.equal(quietDelay('idle', () => 1), 45000);
+  assert.equal(quietDelay('idle', () => NaN), 35000);
+  assert.equal(quietDelay('idle', () => 0, 'quiet'), 45000);
+  assert.equal(quietDelay('idle', () => 1, 'lively'), 25000);
   for (const state of ['idle', 'working', 'waiting']) {
     let previous = null;
     const random = seedRandom(12);
     for (let i = 0; i < 100; i++) {
       const next = naturalAnimation(state, maps, previous, random);
-      assert.notEqual(next, previous, `${state} should not repeat a gesture`);
+      if (state !== 'waiting') assert.notEqual(next, previous, `${state} should not repeat a gesture`);
+      if (state === 'idle') assert.ok(['reading', 'looking-around', 'stretching-wings'].includes(next));
+      if (state === 'waiting') assert.equal(next, 'waiting');
       assert.ok(!['failed', 'jumping', 'waving', 'running-left', 'running-right'].includes(next));
       previous = next;
     }
   }
 });
 
-test('sixty-second seeded replays fill quiet intervals with complete breathing and vary calm poses', async t => {
+test('thirty-minute seeded replays fill every interval and observe ambient cooldowns without false task gestures', async t => {
   for (const state of ['working', 'waiting', 'idle']) {
-    const run = virtualController(state);
+    const run = virtualController(state, { stopAt: 1800000 });
     t.after(() => run.controller.close());
     await until(() => run.controller.paused && run.events.some(item => item.type === 'release'));
     const plays = run.events.filter(item => item.type === 'play');
     const gestures = plays.filter(item => item.name !== 'idle');
-    assert.ok(gestures.length >= 2 && gestures.length <= 6, `${state}: ${gestures.length} gestures/60s`);
+    assert.ok(gestures.length >= 10, `${state}: ${gestures.length} gestures/30min`);
+    if (state === 'idle') assert.deepEqual([...new Set(gestures.map(item => item.name))].sort(), ['looking-around', 'reading', 'stretching-wings']);
     assert.equal(plays[0].name, state === 'working' ? 'running' : state === 'waiting' ? 'waiting' : 'idle');
     for (let i = 1; i < plays.length; i++) {
       if (plays[i - 1].endedAt !== null) assert.equal(plays[i].at, plays[i - 1].endedAt, 'confirmed clips leave no static quiet gap');
     }
     for (let i = 1; i < gestures.length; i++) {
-      assert.notEqual(gestures[i].name, gestures[i - 1].name);
-      const minimum = state === 'working' ? 7000 : state === 'waiting' ? 8000 : 10000;
+      if (state !== 'waiting') assert.notEqual(gestures[i].name, gestures[i - 1].name);
+      const minimum = quietIntervals[state][0];
       assert.ok(gestures[i].at - gestures[i - 1].endedAt >= minimum);
       const between = plays.filter(item => item.at >= gestures[i - 1].endedAt && item.at < gestures[i].at);
       assert.ok(between.some(item => item.name === 'idle' && item.endedAt - item.at === duration.idle), 'each pair has one full breathing clip');
-      assert.ok(gestures[i].at - gestures[i - 1].endedAt < quietIntervals[state][1] + duration.idle, 'only the final full idle may extend the sampled quiet interval');
+      if (state !== 'idle') assert.ok(gestures[i].at - gestures[i - 1].endedAt < quietIntervals[state][1] + duration.idle, 'only the final full idle may extend the sampled quiet interval');
+    }
+    if (state === 'idle') for (const [name, cooldown] of [['reading', 180000], ['looking-around', 45000], ['stretching-wings', 120000]]) {
+      const matching = gestures.filter(item => item.name === name);
+      for (let i = 1; i < matching.length; i++) assert.ok(matching[i].at - matching[i - 1].endedAt >= cooldown);
     }
     assert.ok(!plays.some(item => ['failed', 'jumping', 'waving', 'running-left', 'running-right'].includes(item.name)));
     assert.ok(run.events.some(item => item.type === 'lock' && item.renewal), 'lease stays renewed during calm rest');
     assert.equal(run.events.filter(item => item.type === 'lock' && !item.renewal).length, 1, 'quiet replay keeps the existing lease');
-    fixtures.push({ state, simulatedMs: run.elapsed(), gestures: gestures.length, events: run.events });
+    fixtures.push({ state, simulatedMs: run.elapsed(), gestures: gestures.length, eventCount: run.events.length, firstEvents: run.events.slice(0, 30) });
   }
-  writeFileSync(fileURLToPath(new URL('../../reports/animation-schedule-verification.json', import.meta.url)), JSON.stringify({ verifiedAt: new Date().toISOString(), ok: true, virtualClock: true, observationMsPerState: 60000, fixtures }, null, 2) + '\n');
+  writeFileSync(process.env.SHUANGLING_AMBIENT_REPORT || fileURLToPath(new URL('../../reports/ambient-schedule-verification.json', import.meta.url)), JSON.stringify({ verifiedAt: new Date().toISOString(), ok: true, virtualClock: true, observationMsPerState: 1800000, fixtures }, null, 2) + '\n');
+});
+
+test('journal reading waits for its real ended receipt before quiet time and the three-minute cooldown begin', async t => {
+  let run, queuedAt = null, checkedNominalEnd = false;
+  run = virtualController('idle', { stopAt: 300000, random: () => 0,
+    async onAdvance({ at, controller }) {
+      if (queuedAt === null && at >= 7000 && controller.schedule.phase === 'rest') {
+        queuedAt = at;
+        assert.equal(await controller.companionNotice(null, 'reading', { idleOnly: true }), true);
+        assert.equal(controller.lastAmbientEnded.reading, undefined, 'queue acceptance is not a playback end');
+      }
+      const reading = run?.events.find(event => event.type === 'play' && event.name === 'reading');
+      if (reading && !checkedNominalEnd && at >= reading.at + duration.reading) {
+        checkedNominalEnd = true;
+        assert.equal(reading.endedAt, null);
+        assert.equal(controller.lastAmbientEnded.reading, undefined, 'ten elapsed seconds cannot replace an ended receipt');
+      }
+    },
+    // Deliberately keep the first reading receipt playing three seconds past
+    // the nominal ten-second asset, as a slow/blocked renderer could do.
+    holdPlayback: event => event.name === 'reading' && event.endedAt === null && run.elapsed() < event.at + 13000,
+  });
+  t.after(() => run.controller.close());
+  await until(() => run.controller.paused && run.events.some(event => event.type === 'release'));
+  const readings = run.events.filter(event => event.type === 'play' && event.name === 'reading');
+  const first = readings[0];
+  assert.ok(checkedNominalEnd); assert.ok(first.at > queuedAt);
+  assert.ok(first.endedAt - first.at >= 13000);
+  assert.ok(first.endedAt - first.at < 14060, 'the held receipt is observed on the following bounded host poll');
+  const following = run.events.find(event => event.type === 'play' && event.name !== 'idle' && event.at >= first.endedAt);
+  assert.ok(following, 'the controller eventually resumes autonomous company');
+  assert.ok(following.at - first.endedAt >= 25000);
+  assert.ok(following.at - first.endedAt <= 45000 + duration.idle, 'only a complete final idle may extend the interval');
+  assert.ok(readings.length >= 2, 'the reading cooldown eventually expires');
+  for (let index = 1; index < readings.length; index++) {
+    assert.ok(readings[index].at - readings[index - 1].endedAt >= 180000,
+      'reading must cool down from its actual end, not queue or start time');
+  }
+});
+
+test('a queued journal reading that never ends cannot start cooldown or another autonomous action', async t => {
+  let queued = false;
+  const run = virtualController('idle', { stopAt: 60000, random: () => 0,
+    async onAdvance({ at, controller }) {
+      if (!queued && at >= 7000 && controller.schedule.phase === 'rest') {
+        queued = true;
+        assert.equal(await controller.companionNotice(null, 'reading', { idleOnly: true }), true);
+      }
+    },
+    holdPlayback: event => event.name === 'reading',
+  });
+  t.after(() => run.controller.close());
+  await until(() => run.controller.paused && run.events.some(event => event.type === 'release'));
+  const plays = run.events.filter(event => event.type === 'play');
+  assert.equal(plays.at(-1).name, 'reading'); assert.equal(plays.at(-1).endedAt, null);
+  assert.equal(plays.filter(event => event.name === 'reading').length, 1);
+  assert.equal(run.controller.lastAmbientEnded.reading, undefined);
+  assert.equal(run.controller.status.state, 'idle', 'a playback delay does not invent a task outcome');
+});
+
+test('a task arriving after a journal cue was queued discards it instead of interrupting the task', async t => {
+  let queuedAt = null, changedAt = null;
+  const run = virtualController('idle', { stopAt: 60000, random: () => 0,
+    async onAdvance({ at, controller }) {
+      if (queuedAt === null && at >= 7000 && controller.schedule.phase === 'rest') {
+        queuedAt = at;
+        assert.equal(await controller.companionNotice(null, 'reading', { idleOnly: true }), true);
+      } else if (queuedAt !== null && changedAt === null && at >= 8000) {
+        changedAt = at;
+        controller.update({ ...status('working'), updatedAt: new Date(epoch + at).toISOString() });
+      }
+    },
+  });
+  t.after(() => run.controller.close());
+  await until(() => run.controller.paused && run.events.some(event => event.type === 'release'));
+  assert.ok(queuedAt !== null && changedAt > queuedAt);
+  assert.ok(run.events.some(event => event.type === 'play' && event.name === 'running'));
+  assert.ok(!run.events.some(event => event.type === 'play' && event.name === 'reading'));
+  assert.equal(run.controller.lastAmbientEnded.reading, undefined);
+  assert.equal(run.controller.status.state, 'working');
 });
 
 test('a click completed during quiet rest wins control without a fresh lease or later automatic gesture', async t => {
@@ -142,7 +231,9 @@ test('new task state and pause interrupt quiet rest before a scheduled gesture c
   const plays = run.events.filter(item => item.type === 'play');
   const running = plays.find(item => item.name === 'running');
   assert.ok(plays.filter(item => item.at < changedAt).every(item => item.name === 'idle'));
-  assert.ok(running && running.at === changedAt, 'new state replaces the still-playing old idle after its bounded receipt wait');
+  const previousIdle = plays.filter(item => item.name === 'idle' && item.at < changedAt).at(-1);
+  assert.ok(running && previousIdle && running.at > changedAt);
+  assert.equal(running.at, previousIdle.endedAt, 'a new task starts at the real end of the current idle, rather than cutting its pose');
   assert.ok(plays.filter(item => item.at >= changedAt).every(item => item.generation === running.generation), 'no old generation starts another quiet clip');
   assert.ok(!plays.some(item => item.at >= pausedAt), 'pause prevents all later idle or gesture requests');
 });
@@ -196,5 +287,12 @@ test('completion celebration occurs once, then a sixty-second replay uses only c
   assert.deepEqual(names.slice(0, 3), ['waving', 'jumping', 'idle']);
   assert.equal(names.filter(name => name === 'waving').length, 1);
   assert.equal(names.filter(name => name === 'jumping').length, 1);
-  assert.ok(names.slice(3).every(name => ['idle', 'review', 'waiting'].includes(name)));
+  assert.ok(names.slice(3).every(name => ['idle', 'reading', 'looking-around', 'stretching-wings'].includes(name)));
+});
+
+test('disabled, missing, previous and cooling ambient assets leave dynamic idle as the safe fallback', () => {
+  assert.equal(naturalAnimation('idle', maps, null, () => 0, { enabled: false }), 'idle');
+  assert.equal(naturalAnimation('idle', maps, null, () => 0, { available: [] }), 'idle');
+  assert.equal(naturalAnimation('idle', maps, 'reading', () => 0, { available: ['reading'] }), 'idle');
+  assert.equal(naturalAnimation('idle', maps, null, () => 0, { now: epoch + 1000, lastEnded: { reading: epoch, 'looking-around': epoch, 'stretching-wings': epoch } }), 'idle');
 });

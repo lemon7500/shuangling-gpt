@@ -1,6 +1,6 @@
 {
   "name": "shuangling-gpt-pet",
-  "version": "1.8.4",
+  "version": "1.9.0",
   "private": true,
   "type": "module",
   "description": "霜铃 GPT：Pets 与 Windows 共用角色素材的本地桌宠",

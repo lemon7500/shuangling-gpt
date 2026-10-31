@@ -23,7 +23,8 @@ const bundledUtility = bundleText.split('//#region src/host/shuangling-config.ts
 assert.ok(bundledUtility, 'packaged standalone must contain the profile utility');
 const utilityImports = "import {mkdir,rename,unlink,writeFile} from 'node:fs/promises';import{dirname}from'node:path';import{randomUUID}from'node:crypto';";
 const packaged = await importCode(utilityImports + bundledUtility + '\nexport {patchShuanglingGeometry,createShuanglingConfigQueue,writeShuanglingConfigAtomic};');
-const hostConfig = await importCode(stripTypeScriptTypes(readFileSync(join(root, 'vendor/dsh-pet/src/host/config.ts'), 'utf8'), { mode: 'strip' }));
+const ambientModule = 'data:text/javascript,' + encodeURIComponent(stripTypeScriptTypes(readFileSync(join(root, 'vendor/dsh-pet/src/host/ambient-animations.ts'), 'utf8'), { mode: 'strip' }));
+const hostConfig = await importCode(stripTypeScriptTypes(readFileSync(join(root, 'vendor/dsh-pet/src/host/config.ts'), 'utf8'), { mode: 'strip' }).replace("'./ambient-animations.js'", JSON.stringify(ambientModule)));
 const defaults = JSON.parse(readFileSync(join(root, 'windows/default-config.json'), 'utf8'));
 const geometry = { petId: 'shuangling', size: 396, corner: 'top-left', marginX: 23, marginY: 17 };
 

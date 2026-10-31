@@ -42,7 +42,10 @@ export class PetClient {
   lock(lockId, ttl = 30000) { return this.request('lock', { method: 'POST', body: { ...(lockId ? { lockId } : {}), ttl } }); }
   release(lockId) { return this.request('lock/release', { method: 'POST', body: { lockId } }); }
   play(name, lockId) { return this.request('anim', { method: 'POST', body: { name, facing: 'left' }, lockId }); }
-  playback(id) { return this.request(`playback/${encodeURIComponent(id)}?wait=ended,failed,cancelled&timeout=1000`, { timeoutMs: 4000, surface: false }); }
+  playback(id, { waitTimeoutMs = 1000 } = {}) {
+    if (!Number.isSafeInteger(waitTimeoutMs) || waitTimeoutMs < 0 || waitTimeoutMs > 1000) throw new PetApiError('invalid-playback-wait');
+    return this.request(`playback/${encodeURIComponent(id)}?wait=ended,failed,cancelled&timeout=${waitTimeoutMs}`, { timeoutMs: 4000, surface: false });
+  }
   broadcast(text, lockId, duration = 2400) { return this.request('broadcast', { method: 'POST', body: { text, duration, anim: false }, lockId }); }
   config() { return this.request('config', { surface: false }); }
   interaction() { return this.request('interaction'); }

@@ -7,9 +7,11 @@
   <p><img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-8B73A6" /> <img alt="Version 1.8.4" src="https://img.shields.io/badge/version-1.8.4-8B73A6" /> <a href="LICENSE"><img alt="Code license MIT" src="https://img.shields.io/badge/code-MIT-8B73A6" /></a> <a href="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml"><img alt="Windows source check" src="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml/badge.svg" /></a></p>
 </div>
 
-霜铃是一只银白卷发、淡紫双翼的 Q 版龙女桌宠。她通过本地 Codex 插件跟随整个应用的任务状态，提供九种动画、拖拽与抛出交互，以及霜白淡紫的右键控制卡片。
+霜铃是一只银白卷发、淡紫双翼的 Q 版龙女桌宠。她通过本地 Codex 插件跟随整个应用的任务状态，提供角色动画、拖拽与抛出交互，以及霜白淡紫的右键控制卡片。
 
-**角色设定：**[霜境书库的记录者](docs/CHARACTER.md) · [繁體中文](docs/i18n/CHARACTER.zh-TW.md) · [English](docs/i18n/CHARACTER.en.md)。背景故事与九种动作准则供后续创作参考，当前功能与动画保持原样。
+**源码开发版 1.9.0：**新增自主陪伴、专注与休息、霜境手记、书签联动的「我们的日常」，以及托起、持续拖动和放下的动作。开发版提供 12 个可用动作，包含已接纳的「翻看见闻」10 秒暂定版，并保留思考、检查和等待的旧版供点击时随机选播。当前使用现有素材继续改善播放与衔接，不保证所有机器上零丢帧。下方免安装包仍是已发布的 **1.8.4**，不包含这些新增内容；同步源码不会自动更新 Release 附件。使用方式见[霜白小工具（三语）](docs/COMPANION-DESK.md)。
+
+**角色设定：**[霜境书库的记录者](docs/CHARACTER.md) · [繁體中文](docs/i18n/CHARACTER.zh-TW.md) · [English](docs/i18n/CHARACTER.en.md)。背景故事与九种动作准则供后续创作参考；六篇角色短篇可在「霜铃手记」中阅读。
 
 **桌宠运行时参考并基于 [PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)。初始参考图原作者为 B 站 [@ZipZipPipe](https://space.bilibili.com/4168597)。** 霜铃的 Q 版形象和动画由本项目在该参考图基础上改编制作，已获原作者对本项目非商业用途的同意；代码与美术的权利说明分别见 [许可证](LICENSE) 和 [素材说明](ASSETS.md)。
 
@@ -28,7 +30,7 @@
   </tr>
 </table>
 
-三个预览分别循环播放当前版本已有动画，保留原动作节奏。仅做裁切、背景合成和 GIF 转换；点击可查看原尺寸动图。
+三个预览记录已发布的 1.8.4 动画，保留当时的动作节奏，不代表开发版新增或替换素材。仅做裁切、背景合成和 GIF 转换；点击可查看原尺寸动图。
 
 ### 右键控制面板
 
@@ -47,9 +49,14 @@
 
 | 功能 | 说明 |
 | --- | --- |
-| 九种角色动画 | 常态陪伴、左右小跑、挥手、小跳、收起、等你回答、认真思考、检查工作 |
+| 开发版 12 个可用动作 | 原有九种动作加「侧望微光」「轻舒双翼」「翻看见闻」；阅读采用已接纳的 10 秒暂定版 |
 | 整个 Codex 的任务联动 | 汇总当前本机 Codex 应用会话中的根聊天；子代理不会提前触发完成 |
 | 独立右键控制卡片 | 总览、动作、设置三页；面板尺寸独立于角色缩放 |
+| 专注工具 | 独立工具窗，默认 25 分钟专注／5 分钟休息；支持手动开始、暂停、恢复和结束 |
+| 霜铃手记 | 六篇三语角色短篇，保留已读、收藏和每篇阅读位置 |
+| 我们的日常 | 根据已确认的本地片段形成每日页；可补一句、编辑，并把续做内容留为书签，不读取聊天正文 |
+| 我的书签 | 手动新建、编辑、删除、置顶与归档；文本仅保存在本机 |
+| 自主陪伴 | 可开关，并选择安静／适中／活跃；只播放当前已安装且可用的闲暇动作 |
 | 聊天用量 | 按聊天名称选择，查看该聊天最近请求的上下文和累计 token；重启后记住所选聊天 |
 | 三语界面 | 简体、繁体和英语覆盖面板、托盘、悬浮名称与错误提示；重启后保留语言选择 |
 | 当前账号额度 | 独立读取当前登录账号；切换用量聊天不会改变账户余额 |
@@ -94,14 +101,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 | 左键拖动／松手甩出 | 移动角色，保留物理交互 |
 | 右键 | 打开霜白控制面板 |
 | 总览 | 查看工作状态、选择用量聊天、暂停／恢复联动 |
-| 动作 | 点播九种动作；用户操作优先，可用「恢复联动」交回控制 |
-| 设置 | 调整可见高度、停靠位置、界面语言和随 Codex 自动启动 |
+| 动作 | 点播可用动作；新增入口在素材就绪后启用。用户操作优先，可用「恢复联动」交回控制 |
+| 总览中的专注／霜铃手记／我的书签 | 打开独立「霜白小工具」，不缩放或移动宠物窗口 |
+| 设置 | 调整可见高度、停靠位置、界面语言、随 Codex 自动启动与自主陪伴频率 |
 | Esc／点击面板外部 | 关闭面板，不退出角色 |
 | 隐藏／退出 | 隐藏角色或完整退出；聊天事件不会擅自重新打开 |
 
 备用入口：`启动霜铃.vbs`、`霜铃设置.vbs`、`退出霜铃.vbs`。主动退出会抑制本次 Codex 应用会话内的自动重启；完整关闭再打开 Codex，或明确手动启动，才恢复。
 
 在面板「设置 → 界面语言」或高级设置中选择 **简体中文／繁體中文／English**，会保留当前聊天选择、动画、位置和其他设置。
+
+「霜白小工具」随界面语言切换，关闭窗口后正在进行的计时继续运行；休眠或退出应用会暂停，重开后需手动恢复。专注时长可设为 10–120 分钟，休息时长为 1–30 分钟，不会自动开始下一段。手记和书签不从聊天中自动提取内容。完整用法、保存位置与恢复边界见 [霜白小工具（三语）](docs/COMPANION-DESK.md)。
 
 ## 用量显示的含义
 
@@ -122,7 +132,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 
 **能用在 macOS／Linux 或云端任务吗？** 当前 Windows 桌宠和自动启停仅支持 Windows x64，只跟踪当前本机 Codex 会话。仓库不是 ChatGPT Pets 的通用一键导入包。
 
-**动画是否已完全没有瑕疵？** 当前九段为可用版本，挥手袖口和局部转身仍有细节限制；后续改进欢迎提交 Issue。仓库不含历史候选和生成过程的庞大归档。
+**动画是否已完全没有瑕疵？** 开发版有 12 个可用动作，不表示每一处细节都已完善。「翻看见闻」采用已认可的 10 秒暂定版，书本高度和翻页靠脸等细节仍可继续优化；任务到来时保留自然收书过程，不会保证即时切断。偶发解码丢帧和看书、舒翼与常态的衔接仍在持续排查。旧 1.8.4 预览保留当时的袖口和局部转身限制。反馈时请注明版本、动作和触发方式；仓库不含历史候选和生成过程的庞大归档。
 
 ## 开发
 
@@ -131,9 +141,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 .\windows\runtime\node\node.exe --test --test-concurrency=4 tests/bridge/*.test.mjs tests/plugin/*.test.mjs tests/lifecycle/*.test.mjs tests/panel/*.test.mjs
 ~~~
 
-源码目录：`src/bridge`（工作状态、聊天用量和当前账号）、`src/plugin`（MCP）、`src/lifecycle` 与 `windows/lifecycle`（自动启停），以及 `vendor/dsh-pet`（保留上游与本项目修改的宿主）。最终九段动画在 `windows/assets/shuangling`。
+源码目录：`src/bridge`（工作状态、聊天用量和当前账号）、`src/desk`（专注计时、固定角色短篇和手动书签）、`src/plugin`（MCP）、`src/lifecycle` 与 `windows/lifecycle`（自动启停），以及 `vendor/dsh-pet`（保留上游与本项目修改的宿主）。运行素材在 `windows/assets/shuangling`；动作入口依照已接纳清单和实际文件启用。
 
-详见 [联动与接口](BRIDGE.md)、[隐私](docs/PRIVACY.md)、[更新记录](docs/CHANGELOG.md)和[源码准备检查记录](reports/publication-check.json)。公开版本保留既有九段媒体的字节；来源记录只保留运行所需的相对路径元数据，并重新绑定校验值。
+[可选离线媒体审计](tools/MEDIA-AUDIT.md)仅供开发者检查素材，额外使用 Python 与图像库；安装和运行桌宠不需要这些依赖。审计只向 QA 目录暂存结果，不会自动替换角色素材或已安装程序。
+
+详见 [联动与接口](BRIDGE.md)、[隐私](docs/PRIVACY.md)、[更新记录](docs/CHANGELOG.md)和[源码准备检查记录](reports/publication-check.json)。开发版仅纳入审核接纳的素材，保留满意的常态；左右小跑、拖拽及小跳采用后续本地验收接纳的修整版本。来源记录只保留运行所需的相对路径元数据，并重新绑定校验值。
 
 ## 致谢与参考
 

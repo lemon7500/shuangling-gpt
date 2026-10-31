@@ -1,6 +1,14 @@
-import { firstAnimation, naturalAnimation, quietDelay } from './natural-schedule.mjs';
+import { firstAnimation, naturalAnimation, quietDelay, ambientActions } from './natural-schedule.mjs';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const terminal = new Set(['ended', 'failed', 'cancelled']);
+const readingTaskTargets = new Set(['idle', 'running', 'review', 'waiting', 'waving', 'jumping', 'failed']);
+const readingTaskStates = new Set(['idle', 'working', 'waiting', 'complete', 'interrupted']);
+const readingReceiptWaitMs = 150;
+const readingReturnStartTimeoutMs = 12000;
+const focusWingCooldownMs = ambientActions.find(action => action.name === 'stretching-wings').cooldownMs;
+const focusCueAllowed = (controller, name) => name === 'stretching-wings' && !controller.cue &&
+  (!controller.activePlayback || controller.activePlayback.name === firstAnimation(controller.animations.idle)) &&
+  controller.previousAmbient !== name && (!Number.isFinite(controller.lastAmbientEnded[name]) || controller.now() - controller.lastAmbientEnded[name] >= focusWingCooldownMs);
 const preemptions = new Set(['locked', 'lock-lost', 'preempted', 'pet-hidden', 'pet-not-found', 'pet-not-displayed', 'unknown-pet', 'surface-unavailable']);
 preemptions.add('interaction-active');
 const handoffReasons = new Set(['lock-lost', 'preempted', 'interaction-active']);
@@ -16,11 +24,13 @@ const initialInteraction = record => record?.kind === 'click' && record.phase ==
 
 /** Lease and playback receipts remain the upstream host's authority. */
 export class PetController {
-  constructor({ client, animationMap = {}, onChange = () => {}, retryMs = 1800, startTimeoutMs = 2500, maxStartRetries = 3, interactionPollMs = 300, interactionProbeMs = 1500, surfaceReadyTimeoutMs = 12000, now = Date.now, sleepImpl = sleep, random = Math.random }) {
+  constructor({ client, animationMap = {}, availableAnimations = [], ambientPreferences = {}, initialPaused = false, initialPreempted = false, onChange = () => {}, retryMs = 1800, startTimeoutMs = 5000, maxStartRetries = 3, interactionPollMs = 300, interactionProbeMs = 1500, surfaceReadyTimeoutMs = 12000, now = Date.now, sleepImpl = sleep, random = Math.random }) {
     this.client = client;
     this.animations = { idle: 'idle', working: 'running', waiting: 'waiting', complete: ['waving', 'jumping'], interrupted: 'failed', unknown: 'idle', ...animationMap };
     this.onChange = onChange;
     this.retryMs = retryMs;
+    // Acquiring the first lease can freeze a local gesture mid-pose. Allow
+    // its real return plus decoder preparation before retrying an accepted play.
     this.startTimeoutMs = startTimeoutMs;
     this.maxStartRetries = maxStartRetries;
     this.interactionPollMs = interactionPollMs;
@@ -29,11 +39,18 @@ export class PetController {
     this.now = now;
     this.sleep = sleepImpl;
     this.random = random;
+    this.availableAnimations = [...availableAnimations];
+    this.ambient = { enabled: ambientPreferences.ambientEnabled !== false, frequency: ['quiet', 'normal', 'lively'].includes(ambientPreferences.ambientFrequency) ? ambientPreferences.ambientFrequency : 'normal' };
+    this.lastAmbientEnded = {};
+    this.previousAmbient = null;
+    this.cue = null;
     this.status = { state: 'unknown', threadId: null, turnId: null, updatedAt: null };
-    this.paused = false;
-    this.preempted = false;
-    this.issue = null;
+    this.paused = initialPaused === true;
+    this.preempted = initialPreempted === true;
+    this.pendingHandoff = null;
+    this.issue = this.preempted ? 'preempted' : null;
     this.lastPlayback = null;
+    this.activePlayback = null;
     this.interaction = null;
     this.controlStartedAt = 0;
     this.controlInteractionId = null;
@@ -59,19 +76,45 @@ export class PetController {
     this.status = { ...status };
     if (!changed && this.replayed) return;
     this.replayed = true;
-    this.preempted = false;
     this.generation++;
     this.changed();
     this.kick();
   }
   setPaused(paused) {
     this.paused = Boolean(paused);
+    this.pendingHandoff = null;
     if (!this.paused) this.preempted = false;
     if (!this.paused && this.surfacePriority) this.surfacePriority.preempted = false;
     if (!this.paused && !this.surfaceReloading) this.surfaceResumeGuard = null;
     this.generation++;
     this.changed();
     this.kick();
+  }
+  setAmbientPreferences(preferences) {
+    this.ambient = { enabled: preferences.ambientEnabled !== false, frequency: ['quiet', 'normal', 'lively'].includes(preferences.ambientFrequency) ? preferences.ambientFrequency : 'normal' };
+    this.changed();
+  }
+  /** A local notice never acquires control, changes task state, or unhides a pet. */
+  async companionNotice(text, animation = null, { idleOnly = false, requireVisible = false, cuePolicy = null } = {}) {
+    const generation = this.generation, lockId = this.lockId;
+    const blocked = () => this.closed || this.paused || this.preempted || this.surfaceReloading || !lockId || this.lockId !== lockId ||
+      this.generation !== generation || idleOnly && this.status.state !== 'idle';
+    const visible = value => ['desktop', 'both'].includes(value?.display);
+    if (blocked()) return false;
+    try {
+      if (requireVisible && (!visible(await this.client.appearance()) || blocked())) return false;
+      await this.observeRestInteraction();
+      if (blocked()) return false;
+      if (text) await this.client.broadcast(text, lockId, 4500);
+      // A notice cannot regain an old task or lease after an in-flight reply.
+      if (blocked()) return false;
+      if (requireVisible && (!visible(await this.client.appearance()) || blocked())) return false;
+      if (requireVisible) { await this.observeRestInteraction(); if (blocked()) return false; }
+      if (animation && this.status.state === 'idle' && this.availableAnimations.includes(animation) &&
+          (cuePolicy !== 'focus' || focusCueAllowed(this, animation)))
+        this.cue = { name: animation, generation, expiresAt: this.now() + 6000, ...(cuePolicy === 'focus' ? { source: 'focus' } : {}) };
+      return true;
+    } catch { return false; }
   }
   kick() {
     if (this.closed || this.surfaceReloading) return;
@@ -82,6 +125,7 @@ export class PetController {
     const id = this.lockId;
     this.lockId = null;
     this.renewAt = 0;
+    this.activePlayback = null;
     if (id) { try { await this.client.release(id); } catch { /* already preempted or host closed */ } }
   }
   async lease(force = false) {
@@ -148,7 +192,7 @@ export class PetController {
       if (record.phase === 'settled') {
         // A retained, confirmed drag/flight receipt can be read after a very
         // quick release. Neither elapsed time nor a quiet log grants control.
-        return !!record.endedAt && (allowManualEnd || ['drag', 'info'].includes(record.kind) && record.resumable);
+        return !!record.endedAt && (allowManualEnd || ['drag', 'info', 'click'].includes(record.kind) && record.resumable);
       }
       // Keep observing an open menu without taking control: its eventual
       // choice can be a read-only usage view (info), or a non-resumable manual
@@ -157,8 +201,52 @@ export class PetController {
     }
     return false;
   }
-  async one(name, generation, { observeInteraction = false } = {}) {
+  async waitForPlaybackBoundary(generation, nextName = null) {
+    const active = this.activePlayback;
+    if (!active || active.generation === generation) return true;
+    // Most gestures retain their real ended boundary. A controller-owned
+    // reading clip can instead prepare a known task's native pose gate early;
+    // the renderer still returns through genuine frames before target F0.
+    while (!this.closed && this.generation === generation && !this.paused && !this.preempted && !this.surfaceReloading) {
+      await this.lease();
+      await this.observeRestInteraction();
+      const readingBoundary = active.name === 'reading' || !!active.readingReturn;
+      // Pending optional gestures must yield before the decoder starts them.
+      // A normal ended long-poll could itself let that gesture become visible.
+      const record = await this.client.playback(active.playbackId, active.optionalCue ? { waitTimeoutMs: 0 } : readingBoundary ? { waitTimeoutMs: readingReceiptWaitMs } : undefined);
+      if (this.activePlayback !== active) return true;
+      // An accepted successor may still be sharing reading's pending return.
+      // Once it really starts, later states use its ordinary ended boundary.
+      if (record?.status === 'playing' && active.readingReturn) delete active.readingReturn;
+      if (record?.status === 'playing' && active.optionalCue) delete active.optionalCue;
+      if (record?.status === 'ended') {
+        this.activePlayback = null;
+        return this.generation === generation && !this.closed && !this.paused && !this.preempted && !this.surfaceReloading;
+      }
+      if (record?.status === 'cancelled') throw Object.assign(new Error('preempted'), { reason: 'preempted' });
+      if (record?.status === 'failed') throw Object.assign(new Error('playback-failed'), { reason: 'playback-failed' });
+      const startGrace = active.readingReturn ? Math.max(this.startTimeoutMs, readingReturnStartTimeoutMs) : this.startTimeoutMs;
+      if (record?.status === 'accepted' && this.now() - active.requestedAt >= startGrace)
+        throw Object.assign(new Error('playback-not-started'), { reason: 'playback-not-started' });
+      if (this.closed || this.generation !== generation || this.paused || this.preempted || this.surfaceReloading) return false;
+      // An optional focus gesture that has not started must not get ahead of
+      // newer work. The next real play supersedes it through the native gate.
+      if (active.optionalCue && record?.status === 'accepted' && readingTaskStates.has(this.status.state) && readingTaskTargets.has(nextName)) return true;
+      if (readingTaskStates.has(this.status.state) && readingTaskTargets.has(nextName) && ['accepted', 'playing'].includes(record?.status)) {
+        const readingReturn = active.name === 'reading'
+          ? { playbackId: active.playbackId, generation: active.generation }
+          : record.status === 'accepted' ? active.readingReturn : null;
+        if (readingReturn) return { readingReturn: { ...readingReturn } };
+      }
+      await this.sleep(60);
+    }
+    return false;
+  }
+  async one(name, generation, { observeInteraction = false, optionalCue = false, cueExpiresAt = Infinity } = {}) {
     await this.lease();
+    const boundary = await this.waitForPlaybackBoundary(generation, name);
+    if (!boundary) return false;
+    let readingReturn = boundary.readingReturn || null;
     let nextInteractionPoll = 0;
     const observe = async () => {
       if (observeInteraction && this.now() >= nextInteractionPoll) {
@@ -168,19 +256,34 @@ export class PetController {
     };
     await observe();
     if (this.closed || this.generation !== generation || this.paused || this.preempted || this.surfaceReloading) return false;
+    // Optional reminders expire while native checks are in flight too. A
+    // dropped cue is not an ended gesture and must not consume its cooldown.
+    if (optionalCue && this.now() > cueExpiresAt) return 'skipped';
     let receipt = await this.client.play(name, this.lockId);
     if (!receipt?.playbackId) throw Object.assign(new Error('invalid-playback-receipt'), { reason: 'invalid-playback-receipt' });
     let requestedAt = this.now();
+    this.activePlayback = { playbackId: receipt.playbackId, name, generation, requestedAt, ...(readingReturn ? { readingReturn } : {}), ...(optionalCue ? { optionalCue: true } : {}) };
     let startRetries = 0;
     while (!this.closed && this.generation === generation && !this.paused && !this.preempted) {
       await this.lease();
-      const record = await this.client.playback(receipt.playbackId);
+      const record = await this.client.playback(receipt.playbackId, optionalCue && this.activePlayback?.optionalCue ? { waitTimeoutMs: 0 } : name === 'reading' || readingReturn ? { waitTimeoutMs: readingReceiptWaitMs } : undefined);
+      if (record?.status === 'playing' || record?.status === 'ended') {
+        readingReturn = null;
+        if (this.activePlayback?.playbackId === receipt.playbackId) delete this.activePlayback.readingReturn;
+        if (this.activePlayback?.playbackId === receipt.playbackId) delete this.activePlayback.optionalCue;
+      }
+      if (record?.status === 'ended' && this.activePlayback?.playbackId === receipt.playbackId) this.activePlayback = null;
       if (this.closed || this.generation !== generation || this.paused || this.surfaceReloading) return false;
       await observe();
       if (this.closed || this.generation !== generation || this.paused || this.preempted || this.surfaceReloading) return false;
       const diagnostic = { playbackId: receipt.playbackId, name, status: record?.status, reason: /^[a-z][a-z0-9-]{0,60}$/.test(record?.reason ?? '') ? record.reason : null, updatedAt: Number.isFinite(record?.updatedAt) ? record.updatedAt : null };
       if (JSON.stringify(diagnostic) !== JSON.stringify(this.lastPlayback)) { this.lastPlayback = diagnostic; this.changed(); }
-      if (record?.status === 'accepted' && this.now() - requestedAt >= this.startTimeoutMs) {
+      const startGrace = readingReturn ? Math.max(this.startTimeoutMs, readingReturnStartTimeoutMs) : this.startTimeoutMs;
+      if (record?.status === 'accepted' && this.now() - requestedAt >= startGrace) {
+        // A safe forward return may still be finishing the full reading tail.
+        // Never replace this accepted successor at the ordinary five-second
+        // edge: it could commit just before the retry and then visibly restart.
+        if (readingReturn || optionalCue) throw Object.assign(new Error('playback-not-started'), { reason: 'playback-not-started' });
         if (startRetries++ >= this.maxStartRetries) throw Object.assign(new Error('playback-not-started'), { reason: 'playback-not-started' });
         // The native renderer intentionally ignores commands present in its first
         // state baseline. Recheck the old lease before resending a missed start;
@@ -190,6 +293,7 @@ export class PetController {
         receipt = await this.client.play(name, this.lockId);
         if (!receipt?.playbackId) throw Object.assign(new Error('invalid-playback-receipt'), { reason: 'invalid-playback-receipt' });
         requestedAt = this.now();
+        this.activePlayback = { playbackId: receipt.playbackId, name, generation, requestedAt, ...(readingReturn ? { readingReturn } : {}), ...(optionalCue ? { optionalCue: true } : {}) };
         continue;
       }
       if (terminal.has(record?.status)) {
@@ -222,6 +326,22 @@ export class PetController {
   async restUntil(deadline, generation) {
     const idle = firstAnimation(this.animations.idle);
     while (!this.closed && this.generation === generation && !this.paused && !this.preempted && this.now() < deadline) {
+      const cue = this.cue;
+      this.cue = null;
+      if (cue && cue.generation === generation && cue.expiresAt >= this.now() && this.status.state === 'idle' &&
+          (cue.source !== 'focus' || focusCueAllowed(this, cue.name))) {
+        await this.observeRestInteraction();
+        const result = await this.one(cue.name, generation, { observeInteraction: true, ...(cue.source === 'focus' ? { optionalCue: true, cueExpiresAt: cue.expiresAt } : {}) });
+        if (!result) return false;
+        if (result !== 'skipped') {
+          this.previousAmbient = cue.name;
+          this.lastAmbientEnded[cue.name] = this.now();
+          // A local timer/story cue is also a complete gesture. Give it the
+          // same breathing space as an autonomous gesture before another one.
+          deadline = Math.max(deadline, this.now() + quietDelay('idle', this.random, this.ambient.frequency));
+          this.scheduleChanged({ phase: 'rest', nextActionAt: deadline });
+        }
+      }
       // A frozen renderer holds the last decoded frame after a finite clip.
       // Fill the quiet interval with complete breathing clips instead of
       // leaving that final neutral pose on screen for several seconds. The
@@ -306,7 +426,17 @@ export class PetController {
     while (!this.closed) {
       const generation = this.generation;
       if (this.surfaceReloading) { this.scheduleChanged({ phase: 'reloading', nextActionAt: null }); this.handledGeneration = generation; await this.release(); return; }
-      if (this.paused || this.preempted) { this.scheduleChanged({ phase: this.paused ? 'paused' : 'preempted', nextActionAt: null }); this.handledGeneration = generation; await this.release(); return; }
+      if (this.paused || this.preempted) {
+        if (!this.paused && this.pendingHandoff) {
+          const resume = await this.waitForHandoff(generation, this.pendingHandoff.allowManualEnd);
+          // State changes may cancel a wait, but do not cancel a resumable
+          // native gesture. Its real end receipt remains the sole authority.
+          if (this.generation !== generation) continue;
+          this.pendingHandoff = null;
+          if (resume && !this.closed && !this.paused) { this.preempted = false; this.issue = null; this.changed(); continue; }
+        }
+        this.scheduleChanged({ phase: this.paused ? 'paused' : 'preempted', nextActionAt: null }); this.handledGeneration = generation; await this.release(); return;
+      }
       const status = this.status;
       let state = status.state;
       // Replaying an old terminal record at startup must not celebrate it anew.
@@ -344,7 +474,7 @@ export class PetController {
             this.handledGeneration = generation; await this.release(); return;
           }
           plan.needsIdle = name !== firstAnimation(this.animations.idle);
-          plan.nextActionAt = this.now() + quietDelay(plan.state, this.random);
+          plan.nextActionAt = this.now() + quietDelay(plan.state, this.random, this.ambient.frequency);
         }
         if (plan.needsIdle) {
           const idle = firstAnimation(this.animations.idle);
@@ -354,26 +484,35 @@ export class PetController {
         }
         this.scheduleChanged({ phase: 'rest', nextActionAt: plan.nextActionAt });
         if (!await this.restUntil(plan.nextActionAt, generation)) continue;
-        const name = naturalAnimation(plan.state, this.animations, plan.previous, this.random);
+        const name = naturalAnimation(plan.state, this.animations, plan.state === 'idle' ? this.previousAmbient : plan.previous, this.random,
+          { ...this.ambient, available: this.availableAnimations, lastEnded: this.lastAmbientEnded, now: this.now() });
         this.scheduleChanged({ phase: 'action', animation: name, nextActionAt: null, lastAction: name, lastActionAt: this.now() });
         if (!await this.one(name, generation)) continue;
+        if (plan.state === 'idle' && name !== firstAnimation(this.animations.idle)) {
+          this.previousAmbient = name;
+          this.lastAmbientEnded[name] = this.now();
+        }
         plan.previous = name;
         plan.needsIdle = true;
-        plan.nextActionAt = this.now() + quietDelay(plan.state, this.random);
+        plan.nextActionAt = this.now() + quietDelay(plan.state, this.random, this.ambient.frequency);
       } catch (error) {
-        if (this.generation !== generation) { await this.release(); continue; }
         const reason = error?.reason ?? 'runtime-unreachable';
+        // A task update can arrive while the native interaction read is in
+        // flight. Its generation invalidates ordinary playback/network work,
+        // but cannot erase a confirmed user takeover or hidden surface and
+        // turn the next loop into permission to acquire a fresh lease.
+        if (this.generation !== generation && !preemptions.has(reason)) { await this.release(); continue; }
         this.issue = /^[a-z][a-z0-9-]{0,60}$/.test(reason) ? reason : 'runtime-unreachable';
-        if (preemptions.has(reason)) this.preempted = true;
+        if (preemptions.has(reason)) {
+          this.preempted = true;
+          this.cue = null;
+        }
         this.scheduleChanged({ phase: this.preempted ? 'preempted' : 'retry', nextActionAt: null });
         await this.release();
         this.changed();
         if (this.preempted) {
-          const resume = handoffReasons.has(reason) && await this.waitForHandoff(generation, reason === 'interaction-active');
-          if (this.generation !== generation) continue;
-          if (resume && !this.closed && !this.paused) { this.preempted = false; this.issue = null; this.changed(); continue; }
-          this.handledGeneration = generation;
-          return;
+          this.pendingHandoff = handoffReasons.has(reason) ? { allowManualEnd: reason === 'interaction-active' } : null;
+          continue;
         }
         const retryUntil = this.now() + this.retryMs;
         while (!this.closed && this.generation === generation && !this.paused && this.now() < retryUntil) await this.sleep(Math.min(100, retryUntil - this.now()));

@@ -13,7 +13,7 @@
   <main class="panel" aria-label="霜铃 GPT 控制面板" data-i18n-aria-label="霜铃 GPT 控制面板">
     <header class="header">
       <span class="avatar"><img src="panel-avatar.png" width="40" height="40" alt=""></span>
-      <div class="identity"><h1><span data-i18n="霜铃 GPT">霜铃 GPT</span> <span class="version">1.8.2</span></h1><p><span id="status-dot" class="status-dot"></span><span id="header-state" data-i18n="正在连接…">正在连接…</span></p></div>
+      <div class="identity"><h1><span data-i18n="霜铃 GPT">霜铃 GPT</span> <span class="version">1.9.0</span></h1><p><span id="status-dot" class="status-dot"></span><span id="header-state" data-i18n="正在连接…">正在连接…</span></p></div>
       <button id="close" class="icon-button" type="button" aria-label="关闭面板" data-i18n-aria-label="关闭面板" title="关闭面板 · Esc" data-i18n-title="关闭面板 · Esc"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
     </header>
     <nav class="tabs" role="tablist" aria-label="控制页面" data-i18n-aria-label="控制页面">
@@ -28,6 +28,11 @@
           <div class="task-line"><strong id="task-state" data-i18n="正在读取任务状态">正在读取任务状态</strong><button id="pause" class="small-button" type="button" disabled data-i18n="暂停联动">暂停联动</button></div>
           <p class="chat-line"><span id="scope-label" data-i18n="联动范围">联动范围</span><span id="thread" data-i18n="整个 Codex">整个 Codex</span><span id="codex-counts" hidden></span></p>
           <p id="state-hint" class="state-hint" hidden></p>
+        </div>
+        <div class="desk-shortcuts" aria-label="霜白小工具" data-i18n-aria-label="霜白小工具">
+          <button type="button" data-desk="focus"><svg class="desk-shortcut-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="13.5" r="7.25"/><path d="M9.5 3h5M12 3v3M17.5 7.5 19 6M12 9.5v4l2.75 1.75"/></svg><span data-i18n="专注">专注</span></button>
+          <button type="button" data-desk="journal"><svg class="desk-shortcut-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 6.5c-2.25-1.75-5.25-2-8-1v13c2.75-1 5.75-.75 8 1 2.25-1.75 5.25-2 8-1v-13c-2.75-1-5.75-.75-8 1Zm0 0v13M7 9h2M7 12h2M15 9h2M15 12h2"/></svg><span data-i18n="霜铃手记">霜铃手记</span></button>
+          <button type="button" data-desk="notes"><svg class="desk-shortcut-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 3.5h7.75L18 7.25v13l-5.75-3.5-5.75 3.5V3.5Zm7.75 0v3.75H18"/></svg><span data-i18n="我的书签">我的书签</span></button>
         </div>
         <div class="section-heading usage-heading"><h2 data-i18n="用量与上下文">用量与上下文</h2><span class="quiet" data-i18n="最近本机采样">最近本机采样</span></div>
         <div class="usage-source"><label id="usage-source-caption" for="usage-thread" data-i18n="用量来源">用量来源</label><strong id="usage-source" data-state="unknown" data-i18n="用量来源未知">用量来源未知</strong><div id="usage-picker" class="usage-picker" hidden><button id="usage-thread" type="button" role="combobox" aria-label="查看哪个聊天的用量" data-i18n-aria-label="查看哪个聊天的用量" aria-expanded="false" aria-controls="usage-options" aria-haspopup="listbox"><span id="usage-current" data-i18n="选择用量聊天">选择用量聊天</span><span aria-hidden="true">⌄</span></button><div id="usage-options" class="usage-options" role="listbox" aria-label="聊天用量列表" data-i18n-aria-label="聊天用量列表" hidden></div></div></div>
@@ -45,8 +50,7 @@
         </div>
       </section>
       <section id="actions" role="tabpanel" aria-labelledby="tab-actions" tabindex="0" hidden>
-        <div class="section-heading"><h2 data-i18n="和霜铃互动">和霜铃互动</h2><span class="quiet" data-i18n="9 个动作">9 个动作</span></div>
-        <p class="intro" data-i18n="选一个动作，看看她的回应。">选一个动作，看看她的回应。</p>
+        <div class="section-heading"><h2 data-i18n="和霜铃互动">和霜铃互动</h2><span id="action-count" class="quiet" data-i18n="正在检查动作">正在检查动作</span></div>
         <div class="action-grid">
           <button type="button" data-animation="idle"><span class="action-icon" aria-hidden="true">☾</span><span data-i18n="安静陪伴">安静陪伴</span></button>
           <button type="button" data-animation="running"><span class="action-icon" aria-hidden="true">✧</span><span data-i18n="认真思考">认真思考</span></button>
@@ -57,8 +61,10 @@
           <button type="button" data-animation="running-left"><span class="action-icon" aria-hidden="true">←</span><span data-i18n="向左小跑">向左小跑</span></button>
           <button type="button" data-animation="failed"><span class="action-icon" aria-hidden="true">⌄</span><span data-i18n="收起动作">收起动作</span></button>
           <button type="button" data-animation="running-right"><span class="action-icon" aria-hidden="true">→</span><span data-i18n="向右小跑">向右小跑</span></button>
+          <button type="button" data-animation="reading" disabled><span class="action-icon" aria-hidden="true">▤</span><span data-i18n="翻看见闻">翻看见闻</span></button>
+          <button type="button" data-animation="looking-around" disabled><span class="action-icon" aria-hidden="true">⌕</span><span data-i18n="侧望微光">侧望微光</span></button>
+          <button type="button" data-animation="stretching-wings" disabled><span class="action-icon" aria-hidden="true">⋈</span><span data-i18n="轻舒双翼">轻舒双翼</span></button>
         </div>
-        <div class="interaction-note"><span class="note-mark" aria-hidden="true">i</span><p data-i18n="点播后由你接管动作。回到「总览」点「恢复联动」，即可继续跟随 Codex。">点播后由你接管动作。回到「总览」点「恢复联动」，即可继续跟随 Codex。</p></div>
       </section>
       <section id="settings" role="tabpanel" aria-labelledby="tab-settings" tabindex="0" hidden>
         <div class="section-heading"><h2 data-i18n="桌面上的样子">桌面上的样子</h2><span class="quiet" data-i18n="实时保存">实时保存</span></div>
@@ -69,12 +75,12 @@
           <div class="setting-row"><label for="corner" data-i18n="停靠位置">停靠位置</label><select id="corner" disabled><option value="bottom-right" data-i18n="右下角">右下角</option><option value="bottom-left" data-i18n="左下角">左下角</option><option value="top-right" data-i18n="右上角">右上角</option><option value="top-left" data-i18n="左上角">左上角</option></select></div>
         </div>
         <div class="settings-card"><div class="setting-row"><label for="language" data-i18n="界面语言">界面语言</label><select id="language" disabled><option value="zh-CN">简体中文</option><option value="zh-TW">繁體中文</option><option value="en">English</option></select></div></div>
+        <div class="settings-card"><div class="setting-row"><label for="ambient-enabled" data-i18n="自主陪伴">自主陪伴</label><button id="ambient-enabled" class="switch" role="switch" aria-checked="true" type="button" disabled><span></span></button></div><div class="setting-row"><label for="ambient-frequency" data-i18n="动作频率">动作频率</label><select id="ambient-frequency" disabled><option value="quiet" data-i18n="安静">安静</option><option value="normal" data-i18n="适中">适中</option><option value="lively" data-i18n="活跃">活跃</option></select></div></div>
         <div class="settings-card launch-card">
           <div class="setting-row"><label for="auto-launch" data-i18n="随 Codex 自动启动">随 Codex 自动启动</label><button id="auto-launch" class="switch" role="switch" aria-checked="false" type="button" disabled><span></span></button></div>
           <p id="launch-hint" class="setting-description" data-i18n="读取自动联动状态…">读取自动联动状态…</p>
         </div>
         <button id="advanced" class="advanced" type="button"><span data-i18n="高级设置">高级设置</span><span aria-hidden="true">↗</span></button>
-        <p class="footnote" data-i18n="拖动霜铃可以直接移动位置。">拖动霜铃可以直接移动位置。</p>
       </section>
     </div>
     <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>

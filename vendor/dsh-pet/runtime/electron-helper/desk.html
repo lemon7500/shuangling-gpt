@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title data-i18n="霜铃 GPT · 霜白小工具">霜铃 GPT · 霜白小工具</title>
+  <link rel="stylesheet" href="desk.css">
+  <script src="panel-i18n.js" defer></script>
+  <script src="desk.js" defer></script>
+</head>
+<body>
+  <main class="desk">
+    <header class="header"><img src="panel-avatar.png" width="40" height="40" alt=""><div><h1 data-i18n="霜白小工具">霜白小工具</h1><p data-i18n="留一点时间，给眼前的事。">留一点时间，给眼前的事。</p></div><button id="close" class="icon" type="button" aria-label="关闭工具窗" data-i18n-aria-label="关闭工具窗" title="关闭工具窗" data-i18n-title="关闭工具窗">×</button></header>
+    <nav class="tabs" role="tablist" aria-label="小工具页面" data-i18n-aria-label="小工具页面">
+      <button id="tab-focus" type="button" role="tab" aria-selected="true" aria-controls="focus" data-tab="focus" tabindex="0" data-i18n="专注">专注</button>
+      <button id="tab-journal" type="button" role="tab" aria-selected="false" aria-controls="journal" data-tab="journal" tabindex="-1" data-i18n="霜铃手记">霜铃手记</button>
+      <button id="tab-notes" type="button" role="tab" aria-selected="false" aria-controls="notes" data-tab="notes" tabindex="-1" data-i18n="我的书签">我的书签</button>
+    </nav>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <div id="close-guard" class="close-guard" role="alertdialog" aria-labelledby="close-guard-message" hidden><p id="close-guard-message" data-i18n="还有未保存的内容，要继续编辑吗？">还有未保存的内容，要继续编辑吗？</p><div><button id="discard-close" type="button" data-i18n="放弃修改并关闭">放弃修改并关闭</button><button id="continue-edit" class="primary" type="button" data-i18n="继续编辑">继续编辑</button></div></div>
+    <section id="focus" class="page focus-page" role="tabpanel" aria-labelledby="tab-focus" tabindex="0">
+      <div class="focus-heading"><span id="focus-phase" class="eyebrow" data-i18n="专注时光">专注时光</span><span id="focus-state" class="badge" data-i18n="尚未开始">尚未开始</span></div>
+      <div id="timer" class="timer" role="timer" aria-live="off">25:00</div><progress id="focus-progress" max="1" value="0" aria-label="本段进度" data-i18n-aria-label="本段进度"></progress>
+      <p id="focus-hint" class="focus-hint" data-i18n="准备好了，就从这一小段开始。">准备好了，就从这一小段开始。</p>
+      <div class="focus-controls"><button id="focus-start" class="primary" type="button" disabled data-i18n="开始专注">开始专注</button><button id="break-start" type="button" disabled data-i18n="开始休息">开始休息</button><button id="focus-pause" class="primary" type="button" hidden data-i18n="暂停计时">暂停计时</button><button id="focus-resume" class="primary" type="button" hidden data-i18n="继续计时">继续计时</button><button id="focus-stop" type="button" hidden data-i18n="结束本段">结束本段</button></div>
+      <form id="focus-config" class="config-card"><div><label for="focus-minutes" data-i18n="专注时长">专注时长</label><div class="number-field"><input id="focus-minutes" type="number" min="10" max="120" step="1" value="25" required disabled><span data-i18n="分钟">分钟</span></div><small>10–120</small></div><div><label for="break-minutes" data-i18n="休息时长">休息时长</label><div class="number-field"><input id="break-minutes" type="number" min="1" max="30" step="1" value="5" required disabled><span data-i18n="分钟">分钟</span></div><small>1–30</small></div><button id="focus-save" type="submit" disabled data-i18n="保存时长">保存时长</button></form>
+    </section>
+    <section id="journal" class="page journal-page" role="tabpanel" aria-labelledby="tab-journal" tabindex="0" hidden>
+      <div class="journal-toolbar"><div class="shelves" role="group" aria-label="手记书架" data-i18n-aria-label="手记书架"><button id="shelf-stories" type="button" aria-pressed="true" data-i18n="霜境往事">霜境往事</button><button id="shelf-memories" type="button" aria-pressed="false"><span data-i18n="我们的日常">我们的日常</span><span id="memory-unread" class="unread-count" hidden></span></button></div><details class="memory-settings"><summary data-i18n="记录设置">记录设置</summary><label><input id="memory-enabled" type="checkbox" disabled><span data-i18n="每天自动记录">每天自动记录</span></label><label><input id="memory-reminders" type="checkbox" disabled><span data-i18n="打开 Codex 时轻提示">打开 Codex 时轻提示</span></label></details></div>
+      <div id="memory-prompt" class="memory-prompt" role="status" hidden><p id="memory-prompt-text"></p><div><button id="memory-prompt-open" type="button" data-i18n="看看">看看</button><button id="memory-prompt-later" type="button" data-i18n="稍后">稍后</button></div></div>
+      <p id="memory-limit" class="memory-limit" role="status" hidden data-i18n="手记已满，清理旧页后继续记录。">手记已满，清理旧页后继续记录。</p>
+      <div id="stories-shelf" class="stories-layout">
+      <aside class="story-sidebar"><button id="favorites-only" class="filter" type="button" aria-pressed="false" data-i18n="只看收藏">只看收藏</button><div id="story-list" class="story-list" aria-label="手记目录" data-i18n-aria-label="手记目录"></div><p id="story-list-empty" class="empty" hidden data-i18n="还没有收藏的手记。">还没有收藏的手记。</p></aside>
+      <article class="story"><header class="story-heading"><div><span class="eyebrow" data-i18n="霜铃手记">霜铃手记</span><h2 id="story-title"></h2></div><button id="story-favorite" class="favorite" type="button" aria-pressed="false" disabled data-i18n="收藏">收藏</button></header><div id="story-reader" class="story-reader" tabindex="0" aria-label="手记正文" data-i18n-aria-label="手记正文"><p id="story-body"></p></div><footer class="story-footer"><span id="story-read"></span><span id="story-position">0%</span></footer></article>
+      </div>
+      <div id="memories-shelf" class="memories-layout" hidden>
+        <aside class="memory-sidebar"><div id="memory-list" class="story-list" aria-label="日常目录" data-i18n-aria-label="日常目录"></div></aside>
+        <article class="memory-reader" aria-label="共同手记" data-i18n-aria-label="共同手记"><div id="memories-empty" class="empty"><h2 data-i18n="我们的日常">我们的日常</h2><p id="memories-empty-text" data-i18n="从今天开始，慢慢留下我们的日常。">从今天开始，慢慢留下我们的日常。</p></div><div id="memory-entry" hidden><header><p id="memory-date" class="eyebrow"></p><h2 id="memory-title"></h2></header><p id="memory-body" class="memory-body"></p><div id="memory-reply-card" class="memory-reply-card" hidden><span class="eyebrow" data-i18n="你补写的一句">你补写的一句</span><p id="memory-reply"></p></div><div class="memory-actions"><button id="memory-add-reply" class="primary" type="button" data-i18n="补一句">补一句</button><button id="memory-carry" type="button" data-i18n="留到下次">留到下次</button><button id="memory-edit" type="button" data-i18n="编辑正文">编辑正文</button><button id="memory-delete" class="danger" type="button" data-i18n="删除这一页">删除这一页</button><button id="memory-delete-cancel" type="button" hidden data-i18n="取消">取消</button></div><section id="memory-editor-card" class="memory-editor-card" hidden><label id="memory-editor-label" for="memory-editor"></label><textarea id="memory-editor" rows="4" maxlength="1000"></textarea><div class="note-form-footer"><span id="memory-editor-count">0 / 1000</span><button id="memory-cancel" type="button" data-i18n="取消编辑">取消编辑</button><button id="memory-save" class="primary" type="button" data-i18n="保存修改">保存修改</button></div></section><section class="memory-facts"><h3 data-i18n="这一页的片段">这一页的片段</h3><div id="memory-facts"></div></section></div></article>
+      </div>
+    </section>
+    <section id="notes" class="page notes-page" role="tabpanel" aria-labelledby="tab-notes" tabindex="0" hidden>
+      <div class="section-heading"><h2 data-i18n="我的书签">我的书签</h2><button id="notes-archive" class="filter" type="button" aria-pressed="false" data-i18n="查看归档">查看归档</button></div>
+      <form id="note-form" class="note-form"><label id="note-editor-label" for="note-text" data-i18n="新建书签">新建书签</label><textarea id="note-text" rows="3" maxlength="1000" required disabled></textarea><div class="note-intent-field"><label for="note-intent" data-i18n="给这一页留个位置">给这一页留个位置</label><select id="note-intent" disabled><option value="none" data-i18n="普通书签">普通书签</option><option value="remember" data-i18n="值得记住">值得记住</option><option value="continue" data-i18n="下次继续">下次继续</option></select></div><div class="note-form-footer"><span id="note-count">0 / 1000</span><button id="note-cancel" type="button" hidden data-i18n="取消编辑">取消编辑</button><button id="note-save" class="primary" type="submit" disabled data-i18n="保存书签">保存书签</button></div></form>
+      <div id="note-list" class="note-list" aria-label="书签列表" data-i18n-aria-label="书签列表"></div><p id="notes-empty" class="empty" data-i18n="还没有书签，先留下一条吧。">还没有书签，先留下一条吧。</p>
+    </section>
+    <footer class="desk-footer"><span id="connection" data-i18n="正在连接…">正在连接…</span><span data-i18n="霜铃 GPT">霜铃 GPT</span></footer>
+  </main>
+</body>
+</html>

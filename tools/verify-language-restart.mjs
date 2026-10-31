@@ -17,11 +17,13 @@ const reportRoot = join(sourceRoot, 'reports', 'i18n-audit', 'restart-' + new Da
 // or copying runtimes/media. Junctions and hard links are only used by fixtures.
 const packageRoot = latestSource ? join(reportRoot, 'isolated-source') : stagedRoot;
 if (latestSource) {
+  const sourceAssets = JSON.parse(await readFile(join(sourceRoot, 'reports/windows-assets.json'), 'utf8'));
+  assert.match(sourceAssets.motionManifest, /^reports\/windows-action-frames(?:-v\d{3,6})?\.json$/);
   await mkdir(packageRoot, { recursive: true });
   for (const directory of ['src', 'vendor/dsh-pet/runtime/electron-helper']) {
     await cp(join(sourceRoot, directory), join(packageRoot, directory), { recursive: true });
   }
-  for (const file of ['package.json', 'windows/start.mjs', 'windows/outline-contract.mjs', 'windows/default-config.json', 'windows/runtime-config.json', 'windows/hd-geometry.json', 'windows/animation-timing.json', 'vendor/dsh-pet/lib/standalone.js', 'vendor/dsh-pet/package.json', 'vendor/dsh-pet/assets/config.jsonc', 'vendor/dsh-pet/assets/logo.png', 'reports/windows-assets.json', 'reports/windows-action-frames-v179.json']) {
+  for (const file of ['package.json', 'windows/start.mjs', 'windows/outline-contract.mjs', 'windows/default-config.json', 'windows/runtime-config.json', 'windows/hd-geometry.json', 'windows/animation-timing.json', 'vendor/dsh-pet/lib/standalone.js', 'vendor/dsh-pet/package.json', 'vendor/dsh-pet/assets/config.jsonc', 'vendor/dsh-pet/assets/logo.png', 'reports/windows-assets.json', sourceAssets.motionManifest]) {
     await mkdir(dirname(join(packageRoot, file)), { recursive: true });
     await copyFile(join(sourceRoot, file), join(packageRoot, file));
   }
@@ -29,7 +31,7 @@ if (latestSource) {
   await symlink(join(stagedRoot, 'vendor/dsh-pet/node_modules'), join(packageRoot, 'vendor/dsh-pet/node_modules'), 'junction');
   await mkdir(join(packageRoot, 'windows/assets/shuangling'), { recursive: true });
   const assets = JSON.parse(await readFile(join(packageRoot, 'reports/windows-assets.json'), 'utf8'));
-  for (const { name } of assets.animations) await link(join(stagedRoot, 'windows/assets/shuangling', name + '.webm'), join(packageRoot, 'windows/assets/shuangling', name + '.webm'));
+  for (const { name } of assets.animations) await link(join(sourceRoot, 'windows/assets/shuangling', name + '.webm'), join(packageRoot, 'windows/assets/shuangling', name + '.webm'));
   const fixtureLauncher = join(packageRoot, 'windows/start.mjs');
   await writeFile(fixtureLauncher, (await readFile(fixtureLauncher, 'utf8')).replace("DSH_PET_CADENCE_TEST: '0'", "DSH_PET_CADENCE_TEST: '1'"));
 }

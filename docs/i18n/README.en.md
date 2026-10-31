@@ -6,7 +6,9 @@ A silver-haired chibi dragon companion for Codex on Windows. Shuangling lives on
 
 **Version:** 1.8.4 · **Platform:** Windows x64 · **Integration:** local Codex plugin + MCP
 
-**Character guide:** [Record Keeper of the Frostrealm Library](CHARACTER.en.md) · [简体中文](../CHARACTER.md) · [繁體中文](CHARACTER.zh-TW.md). The backstory and nine animation guides are references for future creative work; current features and animation clips are unchanged.
+**Source development version 1.9.0:** adds ambient company, focus and breaks, character stories, bookmark-linked **Our days together**, and lift, held-drag and set-down animations. The development build provides 12 available actions, including the accepted provisional 10-second **Read journal** clip; classic thinking, checking and waiting variants remain available for randomized manual playback. Playback and transitions are being improved using existing media; zero dropped frames on every computer is not guaranteed. The portable download below remains **1.8.4** and does not include these additions. Updating source does not update Release attachments. See the [trilingual Frost desk guide](../COMPANION-DESK.md).
+
+**Character guide:** [Record Keeper of the Frostrealm Library](CHARACTER.en.md) · [简体中文](../CHARACTER.md) · [繁體中文](CHARACTER.zh-TW.md). The backstory and nine animation guides are references for creative work. Six short character stories are available in **Shuangling’s journal**.
 
 ## Preview
 
@@ -21,7 +23,7 @@ A silver-haired chibi dragon companion for Codex on Windows. Shuangling lives on
   </tr>
 </table>
 
-Three independent loops made from the existing release animations, using cropping, background compositing and GIF conversion while retaining the original timing. Click a preview to view it at full size.
+Three independent loops record the published 1.8.4 animations, using cropping, background compositing and GIF conversion while retaining their original timing. They do not preview development additions or replacements. Click a preview to view it at full size.
 
 ### Right-click control panel
 
@@ -38,8 +40,13 @@ Captured from the actual panel code, showing the Simplified Chinese interface wi
 
 ## Features
 
-- Nine character animations, a transparent desktop window, dragging, throwing and edge docking.
+- Twelve available development actions, a transparent desktop window, dragging, throwing and edge docking. **Glance at light**, **Stretch wings** and **Read journal** join the original nine; reading uses the accepted provisional 10-second version.
 - A frost-white and lavender right-click panel with **Overview**, **Actions** and **Settings**.
+- An independent **Frost desk** window with a focus timer: 25-minute focus / 5-minute break defaults, with manual start, pause, resume and stop.
+- **Shuangling’s journal** contains six stories in all three languages and remembers read status, favorites and each entry’s reading position.
+- **Our days together** turns confirmed local moments into dated pages. Add your own reply, edit a page or carry a next step into a bookmark without reading conversation bodies.
+- **My bookmarks** supports manual creation, editing, deletion, pinning and archiving, with text stored on this device.
+- Optional ambient company with Quiet / Normal / Lively frequency; only installed, available idle actions are selected.
 - Automatic startup when a Codex main window opens; shutdown after all main windows have been closed for three seconds.
 - Task status aggregated across the root chats observed in the current local Codex app session.
 - Context remaining and cumulative token usage for a chat selected in the usage panel; the selected chat is remembered after restart.
@@ -86,14 +93,17 @@ For a source ZIP, run only the last command from its extracted folder. Setup dow
 | Drag / throw | Move Shuangling; transparent areas let clicks pass through. |
 | Right-click | Open the fixed-size control card without resizing the pet. |
 | Overview | View task state, choose a usage chat, and pause or resume task following. |
-| Actions | Play one of the nine animations. Manual actions take priority; use **Resume following** to return control. |
-| Settings | Adjust visible height, docking position, interface language and automatic startup. |
+| Actions | Play an available animation; new entries are enabled when their assets are available. Manual actions take priority; use **Resume following** to return control. |
+| Focus / Journal / My bookmarks in Overview | Open the separate Frost desk without moving or resizing the pet window. |
+| Settings | Adjust visible height, docking position, interface language, automatic startup and ambient frequency. |
 | Esc / outside click / top close button | Close the panel. |
 | Bottom controls | Reset position, hide Shuangling or quit it. |
 
 The folder also provides manual shortcuts: **`启动霜铃.vbs`** (start), **`霜铃设置.vbs`** (settings) and **`退出霜铃.vbs`** (quit).
 
 Choose **简体中文 / 繁體中文 / English** under **Settings → Interface language**, or in advanced settings. Changing language preserves your selected chat, animations, position and other preferences.
+
+Frost desk uses the selected interface language. Closing its window keeps a running timer active; sleep or application exit pauses it, and reopening requires a manual resume. Focus duration is 10–120 minutes and break duration is 1–30 minutes. No next session starts automatically. The journal and bookmarks do not extract content from chats. See the [trilingual Frost desk guide](../COMPANION-DESK.md#english) for usage, local storage and recovery limits.
 
 ## Task state, tokens and account limits
 
@@ -118,9 +128,10 @@ Codex currently exposes no reliable public identifier for the chat visible on it
 - The task adapter reads local root-chat events. It does not save or transmit conversation bodies, edit Codex settings during ordinary operation, or create model tasks.
 - The window observer checks Codex package identity and main windows. It does not read conversations.
 - Account authentication stays with the native Codex client. Account identifiers, email addresses and credentials are not included in panel results or saved usage reports.
+- Timer state, journal favorites/reading positions and manually entered bookmark text stay in local `windows/data/desk.json`. They are not uploaded automatically; check the data directory before sharing it.
 - Local log formats are internal and may change. Unreadable or incompatible state is shown as unknown while dragging and companionship remain available.
 - Log silence is not completion, and one failed tool call is not a failed task. Precise approval-wait and whole-task-error detection is not guaranteed.
-- A few existing animation artifacts remain, including sleeve details, local clipping and the task board covering the mouth. The code does not claim that these source-media defects have been redrawn.
+- The development build provides 12 available actions; acceptance does not mean every detail is perfect. **Read journal** uses the accepted provisional 10-second version; its book height and the page turning close to the face can still be refined. A new task allows a natural book-stowing motion rather than promising an instant cut. Occasional decoder drops and reading/wing/idle transitions remain under investigation. Historical 1.8.4 previews retain their sleeve details, local clipping and task-board limitations. Please include the version, action and trigger when reporting an issue.
 - This repository's Windows desktop plugin does not automatically import the character into the separate Pets service.
 
 ## Development
@@ -132,6 +143,8 @@ The project uses ES modules. Complete `setup.ps1` first, then run the tests with
 ```
 
 The setup script installs the locked `vendor/dsh-pet` dependencies and builds the standalone host and desktop shared core. Runtime diagnostics and authenticated local interfaces are described in [BRIDGE.md](../../BRIDGE.md). Do not publish local data, runtime authentication files or conversation logs.
+
+[Optional offline media audits](../../tools/MEDIA-AUDIT.md) use Python and image libraries for developer checks only; installing or running the pet does not require them. Audits stage their output under a QA directory and never automatically replace character media or an installed runtime.
 
 ## Disable or uninstall
 

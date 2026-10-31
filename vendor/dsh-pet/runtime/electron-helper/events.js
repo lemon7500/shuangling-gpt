@@ -452,9 +452,21 @@ function startLoops() {
   // 空闲时是 1 请求/秒（与改造前一致），叶子一变立刻收到——不需要"前端动作后叫醒一拍"了
   // （动作端点都会写叶子 → 版本变 → 挂着的这一拍自己就返回）。本窗口只装一只宠物，
   // 所以每个窗口各跑一份；全局计数器意味着任意写入会唤醒所有窗口（有意为之，见 host ./state）。
+  let consecutiveStateFailures = 0;
   const stateLoop = async () => {
     const hit = await pollStateOnce();
-    setTimeout(() => void stateLoop(), hit && stateLongPoll ? 0 : 1000);
+    let delayMs = 1000;
+    if (hit) {
+      consecutiveStateFailures = 0;
+      if (stateLongPoll) delayMs = 0;
+    } else if (stateLongPoll && stateSince !== undefined) {
+      // A confirmed long-poll host can recover a single lost response without
+      // holding a completed pose for one second. Persistent failures still
+      // back off; unconfirmed and legacy hosts retain their safe 1s interval.
+      consecutiveStateFailures = Math.min(consecutiveStateFailures + 1, 4);
+      delayMs = [100, 250, 500, 1000][consecutiveStateFailures - 1];
+    }
+    setTimeout(() => void stateLoop(), delayMs);
   };
   void stateLoop();
 }

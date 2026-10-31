@@ -6,8 +6,8 @@
     720
   ],
   "lossless": true,
-  "motionMode": "mixed-source-neutral-action-loop",
-  "fps": 30,
+  "motionMode": "reviewed-source-native24",
+  "fps": 24,
   "alphaReference": "exact-action-RGBA-encoder-inputs",
   "crossfadedPoses": false,
   "outline": {
@@ -16,7 +16,6 @@
     "widthCssPx": 0.45
   },
   "outlineEncodedInWebm": false,
-  "allDecodedNeutralEndpointsEqual": false,
   "frameRatesByAnimation": {
     "idle": 24,
     "running-right": 24,
@@ -26,12 +25,20 @@
     "failed": 24,
     "waiting": 24,
     "running": 24,
-    "review": 24
+    "review": 24,
+    "reading": 24,
+    "looking-around": 24,
+    "stretching-wings": 24,
+    "running-classic": 24,
+    "review-classic": 24,
+    "waiting-classic": 24,
+    "drag-lift": 24,
+    "drag-hover": 24,
+    "drag-lower": 24
   },
-  "decodedNeutralFrameSha256": "795cb599ebbbc5359f7c92a18c21c01b10ba9cd8a391093acacaa6b00069f95e",
-  "releaseVersion": "1.8.1",
-  "motionManifest": "reports/windows-action-frames-v179.json",
-  "motionManifestSha256": "1aff3d09f1cb5a3e681da7a8c05f7c7da337ac63dc7a4f34fd6ba6929083a1a4",
+  "releaseVersion": "1.9.0",
+  "motionManifest": "reports/windows-action-frames-v190.json",
+  "motionManifestSha256": "817e632827121a91f453326728a457d4f970a9c6f8536dd4369a1c126b9d845f",
   "animations": [
     {
       "name": "idle",
@@ -44,56 +51,84 @@
       "firstLastPixelEqual": false,
       "loopMode": "continuous-source-cycle",
       "blankFrames": 0,
-      "clippedFrames": 0
+      "clippedFrames": 0,
+      "source": "windows/assets/shuangling/idle.webm"
     },
     {
       "name": "running-right",
-      "sourceFrames": 101,
-      "encodedFrames": 101,
+      "sourceFrames": 241,
+      "encodedFrames": 241,
       "fps": 24,
-      "durationMs": 4208.333333333333,
+      "durationMs": 10041.666666666666,
       "frameIntervalMs": 41.666666666666664,
-      "webmSha256": "7b1a3bcb50dd5222fe241c17b3c6ae619e8c4c9fe72e9d87991032963f142442",
-      "firstLastPixelEqual": true,
-      "blankFrames": 0,
-      "clippedFrames": 0
+      "webmSha256": "ac57643f2f68bf3272ad49706b709bec0873d3c8968103e2979f292de83a169b",
+      "firstLastPixelEqual": false,
+      "alphaBounds": [
+        427,
+        198,
+        810,
+        660
+      ],
+      "reviewApproved": true,
+      "source": "windows/assets/shuangling/running-right.webm"
     },
     {
       "name": "running-left",
-      "sourceFrames": 101,
-      "encodedFrames": 101,
+      "sourceFrames": 124,
+      "encodedFrames": 124,
       "fps": 24,
-      "durationMs": 4208.333333333333,
+      "durationMs": 5166.666666666667,
       "frameIntervalMs": 41.666666666666664,
-      "webmSha256": "66352d3fd1f876dc6f30a5a63b7277ce61455251d23a5b70ad4066a7768a99ec",
+      "webmSha256": "04f14130a7eab2d5302d2aa7cd9e70b5dba73a3e489e085892777f093000b88f",
       "firstLastPixelEqual": true,
-      "loopMode": "common-neutral-action",
-      "blankFrames": 0,
-      "clippedFrames": 0
+      "alphaBounds": [
+        445,
+        187,
+        890,
+        669
+      ],
+      "reviewApproved": true,
+      "source": "windows/assets/shuangling/running-left.webm"
     },
     {
       "name": "waving",
-      "sourceFrames": 124,
-      "encodedFrames": 124,
+      "sourceFrames": 118,
+      "encodedFrames": 118,
       "fps": 24,
-      "durationMs": 5166.666666666667,
+      "durationMs": 4916.666666666667,
       "frameIntervalMs": 41.666666666666664,
-      "webmSha256": "3301e7a7a4ad5e2b89a0f17d9c1c5bc045ca79a15aca10689219ea1907d85414",
-      "firstLastPixelEqual": true,
+      "webmSha256": "56a677055a593b1e43696c0b7679fc7b23bb27f283e55127e76b4c14c62747e2",
+      "firstLastPixelEqual": false,
       "blankFrames": 0,
-      "clippedFrames": 0
+      "clippedFrames": 0,
+      "alphaBounds": [
+        468,
+        204,
+        814,
+        659
+      ],
+      "reviewApproved": true,
+      "source": "windows/assets/shuangling/waving.webm"
     },
     {
       "name": "jumping",
-      "sourceFrames": 124,
-      "encodedFrames": 124,
+      "sourceFrames": 107,
+      "encodedFrames": 107,
       "fps": 24,
-      "durationMs": 5166.666666666667,
+      "durationMs": 4458.333333333333,
       "frameIntervalMs": 41.666666666666664,
-      "webmSha256": "fed6dc1d16a55efeb26add3e00155171a3467cf62c3f137bf6ce2f0d9e4a92cd",
+      "webmSha256": "fd3b73102da2078aa04c8a3ad02ae32ea70f07ca48a63a9508cef291ee15fa5e",
       "firstLastPixelEqual": true,
       "blankFrames": 0,
-      "clippedFrames": 0
+      "clippedFrames": 0,
+      "alphaBounds": [
+        445,
+        169,
+        841,
+        660
+      ],
+      "reviewApproved": true,
+      "source": "windows/assets/shuangling/jumping.webm"
     },
     {
       "name": "failed",
@@ -105,19 +140,28 @@
       "webmSha256": "73fc0371b0b4cc7a26c038a8f5e68de20617cbfd63cd7f2a86b49e8b548df83c",
       "firstLastPixelEqual": true,
       "blankFrames": 0,
-      "clippedFrames": 0
+      "clippedFrames": 0,
+      "source": "windows/assets/shuangling/failed.webm"
     },
     {
       "name": "waiting",
-      "sourceFrames": 124,
-      "encodedFrames": 124,
+      "sourceFrames": 116,
+      "encodedFrames": 116,
       "fps": 24,
-      "durationMs": 5166.666666666667,
+      "durationMs": 4833.333333333333,
       "frameIntervalMs": 41.666666666666664,
-      "webmSha256": "dca0b1829060476bbd16ca455a483f57f759e5b1f10b62edbb77dca3bde15689",
-      "firstLastPixelEqual": true,
+      "webmSha256": "0379f73660dbf0081c6955b29e7691ca87ea49452f4cecc91ee8582f09956251",
+      "firstLastPixelEqual": false,
       "blankFrames": 0,
-      "clippedFrames": 0
+      "clippedFrames": 0,
+      "alphaBounds": [
+        455,
+        200,
+        875,
+        664
+      ],
+      "reviewApproved": true,
+      "source": "windows/assets/shuangling/waiting.webm"
     },
     {
       "name": "running",
@@ -126,13 +170,117 @@
       "fps": 24,
       "durationMs": 5166.666666666667,
       "frameIntervalMs": 41.666666666666664,
-      "webmSha256": "650e042d8b317ca4465094af97ed9a33eeb0fa794ecc37d495f9287176bc40a9",
-      "firstLastPixelEqual": true,
-      "blankFrames": 0,
-      "clippedFrames": 0
+      "webmSha256": "e5475972e289c4a91ef77b33eb1ba362a649cd6579bed78c032c26371b9ebd17",
+      "alphaBounds": [
+        467,
+        201,
+        885,
+        659
+      ],
+      "reviewApproved": true,
+      "source": "windows/assets/shuangling/running.webm"
     },
     {
       "name": "review",
+      "sourceFrames": 118,
+      "encodedFrames": 118,
+      "fps": 24,
+      "durationMs": 4916.666666666667,
+      "frameIntervalMs": 41.666666666666664,
+      "webmSha256": "cd024a61801b4d20e8b215c1beca729066b0b7d4ee351ca0b9058055f58d7070",
+      "firstLastPixelEqual": false,
+      "blankFrames": 0,
+      "clippedFrames": 0,
+      "alphaBounds": [
+        452,
+        200,
+        874,
+        673
+      ],
+      "reviewApproved": true,
+      "source": "windows/assets/shuangling/review.webm"
+    },
+    {
+      "name": "reading",
+      "sourceFrames": 240,
+      "encodedFrames": 240,
+      "fps": 24,
+      "durationMs": 10000,
+      "frameIntervalMs": 41.666666666666664,
+      "webmSha256": "88b5cfffa8393a9327ff705fe45bf8d73cefaa2192e6a72275f21b761292ed40",
+      "alphaBounds": [
+        454,
+        200,
+        885,
+        660
+      ],
+      "source": "windows/assets/shuangling/reading.webm",
+      "reviewApproved": true
+    },
+    {
+      "name": "looking-around",
+      "sourceFrames": 113,
+      "encodedFrames": 113,
+      "fps": 24,
+      "durationMs": 4708.333333333333,
+      "frameIntervalMs": 41.666666666666664,
+      "webmSha256": "b15e42aefea143cd7c2821400a178457fe3552e9338de3c19dbcf66788b64ae5",
+      "firstLastPixelEqual": false,
+      "blankFrames": 0,
+      "clippedFrames": 0,
+      "alphaBounds": [
+        447,
+        200,
+        864,
+        659
+      ],
+      "reviewApproved": true,
+      "source": "windows/assets/shuangling/looking-around.webm"
+    },
+    {
+      "name": "stretching-wings",
+      "sourceFrames": 108,
+      "encodedFrames": 108,
+      "fps": 24,
+      "durationMs": 4500,
+      "frameIntervalMs": 41.666666666666664,
+      "webmSha256": "845d7aca137be3f28bcc8eda786a7e0384ad2b2828fca88ad1f6b330a0507cba",
+      "firstLastPixelEqual": false,
+      "blankFrames": 0,
+      "clippedFrames": 0,
+      "alphaBounds": [
+        385,
+        196,
+        891,
+        672
+      ],
+      "reviewApproved": true,
+      "source": "windows/assets/shuangling/stretching-wings.webm"
+    },
+    {
+      "name": "running-classic",
+      "sourceFrames": 124,
+      "encodedFrames": 124,
+      "fps": 24,
+      "durationMs": 5166.666666666667,
+      "frameIntervalMs": 41.666666666666664,
+      "webmSha256": "650e042d8b317ca4465094af97ed9a33eeb0fa794ecc37d495f9287176bc40a9",
+      "firstLastPixelEqual": true,
+      "blankFrames": 0,
+      "clippedFrames": 0,
+      "alphaBounds": [
+        458,
+        121,
+        814,
+        659
+      ],
+      "reviewApproved": true,
+      "manualOnly": true,
+      "logicalAction": "running",
+      "source": "windows/assets/shuangling/running-classic.webm"
+    },
+    {
+      "name": "review-classic",
       "sourceFrames": 124,
       "encodedFrames": 124,
       "fps": 24,
@@ -141,7 +289,93 @@
       "webmSha256": "b6e5cade85af05bd6881badb52692fa486b02c928c07c420b225f7c0b9ae0643",
       "firstLastPixelEqual": true,
       "blankFrames": 0,
-      "clippedFrames": 0
+      "clippedFrames": 0,
+      "alphaBounds": [
+        452,
+        198,
+        811,
+        661
+      ],
+      "reviewApproved": true,
+      "manualOnly": true,
+      "logicalAction": "review",
+      "source": "windows/assets/shuangling/review-classic.webm"
+    },
+    {
+      "name": "waiting-classic",
+      "sourceFrames": 124,
+      "encodedFrames": 124,
+      "fps": 24,
+      "durationMs": 5166.666666666667,
+      "frameIntervalMs": 41.666666666666664,
+      "webmSha256": "dca0b1829060476bbd16ca455a483f57f759e5b1f10b62edbb77dca3bde15689",
+      "firstLastPixelEqual": true,
+      "blankFrames": 0,
+      "clippedFrames": 0,
+      "alphaBounds": [
+        463,
+        197,
+        816,
+        659
+      ],
+      "reviewApproved": true,
+      "manualOnly": true,
+      "logicalAction": "waiting",
+      "source": "windows/assets/shuangling/waiting-classic.webm"
+    },
+    {
+      "name": "drag-lift",
+      "sourceFrames": 32,
+      "encodedFrames": 32,
+      "fps": 24,
+      "durationMs": 1333.3333333333333,
+      "frameIntervalMs": 41.666666666666664,
+      "webmSha256": "96c6f1202f7b7416d53ba9f268fa805117d68d2985a9725bd0bcd29ebf204cab",
+      "firstLastPixelEqual": false,
+      "alphaBounds": [
+        432,
+        136,
+        885,
+        659
+      ],
+      "reviewApproved": true,
+      "source": "windows/assets/shuangling/drag-lift.webm"
+    },
+    {
+      "name": "drag-hover",
+      "sourceFrames": 38,
+      "encodedFrames": 38,
+      "fps": 24,
+      "durationMs": 1583.3333333333333,
+      "frameIntervalMs": 41.666666666666664,
+      "webmSha256": "8b06861df760f0ff75a4efb13d1f1b4e11afd837c23795c5d1f1eb2e169afbcf",
+      "firstLastPixelEqual": false,
+      "alphaBounds": [
+        458,
+        129,
+        881,
+        600
+      ],
+      "reviewApproved": true,
+      "source": "windows/assets/shuangling/drag-hover.webm"
+    },
+    {
+      "name": "drag-lower",
+      "sourceFrames": 33,
+      "encodedFrames": 33,
+      "fps": 24,
+      "durationMs": 1375,
+      "frameIntervalMs": 41.666666666666664,
+      "webmSha256": "80806540fe1c05da5df17265e93568d10373f89e972eab858564fcf2d289ade8",
+      "firstLastPixelEqual": false,
+      "alphaBounds": [
+        432,
+        133,
+        885,
+        659
+      ],
+      "reviewApproved": true,
+      "source": "windows/assets/shuangling/drag-lower.webm"
     }
   ],
   "publicationMetadata": "Runtime-only; local production archives remain outside this repository."

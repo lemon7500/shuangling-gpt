@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile, rename, unlink } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, rename, unlink, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { listThreads } from './rollouts.mjs';
@@ -12,6 +12,10 @@ import { ProjectUsageReader } from './project-usage.mjs';
 import { CurrentAccountUsage } from './current-account.mjs';
 import { openNativeAccountClient } from './native-account-client.mjs';
 import { startSettings } from '../settings/server.mjs';
+import { createDeskService } from '../desk/service.mjs';
+import { createMemoryReminders } from '../desk/reminders.mjs';
+import { acknowledgeDeskCommand } from '../desk/feedback.mjs';
+import { deliverFocusNotice } from '../desk/focus-notices.mjs';
 import { getLifecyclePreferences, getLifecycleSession, setLifecyclePreferences, markManualStop } from '../lifecycle/index.mjs';
 
 const validId = value => typeof value === 'string' && /^[A-Za-z0-9_-]{1,120}$/.test(value);
@@ -34,7 +38,7 @@ export function currentCodexSessionStartedAt(session, now = Date.now()) {
   return times.length ? Math.min(...times) : null;
 }
 
-export async function startBridge({ projectRoot, dataDir = join(projectRoot, 'windows', 'data'), dshHome = join(dataDir, 'dsh-home'), threadId, defaultThreadId, codexHome = process.env.CODEX_HOME || join(homedir(), '.codex'), petId = 'shuangling', animationMap, onShutdown = async () => {}, usageScope = 'thread', accountSource }) {
+export async function startBridge({ projectRoot, dataDir = join(projectRoot, 'windows', 'data'), dshHome = join(dataDir, 'dsh-home'), threadId, defaultThreadId, codexHome = process.env.CODEX_HOME || join(homedir(), '.codex'), petId = 'shuangling', animationMap, initialPreempted = false, onShutdown = async () => {}, usageScope = 'thread', accountSource }) {
   await mkdir(dataDir, { recursive: true });
   const configPath = join(dataDir, 'bridge-config.json');
   const runtimePath = join(dataDir, 'bridge-runtime.json');
@@ -59,6 +63,9 @@ export async function startBridge({ projectRoot, dataDir = join(projectRoot, 'wi
   let status = { state: 'unknown', scope: 'codex', threadId: 'codex', turnId: null, rootTurnId: null, activeCount: 0, workingCount: 0, waitingCount: 0, unknownCount: 0, updatedAt: null, reason: 'initializing' };
   let watcher;
   let settings;
+  let desk;
+  let memoryReminders;
+  let deskIssue = null;
   let closed = false;
   let changing = Promise.resolve();
   let changingAppearance = Promise.resolve();
@@ -78,24 +85,52 @@ export async function startBridge({ projectRoot, dataDir = join(projectRoot, 'wi
     accountSnapshot: () => accountUsage.snapshot(),
   });
   const client = new PetClient({ dshHome, petId });
-  const controller = new PetController({ client, animationMap });
-  controller.setPaused(config.paused);
+  const availableAnimations = [];
+  let acceptedMedia = new Set();
+  try {
+    const metadata = JSON.parse(await readFile(join(projectRoot, 'reports', 'windows-assets.json'), 'utf8'));
+    acceptedMedia = new Set((Array.isArray(metadata.animations) ? metadata.animations : [])
+      .filter(row => typeof row?.name === 'string' && /^[a-f0-9]{64}$/.test(row.webmSha256 ?? ''))
+      .map(row => row.name));
+  } catch { /* A staging file without accepted metadata never becomes available. */ }
+  for (const name of ['idle', 'running', 'review', 'waiting', 'waving', 'jumping', 'failed', 'running-left', 'running-right', 'reading', 'looking-around', 'stretching-wings']) {
+    try { if (acceptedMedia.has(name) && (await stat(join(projectRoot, 'windows', 'assets', 'shuangling', `${name}.webm`))).size > 1024) availableAnimations.push(name); } catch { /* Unaccepted or missing media is never offered to the director. */ }
+  }
+  // Install existing user priority before any watcher or lease can start.
+  const controller = new PetController({ client, animationMap, availableAnimations,
+    initialPaused: config.paused, initialPreempted });
   async function persist() {
     const temp = `${configPath}.${process.pid}.tmp`;
     await writeFile(temp, JSON.stringify(config, null, 2), { mode: 0o600 });
     await rename(temp, configPath);
   }
   try {
+  controller.setAmbientPreferences(await getLifecyclePreferences({ projectRoot, dataDir }));
+  try { desk = await createDeskService({ dataDir, onNotice: notice => deliverFocusNotice(notice, { desk, controller,
+    getLanguage: async () => (await getLifecyclePreferences({ projectRoot, dataDir })).language }) }); }
+  catch { deskIssue = 'desk-storage-unavailable'; }
+  if (desk) memoryReminders = createMemoryReminders({ desk, controller,
+    getLanguage: async () => (await getLifecyclePreferences({ projectRoot, dataDir })).language });
   await accountUsage.start();
   const session = await getLifecycleSession({ projectRoot, dataDir });
   watcher = new CodexWorkWatcher({ codexHome, metadataReader: projectUsage,
     sessionStartedAt: currentCodexSessionStartedAt(session),
     onChange: next => { status = next; controller.update(next); },
+    onCompletedTurn: event => { if (!closed) return desk?.recordTask(event); },
   });
   await watcher.start();
   await persist();
   settings = await startSettings({
-    getState: () => ({ status: { ...status }, control: controller.snapshot(), defaultUsageThreadId: config.threadId, usageThreadId: usageSelection.selectedThreadId || config.threadId }),
+    getState: () => ({ status: { ...status }, control: controller.snapshot(), availableAnimations: [...availableAnimations], defaultUsageThreadId: config.threadId, usageThreadId: usageSelection.selectedThreadId || config.threadId }),
+    getDesk: () => desk ? desk.snapshot() : { ok: false, error: deskIssue ?? 'desk-unavailable' },
+    deskCommand: async input => {
+      if (!desk) throw Object.assign(new Error('desk-unavailable'), { reason: 'desk-unavailable' });
+      const result = await desk.command(input);
+      if (input.type === 'story.select') await controller.companionNotice(null, 'reading');
+      void acknowledgeDeskCommand(input, { controller,
+        getLanguage: async () => (await getLifecyclePreferences({ projectRoot, dataDir })).language });
+      return result;
+    },
     getUsage: () => usageView.snapshot(),
     getAccountUsage: () => usageView.readAccount(),
     setUsageTarget: input => usageSelection.choose(input.threadId),
@@ -120,7 +155,11 @@ export async function startBridge({ projectRoot, dataDir = join(projectRoot, 'wi
     },
     getAppearance: async () => ({ ...await client.appearance(), metrics: { ...appearanceMetrics } }),
     getPreferences: () => getLifecyclePreferences({ projectRoot, dataDir }),
-    setPreferences: input => setLifecyclePreferences({ projectRoot, dataDir }, input),
+    setPreferences: async input => {
+      const preferences = await setLifecyclePreferences({ projectRoot, dataDir }, input);
+      controller.setAmbientPreferences(preferences);
+      return preferences;
+    },
     setAppearance: input => {
       const operation = () => input?.live === true
         ? client.updateAppearanceLive(input)
@@ -139,10 +178,12 @@ export async function startBridge({ projectRoot, dataDir = join(projectRoot, 'wi
   async function close() {
     if (closed) return;
     closed = true;
-    await accountUsage.close();
-    await watcher?.close();
-    await controller.close();
-    await settings?.close();
+    // A private tool-file write failure must never prevent the pet, watcher,
+    // account transport or local settings server from shutting down.
+    for (const finish of [() => memoryReminders?.close(), () => watcher?.close(), () => desk?.close(), () => accountUsage.close(),
+      () => controller.close(), () => settings?.close()]) {
+      try { await finish(); } catch { /* Continue the remaining independent cleanup. */ }
+    }
     try {
       const runtime = JSON.parse(await readFile(runtimePath, 'utf8'));
       if (runtime.pid === process.pid) await unlink(runtimePath);

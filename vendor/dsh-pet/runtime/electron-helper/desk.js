@@ -45,6 +45,7 @@
   if (typeof document === 'undefined') return;
 
   const $ = id => document.getElementById(id);
+  const buttonLabel = (element, text, icon) => { if (globalThis.shuanglingIcons) globalThis.shuanglingIcons.setLabel(element, text, icon); else element.textContent = text; };
   const api = globalThis.shuanglingDesk;
   let data = null, activeTab = 'focus', connected = false, pending = 0, revision = 0, alive = true;
   let lane = Promise.resolve(), refreshPending = false, timer = null, configuredDirty = false, favoritesOnly = false, archived = false, editingId = null, confirmDelete = null;
@@ -78,7 +79,8 @@
     $('favorites-only').setAttribute('aria-pressed', String(favoritesOnly));
     const buttons = list.map(entry => {
       const button = document.createElement('button'); button.type = 'button'; button.dataset.storyId = entry.id; button.setAttribute('aria-current', String(entry.id === selected?.id)); button.disabled = isBusy() || !connected;
-      const title = document.createElement('strong'); title.textContent = `${entry.favorite ? '☆ ' : ''}${localized(entry.title)}`;
+      const title = document.createElement('strong'); title.textContent = localized(entry.title);
+      if (entry.favorite && globalThis.shuanglingIcons) title.prepend(globalThis.shuanglingIcons.create('favorite', document));
       const status = document.createElement('small'); status.textContent = t(entry.read ? '已读' : '未读'); button.append(title, status);
       button.addEventListener('click', async () => { flushPosition(); await command({ type: 'story.select', id: entry.id }); });
       return button;
@@ -89,7 +91,7 @@
     $('story-title').textContent = selected ? localized(selected.title) : t('选择一篇手记');
     $('story-favorite').disabled = !selected || !connected || isBusy();
     $('story-favorite').setAttribute('aria-pressed', String(selected?.favorite === true));
-    $('story-favorite').textContent = t(selected?.favorite ? '已收藏' : '收藏');
+    buttonLabel($('story-favorite'), t(selected?.favorite ? '已收藏' : '收藏'), 'favorite');
     $('story-read').textContent = selected ? t(selected.read ? '已读' : '未读') : '';
     const nextKey = selected ? `${selected.id}\u0000${getLanguage()}\u0000${localized(selected.body)}` : '';
     if (nextKey !== storyKey) {
@@ -131,7 +133,7 @@
     $('memory-body').textContent = selected ? localized(selected.body) : '';
     $('memory-reply-card').hidden = !selected?.reply; $('memory-reply').textContent = selected?.reply || '';
     for (const element of ['memory-add-reply', 'memory-carry', 'memory-edit', 'memory-delete']) $(element).disabled = disabled || !selected || !!memoryDraft;
-    $('memory-delete').textContent = t(confirmMemoryDelete === selected?.date ? '确认删除这一页' : '删除这一页');
+    buttonLabel($('memory-delete'), t(confirmMemoryDelete === selected?.date ? '确认删除这一页' : '删除这一页'), 'trash');
     $('memory-delete-cancel').hidden = confirmMemoryDelete !== selected?.date || !selected;
     $('memory-delete-cancel').disabled = disabled;
     $('memory-editor-card').hidden = !memoryDraft;
@@ -147,7 +149,7 @@
       const label = document.createElement('p'); label.className = 'eyebrow'; label.textContent = factLabel(fact);
       const text = document.createElement('p'); text.textContent = fact.text || '';
       const actions = document.createElement('div'); actions.className = 'note-actions';
-      const add = (key, caption, action) => { const button = document.createElement('button'); button.type = 'button'; button.dataset.memoryControl = `${fact.id}-${key}`; button.textContent = t(caption); button.disabled = disabled || !!memoryDraft; button.addEventListener('click', action); actions.append(button); };
+      const add = (key, caption, action) => { const button = document.createElement('button'); button.type = 'button'; button.dataset.memoryControl = `${fact.id}-${key}`; buttonLabel(button, t(caption), { open: 'notes', source: 'back', exclude: 'close' }[key]); button.disabled = disabled || !!memoryDraft; button.addEventListener('click', action); actions.append(button); };
       if (fact.noteId && data?.notes?.some(note => note.id === fact.noteId)) add('open', '打开书签', () => openNote(fact.noteId));
       if (fact.kind === 'reply' && entries.some(entry => entry.date === fact.sourceDate)) add('source', '回到那一页', () => chooseMemory(fact.sourceDate));
       add('exclude', '这段不记了', () => command({ type: 'memory.exclude', date: selected.date, factId: fact.id }));
@@ -161,7 +163,7 @@
     const prompt = memories?.prompt;
     $('memory-prompt').hidden = !prompt;
     $('memory-prompt-text').textContent = t(prompt?.kind === 'continue' ? '上次夹住的那一页，今天想接着写吗？' : '新的一页，我写好了。要一起看看吗？');
-    $('memory-prompt-open').textContent = t(prompt?.kind === 'continue' ? '打开书签' : '看看');
+    buttonLabel($('memory-prompt-open'), t(prompt?.kind === 'continue' ? '打开书签' : '看看'), prompt?.kind === 'continue' ? 'notes' : 'reading');
     $('memory-prompt-open').disabled = disabled || !!memoryDraft; $('memory-prompt-later').disabled = disabled;
   }
   function chooseShelf(shelf) {
@@ -192,9 +194,9 @@
     const d = new Date(value); return value !== null && Number.isFinite(d.getTime()) ? d.toLocaleString(getLanguage(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
   }
   function renderNotes() {
-    $('notes-archive').textContent = t(archived ? '返回书签' : '查看归档'); $('notes-archive').setAttribute('aria-pressed', String(archived));
+    buttonLabel($('notes-archive'), t(archived ? '返回书签' : '查看归档'), archived ? 'back' : 'archive'); $('notes-archive').setAttribute('aria-pressed', String(archived));
     $('note-text').disabled = !connected || isBusy(); $('note-intent').disabled = !connected || isBusy(); $('note-save').disabled = !connected || isBusy() || !$('note-text').value.trim() || (!editingId && (data?.notes?.length || 0) >= 100);
-    $('note-save').textContent = t(editingId ? '保存修改' : '保存书签'); $('note-editor-label').textContent = t(editingId ? '编辑书签' : '新建书签'); $('note-cancel').hidden = !editingId && !$('note-text').value;
+    buttonLabel($('note-save'), t(editingId ? '保存修改' : '保存书签'), 'save'); $('note-editor-label').textContent = t(editingId ? '编辑书签' : '新建书签'); $('note-cancel').hidden = !editingId && !$('note-text').value;
     $('note-count').textContent = `${$('note-text').value.length} / 1000`;
     const notes = visibleNotes(data?.notes, archived);
     const previousFocus = document.activeElement?.dataset?.noteControl;
@@ -203,14 +205,14 @@
       const text = document.createElement('p'); text.className = 'note-text'; text.textContent = note.text;
       const meta = document.createElement('p'); meta.className = 'note-meta'; meta.textContent = [note.pinned ? t('已置顶') : '', date(note.updatedAt)].filter(Boolean).join(' · ');
       const actions = document.createElement('div'); actions.className = 'note-actions';
-      const add = (label, key, action) => { const button = document.createElement('button'); button.type = 'button'; button.textContent = t(label); button.dataset.noteControl = `${note.id}-${key}`; button.disabled = !connected || isBusy(); button.addEventListener('click', action); actions.append(button); return button; };
+      const add = (label, key, action) => { const button = document.createElement('button'); button.type = 'button'; buttonLabel(button, t(label), { edit: 'edit', pin: 'pin', archive: 'archive', delete: 'trash', 'cancel-delete': 'close', continue: 'continue', later: 'pause', done: 'review' }[key]); button.dataset.noteControl = `${note.id}-${key}`; button.disabled = !connected || isBusy(); button.addEventListener('click', action); actions.append(button); return button; };
       add('编辑', 'edit', () => { if (editingId === note.id) { $('note-text').focus(); return; } if (editingId || $('note-text').value.length) { notice('请先保存或取消当前编辑。'); return; } editingId = note.id; $('note-text').value = note.text; $('note-intent').value = ['remember', 'continue'].includes(note.intent) ? note.intent : 'none'; renderNotes(); $('note-text').focus(); $('note-form').scrollIntoView({ block: 'nearest' }); });
       add(note.pinned ? '取消置顶' : '置顶', 'pin', () => command({ type: 'note.pin', id: note.id, pinned: !note.pinned }));
       add(note.archived ? '移出归档' : '归档', 'archive', () => command({ type: 'note.archive', id: note.id, archived: !note.archived }));
       const remove = add(confirmDelete === note.id ? '确认删除' : '删除', 'delete', async () => {
         if (confirmDelete !== note.id) { confirmDelete = note.id; purgeMemories = true; renderNotes(); return; }
         if (await command({ type: 'note.delete', id: note.id, purgeMemories })) { if (editingId === note.id) resetEditor(); confirmDelete = null; renderNotes(); }
-      }); remove.className = 'danger';
+      }); remove.className = `${remove.className ? remove.className + ' ' : ''}danger`;
       if (confirmDelete === note.id) add('取消', 'cancel-delete', () => { confirmDelete = null; renderNotes(); });
       if (['remember', 'continue'].includes(note.intent)) {
         const tag = document.createElement('span'); tag.className = 'note-kind'; tag.textContent = t(note.resolved ? '已告一段落' : note.intent === 'continue' ? '下次继续' : '值得记住');

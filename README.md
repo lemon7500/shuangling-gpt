@@ -4,12 +4,14 @@
   <p>陪你思考、等你回答，也陪你安静工作。</p>
   <p>Windows 桌宠 × Codex 本地插件 × 任务与用量面板</p>
   <p><a href="README.md">简体中文</a> · <a href="docs/i18n/README.zh-TW.md">繁體中文</a> · <a href="docs/i18n/README.en.md">English</a></p>
-  <p><img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-8B73A6" /> <img alt="Version 1.9.0" src="https://img.shields.io/badge/version-1.9.0-8B73A6" /> <a href="LICENSE"><img alt="Code license MIT" src="https://img.shields.io/badge/code-MIT-8B73A6" /></a> <a href="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml"><img alt="Windows source check" src="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml/badge.svg" /></a></p>
+  <p><img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-8B73A6" /> <img alt="Version 1.9.1" src="https://img.shields.io/badge/version-1.9.1-8B73A6" /> <a href="LICENSE"><img alt="Code license MIT" src="https://img.shields.io/badge/code-MIT-8B73A6" /></a> <a href="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml"><img alt="Windows source check" src="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml/badge.svg" /></a></p>
 </div>
 
 霜铃是一只银白卷发、淡紫双翼的 Q 版龙女桌宠。她通过本地 Codex 插件跟随整个应用的任务状态，提供角色动画、拖拽与抛出交互，以及霜白淡紫的右键控制卡片。
 
-**1.9.0：**新增自主陪伴、专注与休息、霜境手记、书签联动的「我们的日常」，以及托起、持续拖动和放下的动作。Windows 免安装包提供 12 个可用动作，包含已接纳的「翻看见闻」10 秒暂定版，并保留思考、检查和等待的旧版供点击时随机选播。使用现有素材改善播放与衔接，复用有界画面缓存以减少反复分配；仍可能有零星单帧丢失，不保证所有机器上零丢帧。使用方式见[霜白小工具（三语）](docs/COMPANION-DESK.md)。
+**1.9.1：**提示气泡采用霜白淡紫的纸卡边框，面板与小工具统一线条图标；提示及短标签使用离线随附的霞鹜文楷 1.530，兼容简体、繁体和英语。每种语言提供六条完成短句，依次轮换、不紧邻重复；只提示已确认的本轮结束。修复专注、手记、书签首次点击不显示的问题；点按霜铃即时轻轻回弹，保留较长陪伴动作的原有节奏。沿用现有动画与个人数据。见[本版三语发布说明](docs/releases/v1.9.1.md)。
+
+**已有陪伴功能（1.9.0 起）：**自主陪伴、专注与休息、霜境手记、书签联动的「我们的日常」，以及托起、持续拖动和放下的动作。Windows 免安装包提供 12 个可用动作，包含已接纳的「翻看见闻」10 秒暂定版，并保留思考、检查和等待的旧版供点击时随机选播。使用现有素材改善播放与衔接，复用有界画面缓存以减少反复分配；仍可能有零星单帧丢失，不保证所有机器上零丢帧。使用方式见[霜白小工具（三语）](docs/COMPANION-DESK.md)。
 
 **角色设定：**[霜境书库的记录者](docs/CHARACTER.md) · [繁體中文](docs/i18n/CHARACTER.zh-TW.md) · [English](docs/i18n/CHARACTER.en.md)。背景故事与九种动作准则供后续创作参考；六篇角色短篇可在「霜铃手记」中阅读。
 
@@ -35,15 +37,15 @@
 ### 右键控制面板
 
 <table>
-  <tr><th>总览</th><th>动作</th><th>设置</th></tr>
+  <tr><th>简体中文</th><th>繁體中文</th><th>English</th></tr>
   <tr>
-    <td><a href="docs/media/panel-overview.png"><img src="docs/media/panel-overview.png" width="240" alt="霜铃右键面板：总览，使用演示数据" /></a></td>
-    <td><a href="docs/media/panel-actions.png"><img src="docs/media/panel-actions.png" width="240" alt="霜铃右键面板：九种动作" /></a></td>
-    <td><a href="docs/media/panel-settings.png"><img src="docs/media/panel-settings.png" width="240" alt="霜铃右键面板：大小、停靠与自动启动设置" /></a></td>
+    <td><a href="docs/media/panel-v191.zh-CN.png"><img src="docs/media/panel-v191.zh-CN.png" width="240" alt="霜铃新版右键动作面板：简体中文、霞鹜文楷与12个动作，使用演示数据" /></a></td>
+    <td><a href="docs/media/panel-v191.zh-TW.png"><img src="docs/media/panel-v191.zh-TW.png" width="240" alt="霜铃新版右键动作面板：繁体中文与12个动作，使用演示数据" /></a></td>
+    <td><a href="docs/media/panel-v191.en.png"><img src="docs/media/panel-v191.en.png" width="240" alt="霜铃新版右键动作面板：英语与12个动作，使用演示数据" /></a></td>
   </tr>
 </table>
 
-截图记录 1.8.4 的实际面板代码，以简体中文界面和演示聊天、用量展示；1.9.0 已增加工具入口和动作。点击图片可查看清晰原图。面板支持简体中文、繁體中文和 English。[素材来源与预览说明](docs/media/README.md)
+截图展示新面板的霞鹜文楷、统一图标及 12 格动作布局，使用独立测试的演示数据，三语各一张。点击可查看清晰原图；上方 GIF 仍为历史 1.8.4 动画预览。[素材来源与预览说明](docs/media/README.md)
 
 ## 功能
 
@@ -68,7 +70,7 @@
 
 **需要 Windows 10/11 x64 和已安装的 Codex 桌面版。** 免安装包已包含 Node、Electron、桌宠宿主、窗口观察器和运行依赖，无需安装 Node/npm 或自行编译。当前通过 GitHub 下载及本地插件安装，不是官方插件商店项目；不支持 macOS、Linux 或 Windows ARM。
 
-1. 下载 **[Windows x64 免安装包](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.0/shuangling-gpt-1.9.0-windows-x64.zip)**（`shuangling-gpt-1.9.0-windows-x64.zip`）。[查看 Release 与附件](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.0)。请勿将 GitHub 的 **Source code** 压缩包当作免安装包。
+1. 下载 **[Windows x64 免安装包](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.1/shuangling-gpt-1.9.1-windows-x64.zip)**（`shuangling-gpt-1.9.1-windows-x64.zip`）。[查看 Release 与附件](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.1)。请勿将 GitHub 的 **Source code** 压缩包当作免安装包。
 2. **完整解压**到一个固定、当前用户可写的目录。不要直接在 ZIP 中运行；中文和空格路径均可，安装后请保留此目录。
 3. 双击解压后根目录的 **`安装Codex插件.vbs`**，然后确认 Codex 插件列表中的 **霜铃 GPT** 已启用。安装使用当前 Windows 用户，无需管理员身份；若本机策略阻止登录任务登记，仍可手动启动霜铃。
 4. **完整关闭所有 Codex 窗口并重新打开，无需发消息或手动调用工具。** 右键霜铃打开「总览」，在用量区选择本机聊天；在「设置」调整「随 Codex 自动启动」。
@@ -152,6 +154,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 - **桌宠运行时参考**：[PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)，固定提交 [d7a308e](https://github.com/PC2005-cloud/dsh-pet/tree/d7a308ecd4504cf4468c03707ce228ed1e1c0402)。复用并修改其独立模式、透明窗口、拖拽物理与本机接口，保留 [上游 MIT 许可证](vendor/dsh-pet/LICENSE)。
 - **初始参考图原作者**：B 站 [@ZipZipPipe](https://space.bilibili.com/4168597)。该作者创作了用户最初提供的参考图；霜铃的 Q 版形象与桌宠动画由本项目在此基础上改编制作，署名不代表原作者参与开发或背书。
 - **美术许可**：针对本项目关于 Q 版改编、动画制作及 GitHub 免费公开分享的申请，原作者回复“非商业用途随意”（由项目维护者提供）。本项目依据该回复在非商业范围内制作和分享，并保留原作者署名；美术素材不纳入代码 MIT，商用须另行取得相关权利人的许可。完整说明见 [ASSETS](ASSETS.md)。
+- **随附字体**：LXGW 的霞鹜文楷 1.530 以作者原版离线文件随软件提供，保留独立的 [OFL-1.1、版权与来源](vendor/dsh-pet/runtime/electron-helper/fonts/wenkai/README.md)；不安装系统字体。字体许可与代码 MIT、角色美术非商业许可分别适用。
 - **制作辅助**：OpenAI 图像生成与 MiniMax 视频素材，以及本地逐帧处理。生成服务和官方 Pets 工具不随本仓库再分发。
 
 本项目独立维护，不是 OpenAI、Codex、MiniMax 或上述作者的官方产品。新增代码采用 MIT；第三方代码保留原许可证，美术素材不纳入代码 MIT 的授权范围。见 [NOTICE](NOTICE.md)、[ASSETS](ASSETS.md) 与 [UPSTREAM](UPSTREAM.md)。

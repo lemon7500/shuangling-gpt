@@ -118,7 +118,9 @@ class PetSprite {
     // Q 弹挤压（点击回应 / 抛掷落地）：rAF + 待压标记（等新动画成为前台再压，压新首帧）
     this.squashRef = null;
     this.squashToken = 0;
+    this.squashStyle = null;
     this.pendingSquash = false;
+    this.clickFeedbackOnPress = false;
     this._interactive = null; // 当前可交互状态（null=未定；只在变化时发 IPC，避免逐帧刷屏）
     this.moveRef = null;
     this.moveToken = 0;
@@ -208,6 +210,7 @@ class PetSprite {
     this.hit.setAttribute('aria-label', typeof nativePetName === 'function' ? nativePetName(this.pet.name) : this.pet.name);
     this.bubble = document.createElement('div');
     this.bubble.className = 'pet-bubble';
+    if (this.isShuanglingProfile()) { this.bubble.setAttribute('role', 'status'); this.bubble.setAttribute('aria-live', 'polite'); }
     // 余额气泡可点时：点一下切换展开/收起。内容与显隐都归 renderBubble，这里只做两件事——
     // 就地吞掉事件（别让这次点击落到下面的本体命中层），以及交给 events.js 的 toggleBalanceDetail。
     this.bubble.addEventListener('click', (e) => {
@@ -474,6 +477,7 @@ class PetSprite {
     // 而光标存的是视口坐标，窗口一移，光标相对窗口的位置就变了，不重摆提示会跟着窗口漂走。
     // 只在显示时重摆：漫游逐帧调本函数，没显示提示时不做无谓的 DOM 写入。
     if (this.tipOn) this.renderTip();
+    if (this.isShuanglingProfile() && this.bubble.classList.contains('is-on') && typeof ShuanglingBubble !== 'undefined' && ShuanglingBubble.position(this) && this.balanceClickable()) this.syncInputRegions();
     // 实况标脏（节流上报，见 markPoseDirty）：所有位移都收口在本函数，所以这里一处就够
     this.markPoseDirty();
   }
@@ -905,12 +909,17 @@ class PetSprite {
       // endpoint and commit video time .125/.292 instead. drawImage at a
       // completed seek is the real decoded F0, independent of callback delay.
       el.petOutlineAssetName = transaction.outlineAssetName;
-      if (this.squashRef != null) this.stopSquash();
+      const preserveClickFeedback = this.squashStyle?.clickFeedback === true &&
+        this.squashStyle.interactionId === this.interaction?.id;
+      if (this.squashRef != null && !preserveClickFeedback) this.stopSquash();
       const paintedStart = needsNativeFrame ? nativeMediaTime : dragPlayback ? el.currentTime : startTime;
       try { this.paintVideoFrame(el, paintedStart, gen); }
       catch { fail('decode-error'); return; }
       el.style.transform = this.videoFacingTransform();
-      this.videoSurface.style.transform = el.style.transform;
+      // The same click's media may become ready during its 220ms local
+      // feedback. Keep that surface driver continuous across an atomic
+      // decoder swap; a newer input has a different interaction id.
+      if (!preserveClickFeedback) this.videoSurface.style.transform = el.style.transform;
       el.classList.add('is-front');
       if (old && old !== el) {
         old.classList.remove('is-front');
@@ -1719,10 +1728,14 @@ class PetSprite {
    *  落地按冲击速度 S.landingSquash 动态取）。reduce-motion 时跳过。 */
   startSquash(el, depth = S.SQ_SQUASH) {
     el = this.videoSurface || el;
+    if (!el?.style) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const token = ++this.squashToken;
-    if (this.squashRef !== null) cancelAnimationFrame(this.squashRef);
-    const origin = el.style.transformOrigin;
+    if (this.squashRef != null) cancelAnimationFrame(this.squashRef);
+    // A rapid second press replaces the same local driver. Retain the
+    // original anchor rather than saving the preceding driver's "bottom".
+    const origin = this.squashStyle?.el === el ? this.squashStyle.origin : el.style.transformOrigin;
+    this.squashStyle = { el, origin };
     el.style.transformOrigin = 'bottom';
     const t0 = performance.now();
     const step = () => {
@@ -1735,6 +1748,7 @@ class PetSprite {
         this.squashRef = requestAnimationFrame(step);
       } else {
         this.squashRef = null;
+        this.squashStyle = null;
         el.style.transformOrigin = origin;
         // 恢复纯镜像（若期间 switchTo 重置过 transform，也以镜像为准）
         el.style.transform = this.videoFacingTransform();
@@ -1743,11 +1757,28 @@ class PetSprite {
     this.squashRef = requestAnimationFrame(step);
   }
 
-  stopSquash() {
+  stopSquash(reset = false) {
     this.squashToken++;
-    if (this.squashRef !== null) {
+    if (this.squashRef != null) {
       cancelAnimationFrame(this.squashRef);
       this.squashRef = null;
+    }
+    if (this.squashStyle) {
+      this.squashStyle.el.style.transformOrigin = this.squashStyle.origin;
+      if (reset) this.squashStyle.el.style.transform = this.videoFacingTransform();
+      this.squashStyle = null;
+    }
+  }
+
+  startClickFeedback() {
+    // Feedback belongs to this renderer, not a future decoded clip or a
+    // controller acknowledgement. The longer companion gesture has its own
+    // cadence; every press can replace this 220ms surface-only recoil.
+    this.pendingSquash = false;
+    this.startSquash(this.front === 0 ? this.videoA : this.videoB);
+    if (this.squashStyle) {
+      this.squashStyle.clickFeedback = true;
+      this.squashStyle.interactionId = this.interaction?.id;
     }
   }
 
@@ -1790,6 +1821,10 @@ class PetSprite {
     // 只认左键：右键进入拖拽判定会与右键菜单打架（右键不拖拽，两端一致）
     if (e.button !== 0) return;
     this.beginInteraction('click', 'pointer', SHUANGLING_PROFILE);
+    if (SHUANGLING_PROFILE) {
+      this.startClickFeedback();
+      this.clickFeedbackOnPress = true;
+    }
     // 占用锁（issue #122 第 4 项）：用户**点了或拖了**这只宠物 = 用户接管，立刻撤掉第三方占用。
     // 这是唯一一处"渲染端 → 宿主"的锁上报——宿主看不见鼠标，而锁在它手里
     // （/lock/release 的 force 形态；桌面端走 bridge，与播放回执 reportPlayback 同一条路）。
@@ -1885,6 +1920,10 @@ class PetSprite {
       if (Math.hypot(dx, dy) < S.DRAG_THRESHOLD) return;
       d.dragging = true;
       started = true;
+      if (SHUANGLING_PROFILE) {
+        this.clickFeedbackOnPress = false;
+        this.stopSquash(true); // Pickup artwork and physical following stay unscaled.
+      }
       this.updateInteraction('dragging', { kind: 'drag', resumable: true });
     }
     // 记录指针轨迹（screenX/Y 采样：与视口坐标只差常数偏移，速度一致；初速估算用；÷scale 进 CSS 系）
@@ -1907,6 +1946,10 @@ class PetSprite {
     const d = this.dragState;
     if (!d.active) { this.syncFrostVisibility(); return; }
     const wasDragging = d.dragging;
+    if (SHUANGLING_PROFILE && e?.type === 'pointercancel') {
+      this.clickFeedbackOnPress = false;
+      this.stopSquash(true);
+    }
     d.active = false;
     d.dragging = false;
     this.hit.classList.remove('dragging');
@@ -2182,6 +2225,14 @@ class PetSprite {
   onClick() {
     const d = this.dragState;
     if (d.active || d.dragging || this.justDragged) return;
+    if (SHUANGLING_PROFILE) {
+      // Native pointer clicks already bounced on press. Retain the same
+      // immediate response for an accessibility/synthetic click without a
+      // pointer press, and never bounce twice for one physical click.
+      const pressed = this.clickFeedbackOnPress;
+      this.clickFeedbackOnPress = false;
+      if (!pressed) this.startClickFeedback();
+    }
     // 积分判定已在 onPointerDown（按下即触发）完成：
     // 本次按下已触发过积分 → 只收手停住、**不**再播普通点击动画（粒子+弹窗即反馈，与浏览器同构）
     if (this.pressScoreFired) {
@@ -2202,7 +2253,7 @@ class PetSprite {
       }
       this.lastCompanionClickAt = now;
     }
-    this.pendingSquash = true; // 等新点击动画切到前台后 Q 弹（压新首帧，与浏览器一致）
+    if (!SHUANGLING_PROFILE) this.pendingSquash = true; // Upstream keeps its clip-first response.
     this.playOnce(S.pick(this.animations.clicks));
   }
 
@@ -2699,6 +2750,7 @@ class PetSprite {
         }
       }
     }
+    if (this.isShuanglingProfile() && typeof ShuanglingBubble !== 'undefined') ShuanglingBubble.decorate(this, slot);
     this.bubble.classList.add('is-on');
     window.__dshPetDebug.lastBubbleTitle = this.bubble.textContent.slice(0, 60);
     // 气泡内容/尺寸变了 → 重报控件矩形（可点的余额气泡要靠它拿点击），并同步 busy 标记。

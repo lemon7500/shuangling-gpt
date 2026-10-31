@@ -1,0 +1,24 @@
+/* The same small, round-ended line family is used by every control. */
+.shuangling-icon{display:block;width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.icon-label-button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.icon-label-button>[data-icon-label]{min-width:0}
+.icon-label-button>.shuangling-icon{color:inherit}
+.tabs .shuangling-icon{width:16px;height:16px}
+.action-grid button.icon-label-button{display:flex;flex-direction:column;gap:5px}
+.action-grid .shuangling-icon{width:23px;height:23px;color:#9478ab}
+.action-grid button:hover:not(:disabled) .shuangling-icon,.tabs button[aria-selected=true] .shuangling-icon{color:var(--purple-dark,#715b89)}
+.desk-shortcuts .shuangling-icon{width:20px;height:20px}
+.desk-shortcuts button.icon-label-button{gap:5px}
+.footer .icon-label-button{gap:5px}
+.footer .shuangling-icon{width:16px;height:16px}
+.header .icon-label-button{width:28px;height:28px;min-width:28px;padding:5px}
+.header .icon-label-button .shuangling-icon{width:18px;height:18px}
+.header .icon.icon-label-button{padding:5px}
+.small-button .shuangling-icon{width:14px;height:14px}
+.advanced.icon-label-button{justify-content:flex-start}
+.advanced.icon-label-button>[data-icon-label]{font-size:11px;color:inherit}
+#usage-thread>.shuangling-icon{order:2;width:13px;height:13px}
+.note-actions .shuangling-icon,.memory-actions .shuangling-icon{width:15px;height:15px}
+.story-list strong{display:flex;align-items:center;gap:5px}
+.story-list strong .shuangling-icon{width:14px;height:14px;color:var(--purple,#806496)}
+@media(prefers-reduced-motion:reduce){.shuangling-icon{transition:none}}

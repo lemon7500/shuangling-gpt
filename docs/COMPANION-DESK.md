@@ -6,7 +6,7 @@
 
 右键霜铃，在「总览」点击「专注」「霜铃手记」或「我的书签」，打开独立工具窗。它不改变宠物的大小、位置或聊天绑定，失去焦点也不会像右键面板一样关闭。界面与手记沿用设置中的简体中文、繁體中文或 English。
 
-本页描述 1.9.0；Windows 免安装包包含本页功能。首次打开工具直接进入所选页面，保存中切页或确认关闭会等待写入完成；断连时保留草稿及已确认的界面语言，不把读取失败当成空记录。
+本页描述 1.9.1；Windows 免安装包包含本页功能。本版采用统一线条图标和离线霞鹜文楷短标签，保留已有功能与动画。首次打开工具直接进入所选页面，保存中切页或确认关闭会等待写入完成；断连时保留草稿及已确认的界面语言，不把读取失败当成空记录。
 
 ### 专注
 
@@ -52,7 +52,7 @@
 
 按右鍵開啟霜鈴面板，在「總覽」點選「專注」「霜鈴手記」或「我的書籤」，即可開啟獨立工具視窗。它不改變桌寵大小、位置或聊天綁定，失去焦點也不會關閉。介面與手記沿用設定中的簡體中文、繁體中文或 English。
 
-本頁描述 1.9.0；Windows 免安裝包包含本頁功能。首次開啟直接進入所選頁面，儲存中切頁或確認關閉會等待寫入完成；斷線時保留草稿及已確認的介面語言，不將讀取失敗視為空紀錄。
+本頁描述 1.9.1；Windows 免安裝包包含本頁功能。本版採用統一線條圖示及離線霞鶩文楷短標籤，保留既有功能與動畫。首次開啟直接進入所選頁面，儲存中切頁或確認關閉會等待寫入完成；斷線時保留草稿及已確認的介面語言，不將讀取失敗視為空紀錄。
 
 ### 專注
 
@@ -94,7 +94,7 @@
 
 Right-click Shuangling and choose **Focus**, **Shuangling’s journal** or **My bookmarks** in **Overview**. This opens a separate Frost desk window without moving/resizing the pet or changing its chat binding. It stays open when it loses focus. The interface and stories use your chosen Simplified Chinese, Traditional Chinese or English language.
 
-This guide describes version 1.9.0; the Windows portable package includes these features. A cold open goes directly to the requested page. Navigation or a confirmed close waits for pending saves; a disconnection preserves drafts and the last confirmed interface language rather than treating failed reads as empty records.
+This guide describes version 1.9.1; the Windows portable package includes these features. This release uses consistent line icons and offline LXGW WenKai for short labels, retaining existing functions and animation files. A cold open goes directly to the requested page. Navigation or a confirmed close waits for pending saves; a disconnection preserves drafts and the last confirmed interface language rather than treating failed reads as empty records.
 
 ### Focus
 

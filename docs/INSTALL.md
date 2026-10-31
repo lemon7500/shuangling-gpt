@@ -4,7 +4,7 @@ Follow the [简体中文 quick start](../README.md#快速开始安装插件), [�
 
 ## Portable installation (recommended)
 
-You need Windows 10/11 x64 and an installed Codex desktop app. Download [shuangling-gpt-1.9.0-windows-x64.zip](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.0/shuangling-gpt-1.9.0-windows-x64.zip) from the [v1.9.0 Release](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.0). GitHub's automatically generated **Source code** archives do not include the portable runtime.
+You need Windows 10/11 x64 and an installed Codex desktop app. Download [shuangling-gpt-1.9.1-windows-x64.zip](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.1/shuangling-gpt-1.9.1-windows-x64.zip) from the [v1.9.1 Release](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.1). GitHub's automatically generated **Source code** archives do not include the portable runtime.
 
 1. Extract the entire ZIP to a permanent folder writable by your Windows user. Do not run it inside the archive.
 2. Double-click root **`安装Codex插件.vbs`**, then check that **霜铃 GPT** is enabled in Codex.

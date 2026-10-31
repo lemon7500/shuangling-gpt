@@ -1,0 +1,76 @@
+/* Only the Shuangling desktop profile uses the frost-library note card. */
+html.shuangling-profile .pet-bubble.is-shuangling-note {
+  --f: max(15px, var(--dsh-pet-font-bubble, 15px));
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 0;
+  max-width: 280px;
+  padding: 10px 14px 10px 36px;
+  border: 1px solid #b5a1c9;
+  border-radius: 12px;
+  background: #f9f7fc;
+  color: #342d40;
+  font-family: var(--shuangling-font-family, "Microsoft YaHei UI", "Microsoft JhengHei UI", "Segoe UI", sans-serif);
+  font-size: var(--f);
+  font-weight: 400;
+  line-height: 1.55;
+  letter-spacing: .015em;
+  box-shadow: 0 3px 12px rgba(74, 53, 96, .12), 0 1px 3px rgba(74, 53, 96, .05);
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+  transition: opacity 180ms ease;
+}
+html.shuangling-profile .pet-bubble.is-shuangling-note::before {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: 12px;
+  width: 15px;
+  height: 15px;
+  background: #8b73a6;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.35' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 2v16M3.1 6l13.8 8M3.1 14l13.8-8M7.5 3.5 10 6l2.5-2.5M7.5 16.5 10 14l2.5 2.5M3.2 8.9l3.4-.9-.9-3.4M16.8 11.1l-3.4.9.9 3.4M5.7 15.4l.9-3.4-3.4-.9M14.3 4.6l-.9 3.4 3.4.9'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.35' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 2v16M3.1 6l13.8 8M3.1 14l13.8-8M7.5 3.5 10 6l2.5-2.5M7.5 16.5 10 14l2.5 2.5M3.2 8.9l3.4-.9-.9-3.4M16.8 11.1l-3.4.9.9 3.4M5.7 15.4l.9-3.4-3.4-.9M14.3 4.6l-.9 3.4 3.4.9'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events: none;
+}
+/* In a narrow edge slot, the same snowflake becomes a border seal so its
+   fixed left gutter does not force a long translated sentence into 8 lines. */
+html.shuangling-profile .pet-bubble.is-shuangling-note.is-compact-note { padding-left: 10px; padding-right: 10px; }
+html.shuangling-profile .pet-bubble.is-shuangling-note.is-compact-note::before {
+  top: -6px;
+  left: 12px;
+  filter: drop-shadow(0 0 1px #f9f7fc);
+}
+html.shuangling-profile .pet-bubble.is-shuangling-note::after {
+  width: 8px;
+  height: 8px;
+  left: var(--shuangling-bubble-tail-x, 50%);
+  bottom: -5px;
+  border: 0;
+  border-right: 1px solid #b5a1c9;
+  border-bottom: 1px solid #b5a1c9;
+  background: #f9f7fc;
+  transform: translateX(-50%) rotate(45deg);
+}
+html.shuangling-profile .pet-bubble.is-shuangling-note[data-shuangling-placement="below"]::after {
+  top: -5px;
+  bottom: auto;
+  transform: translateX(-50%) rotate(225deg);
+}
+html.shuangling-profile .pet-bubble.is-shuangling-note[data-shuangling-placement="left"]::after,
+html.shuangling-profile .pet-bubble.is-shuangling-note[data-shuangling-placement="right"]::after {
+  top: var(--shuangling-bubble-tail-y, 18px);
+  bottom: auto;
+  left: auto;
+  right: -5px;
+  transform: rotate(-45deg);
+}
+html.shuangling-profile .pet-bubble.is-shuangling-note[data-shuangling-placement="right"]::after {
+  left: -5px;
+  right: auto;
+  transform: rotate(135deg);
+}
+html.shuangling-profile .pet-bubble.is-shuangling-note .pet-bub-row { min-width: 0; text-wrap: balance; }
+@media (prefers-reduced-motion: reduce) {
+  html.shuangling-profile .pet-bubble.is-shuangling-note { transition: none; }
+}

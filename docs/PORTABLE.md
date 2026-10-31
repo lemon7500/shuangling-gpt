@@ -1,4 +1,4 @@
-# 霜铃 GPT 1.9.0 · Portable guide
+# 霜铃 GPT 1.9.1 · Portable guide
 
 [简体中文](#简体中文) · [繁體中文](#繁體中文) · [English](#english)
 
@@ -6,9 +6,9 @@
 
 需要 **Windows 10/11 x64**。Codex 插件与自动启停需要已安装的 Codex 桌面版；不支持 macOS、Linux 或 Windows ARM。
 
-1.9.0 包含自主陪伴、专注与休息、六篇角色短篇、书签联动的「我们的日常」，以及 12 个可用动作。另附经典动作变体和三阶段拖拽素材；「翻看见闻」采用已接纳的 10 秒暂定版。动画仍可能零星丢帧，书本高度和靠脸翻页等细节仍可优化。完整用法见[霜白小工具（三语）](COMPANION-DESK.md)。
+1.9.1 更新霜白纸卡气泡、霞鹜文楷 1.530、三语完成短句轮换和统一线条图标。沿用 1.9.0 的 12 个动作与全部动画文件，以及自主陪伴、专注、手记、书签和「我们的日常」；「翻看见闻」仍为已接纳的 10 秒暂定版。完整用法见[霜白小工具（三语）](COMPANION-DESK.md)及[本版发布说明](releases/v1.9.1.md)。
 
-1. 从 [v1.9.0 Release](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.0) 下载 [shuangling-gpt-1.9.0-windows-x64.zip](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.0/shuangling-gpt-1.9.0-windows-x64.zip)。不要下载 Source code 代替。
+1. 从 [v1.9.1 Release](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.1) 下载 [shuangling-gpt-1.9.1-windows-x64.zip](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.1/shuangling-gpt-1.9.1-windows-x64.zip)。不要下载 Source code 代替。
 2. 完整解压到固定、当前用户可写的目录，不要在 ZIP 中运行。
 3. 双击根目录 **`安装Codex插件.vbs`**，确认 Codex 中的霜铃 GPT 插件已启用。
 4. 完整关闭所有 Codex 窗口并重新打开，无需发送消息。右键霜铃可查看任务、选择用量聊天或调整设置。
@@ -23,13 +23,15 @@
 
 原作者就本项目的改编、动画制作及 GitHub 免费分享申请回复“非商业用途随意”（由项目维护者提供）。本项目据此在非商业范围内制作和分享，并保留原作者署名；美术不纳入代码 MIT，商用须另行取得相关权利人的许可。见 [完整素材许可说明](../ASSETS.md)。
 
+霞鹜文楷 1.530 为 LXGW 发布的原版离线字体，依独立的 [OFL-1.1、版权与来源说明](../vendor/dsh-pet/runtime/electron-helper/fonts/wenkai/README.md)随软件提供，不安装到系统；字体许可不受角色美术非商业条款替代。
+
 ## 繁體中文
 
 需要 **Windows 10/11 x64**。Codex 外掛程式與自動啟停需要已安裝的 Codex 桌面版；不支援 macOS、Linux 或 Windows ARM。
 
-1.9.0 包含自主陪伴、專注與休息、六篇角色短篇、與書籤聯動的「我們的日常」，以及 12 個可用動作。另附經典動作變體及三階段拖曳素材；「翻看見聞」採用已接納的 10 秒暫定版。動畫仍可能零星掉格，書本高度及靠臉翻頁等細節仍可改善。完整用法見[霜白小工具（三語）](COMPANION-DESK.md)。
+1.9.1 更新霜白紙卡氣泡、霞鶩文楷 1.530、三語完成短句輪替及統一線條圖示。沿用 1.9.0 的 12 個動作與全部動畫檔案，以及自主陪伴、專注、手記、書籤和「我們的日常」；「翻看見聞」仍為已接納的 10 秒暫定版。完整用法見[霜白小工具（三語）](COMPANION-DESK.md)及[本版發布說明](releases/v1.9.1.md)。
 
-1. 從 [v1.9.0 Release](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.0) 下載 [shuangling-gpt-1.9.0-windows-x64.zip](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.0/shuangling-gpt-1.9.0-windows-x64.zip)。請勿以 Source code 取代。
+1. 從 [v1.9.1 Release](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.1) 下載 [shuangling-gpt-1.9.1-windows-x64.zip](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.1/shuangling-gpt-1.9.1-windows-x64.zip)。請勿以 Source code 取代。
 2. 完整解壓縮至固定、目前使用者可寫入的目錄，不要在 ZIP 中執行。
 3. 按兩下根目錄 **`安装Codex插件.vbs`**，確認 Codex 中的霜铃 GPT 外掛程式已啟用。
 4. 完整關閉所有 Codex 視窗後重新開啟，無須傳送訊息。按右鍵可查看工作狀態、選擇用量聊天或調整設定。
@@ -44,13 +46,15 @@
 
 原作者就本專案的改編、動畫製作及 GitHub 免費分享申請回覆「非商业用途随意」（由專案維護者提供，保留簡體原文）。本專案據此在非商業範圍內製作與分享，並保留原作者署名；美術不納入程式碼 MIT，商用須另行取得相關權利人的許可。見 [完整素材許可說明](../ASSETS.md)。
 
+霞鶩文楷 1.530 為 LXGW 發布的原版離線字型，依獨立的 [OFL-1.1、著作權與來源說明](../vendor/dsh-pet/runtime/electron-helper/fonts/wenkai/README.md)隨軟體提供，不安裝至系統；字型授權不由角色美術非商業條款取代。
+
 ## English
 
 Requires **Windows 10/11 x64**. The Codex plugin and automatic lifecycle need the Codex desktop app installed. macOS, Linux and Windows ARM are not supported.
 
-Version 1.9.0 includes ambient company, focus and breaks, six character stories, bookmark-linked **Our days together**, and 12 available actions. Classic variants and three-phase drag media are also included. **Read journal** uses the accepted provisional 10-second version. Occasional single-frame drops, book height and page-to-face clearance remain areas for refinement. See the [trilingual Frost desk guide](COMPANION-DESK.md).
+Version 1.9.1 adds frost note-card captions, LXGW WenKai 1.530, rotating completion lines in three languages and consistent line icons. It retains all animation files and 12 actions from 1.9.0, along with ambient company, focus, journals, bookmarks and **Our days together**. **Read journal** remains the accepted provisional 10-second version. See the [trilingual Frost desk guide](COMPANION-DESK.md) and [release notes](releases/v1.9.1.md).
 
-1. Download [shuangling-gpt-1.9.0-windows-x64.zip](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.0/shuangling-gpt-1.9.0-windows-x64.zip) from the [v1.9.0 Release](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.0), rather than a Source code archive.
+1. Download [shuangling-gpt-1.9.1-windows-x64.zip](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.1/shuangling-gpt-1.9.1-windows-x64.zip) from the [v1.9.1 Release](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.1), rather than a Source code archive.
 2. Extract the complete ZIP to a permanent folder writable by your Windows user. Do not run it inside the archive.
 3. Double-click root **`Install plugin.vbs`** (or **`安装Codex插件.vbs`**), then check that **霜铃 GPT** is enabled in Codex.
 4. Close every Codex window and reopen Codex. No message is needed. Right-click Shuangling to view task status, choose a usage chat or change settings.
@@ -64,5 +68,7 @@ Choose **简体中文 / 繁體中文 / English** in panel Settings or advanced s
 Shuangling makes no additional model requests and does not save or upload conversation bodies. Do not share personal `windows/data`, authentication files or logs. Code uses [MIT](../LICENSE); see [NOTICE](../NOTICE.md) and [UPSTREAM](../UPSTREAM.md) for third-party notices and [ASSETS](../ASSETS.md) for separate artwork rights. The desktop runtime builds on [PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet). **Bilibili [@ZipZipPipe](https://space.bilibili.com/4168597) is the original author of the initial reference image.** This project adapted that reference into Shuangling's chibi design and desktop animations; attribution does not imply participation or endorsement.
 
 In response to the project's request for adaptation, animation production and free GitHub sharing, the artist replied “非商业用途随意,” according to the reply supplied by the maintainer (translation: “You may use it freely for non-commercial purposes.”). The project relies on this reply for non-commercial creation and sharing with continued attribution. Artwork is excluded from the code's MIT grant; commercial use requires separate permission from the relevant rights holders. See the [full artwork notice](../ASSETS.md).
+
+LXGW WenKai 1.530 is provided as LXGW's original offline font under its independent [OFL-1.1 license, copyright and provenance](../vendor/dsh-pet/runtime/electron-helper/fonts/wenkai/README.md). It is not installed as a system font; the artwork's noncommercial terms do not replace the font license.
 
 [完整说明 / Full documentation](../README.md) · [安装、迁移与卸载 / Installation](INSTALL.md)

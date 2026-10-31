@@ -56,13 +56,16 @@ test('desk geometry clamps tiny and negative-origin displays without changing th
   }
 });
 
-function nativeFixture({ loadFile } = {}) {
+function nativeFixture({ loadFile, onShow } = {}) {
   const windows = [], requests = [], ipcMain = new EventEmitter(); ipcMain.handlers = new Map(); ipcMain.handle = (name, fn) => ipcMain.handlers.set(name, fn); ipcMain.removeHandler = name => ipcMain.handlers.delete(name);
   class Window extends EventEmitter {
     constructor(options = {}) { super(); this.options = options; this.bounds = { x: 600, y: 500, width: 180, height: 250, ...options }; this.dead = false; this.sent = []; this.webContents = new EventEmitter(); this.webContents.mainFrame = { url: 'file:///pet.html' }; this.webContents.send = (...args) => this.sent.push(args); this.webContents.setWindowOpenHandler = handler => { this.popup = handler; }; this.webContents.setZoomFactor = value => { this.zoom = value; }; windows.push(this); }
     static fromWebContents(contents) { return windows.find(win => win.webContents === contents); }
     isDestroyed() { return this.dead; } getBounds() { return this.bounds; } setBounds(value) { this.bounds = value; }
-    destroy() { this.dead = true; this.emit('closed'); } show() { this.shown = true; } focus() { this.focused = true; }
+    destroy() { this.dead = true; this.emit('closed'); }
+    isVisible() { return this.shown === true; } isFocused() { return this.focused === true; }
+    show() { this.showCalls = (this.showCalls || 0) + 1; if (onShow?.(this) !== false) this.shown = true; }
+    focus() { this.focused = true; }
     async loadFile(file) { this.webContents.mainFrame.url = pathToFileURL(file).href; if (loadFile) await loadFile(this, file); this.webContents.emit('did-finish-load'); }
   }
   const owner = new Window(); let available = [];
@@ -223,13 +226,74 @@ test('desk snapshot and command report backend storage failure and recover on a 
   controller.destroy();
 });
 
-test('panel tool shortcut releases its info interaction before opening desk and does not pause task following', async () => {
+test('panel tool shortcut releases its info interaction after the tool is visible and does not pause task following', async () => {
   const f = nativeFixture(), controller = createPanelController(f); await controller.open(f.owner); const panel = controller.window;
   const result = await f.ipcMain.handlers.get('shuangling-panel:command')(eventFor(panel), { type: 'desk', tab: 'focus' });
   assert.equal(result.ok, true); assert.equal(controller.window, null); assert.ok(controller.desk.window); assert.equal(f.owner.sent.at(-1)[1].kind, 'closed'); assert.equal(f.owner.sent.at(-1)[1].reason, 'desk');
   assert.ok(!f.requests.some(request => request.route === '/api/settings'));
   const sent = f.owner.sent.length; controller.desk.close(); assert.equal(f.owner.sent.length, sent);
   controller.destroy(); assert.equal(f.ipcMain.handlers.size, 0);
+});
+
+test('a hidden-startup first show gets one bounded visibility retry instead of requiring a second click', async () => {
+  const f = nativeFixture({ onShow: win => win.showCalls !== 1 }), controller = createDeskController(f);
+  assert.deepEqual(await controller.open(f.owner, { tab: 'notes' }), { ok: true });
+  assert.equal(controller.window.showCalls, 2); assert.equal(controller.window.isVisible(), true);
+  controller.destroy();
+});
+
+test('a tool that remains hidden after two show attempts fails closed without an unbounded retry', async () => {
+  const f = nativeFixture({ onShow: () => false }), controller = createDeskController(f);
+  const opening = controller.open(f.owner, { tab: 'notes' }), tool = controller.window;
+  assert.equal((await opening).ok, false); assert.equal(tool.showCalls, 2);
+  assert.equal(tool.isDestroyed(), true); assert.equal(controller.window, null);
+  controller.destroy();
+});
+
+test('a canceled handoff or owner close between show attempts cannot revive a tool', async () => {
+  for (const reason of ['cancel', 'owner-close', 'tool-blur']) {
+    let allowed = true;
+    const f = nativeFixture({ onShow: win => {
+      setImmediate(() => { if (reason === 'cancel') allowed = false; else if (reason === 'owner-close') f.owner.destroy(); else win.emit('blur'); });
+      return false;
+    } }), controller = createDeskController(f);
+    const opening = controller.open(f.owner, { tab: 'focus', canReveal: () => allowed }), tool = controller.window;
+    assert.equal((await opening).ok, false, reason); assert.equal(tool.showCalls, 1, reason);
+    assert.equal(tool.isDestroyed(), true, reason); assert.equal(controller.window, null, reason);
+    controller.destroy();
+  }
+});
+
+test('a first-show retry keeps the activating card until its own destination is visible', async () => {
+  let card;
+  const f = nativeFixture({ onShow: win => {
+    if (!win.options.transparent) {
+      assert.equal(card.isDestroyed(), false);
+      win.focused = true;
+      card.emit('blur');
+      assert.equal(card.isDestroyed(), false, 'destination focus must not cancel the handoff');
+      return win.showCalls !== 1;
+    }
+  } }), controller = createPanelController(f);
+  await controller.open(f.owner); card = controller.window;
+  const result = await f.ipcMain.handlers.get('shuangling-panel:command')(eventFor(card), { type: 'desk', tab: 'journal' });
+  assert.equal(result.ok, true); assert.equal(controller.desk.window.isVisible(), true);
+  assert.equal(controller.desk.window.showCalls, 2); assert.equal(card.isDestroyed(), true);
+  assert.equal(f.owner.sent.at(-1)[1].reason, 'desk');
+  assert.ok(!f.requests.some(request => request.route === '/api/settings'));
+  controller.destroy();
+});
+
+test('clicking outside while a cold tool loads cancels its reveal without bringing it back later', async () => {
+  const gate = deferred(), f = nativeFixture({ loadFile: (_win, file) => file.endsWith('desk.html') ? gate.promise : undefined });
+  const controller = createPanelController(f); await controller.open(f.owner); const card = controller.window;
+  const opening = f.ipcMain.handlers.get('shuangling-panel:command')(eventFor(card), { type: 'desk', tab: 'notes' }), tool = controller.desk.window;
+  assert.equal(card.isDestroyed(), false); assert.equal(tool.isVisible(), false);
+  card.emit('blur'); assert.equal(card.isDestroyed(), true);
+  gate.resolve(); assert.equal((await opening).ok, false);
+  assert.equal(tool.showCalls || 0, 0); assert.equal(tool.isDestroyed(), true);
+  assert.equal(controller.desk.window, null);
+  controller.destroy();
 });
 
 test('panel optional animations are disabled and rejected until the runtime advertises their files', async () => {

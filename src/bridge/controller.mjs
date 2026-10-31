@@ -1,4 +1,5 @@
 import { firstAnimation, naturalAnimation, quietDelay, ambientActions } from './natural-schedule.mjs';
+import { completionCaptions, statusCaption } from './captions.mjs';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const terminal = new Set(['ended', 'failed', 'cancelled']);
 const readingTaskTargets = new Set(['idle', 'running', 'review', 'waiting', 'waving', 'jumping', 'failed']);
@@ -19,12 +20,11 @@ function interactionRecord(value) {
   if (r.endedAt !== null && (!Number.isSafeInteger(r.endedAt) || r.endedAt < r.startedAt)) return null;
   return { id: r.id, phase: r.phase, kind: r.kind, startedAt: r.startedAt, updatedAt: r.updatedAt, endedAt: r.endedAt, revision: r.revision, resumable: r.resumable };
 }
-const captions = { waiting: '等你回来，我在这里。', complete: '这一轮完成啦！', interrupted: '已停下，陪你等一会儿。', unknown: '状态未知 · 仍在陪伴' };
 const initialInteraction = record => record?.kind === 'click' && record.phase === 'settled' && record.revision === 0 && record.endedAt === record.startedAt && !record.resumable;
 
 /** Lease and playback receipts remain the upstream host's authority. */
 export class PetController {
-  constructor({ client, animationMap = {}, availableAnimations = [], ambientPreferences = {}, initialPaused = false, initialPreempted = false, onChange = () => {}, retryMs = 1800, startTimeoutMs = 5000, maxStartRetries = 3, interactionPollMs = 300, interactionProbeMs = 1500, surfaceReadyTimeoutMs = 12000, now = Date.now, sleepImpl = sleep, random = Math.random }) {
+  constructor({ client, animationMap = {}, availableAnimations = [], ambientPreferences = {}, initialPaused = false, initialPreempted = false, onChange = () => {}, retryMs = 1800, startTimeoutMs = 5000, maxStartRetries = 3, interactionPollMs = 300, interactionProbeMs = 1500, surfaceReadyTimeoutMs = 12000, now = Date.now, sleepImpl = sleep, random = Math.random, getLanguage = () => 'zh-CN' }) {
     this.client = client;
     this.animations = { idle: 'idle', working: 'running', waiting: 'waiting', complete: ['waving', 'jumping'], interrupted: 'failed', unknown: 'idle', ...animationMap };
     this.onChange = onChange;
@@ -39,6 +39,10 @@ export class PetController {
     this.now = now;
     this.sleep = sleepImpl;
     this.random = random;
+    this.getLanguage = getLanguage;
+    // Independent rotation keeps captions varied without consuming the action
+    // director's random stream or persisting any additional user preference.
+    this.completionCaptionIndex = 0;
     this.availableAnimations = [...availableAnimations];
     this.ambient = { enabled: ambientPreferences.ambientEnabled !== false, frequency: ['quiet', 'normal', 'lively'].includes(ambientPreferences.ambientFrequency) ? ambientPreferences.ambientFrequency : 'normal' };
     this.lastAmbientEnded = {};
@@ -458,7 +462,15 @@ export class PetController {
       }
       try {
         await this.lease();
-        if (captions[state] && captionGeneration !== generation) await this.client.broadcast(captions[state], this.lockId);
+        if (statusCaption(state) && captionGeneration !== generation) {
+          const captionLease = this.lockId;
+          let language = 'zh-CN';
+          try { language = await this.getLanguage(); } catch { /* Optional text cannot block task playback. */ }
+          if (this.closed || this.paused || this.preempted || this.surfaceReloading ||
+              this.generation !== generation || this.lockId !== captionLease) continue;
+          await this.client.broadcast(statusCaption(state, language, this.completionCaptionIndex), captionLease);
+          if (state === 'complete') this.completionCaptionIndex = (this.completionCaptionIndex + 1) % completionCaptions['zh-CN'].length;
+        }
         captionGeneration = generation;
         if (this.generation !== generation) continue;
         this.issue = null;

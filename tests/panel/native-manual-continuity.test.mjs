@@ -399,6 +399,45 @@ test('a deliberate menu animation cannot inherit a superseded click squash that 
   assert.equal(f.p.videoSurface.style.transform, '');
 });
 
+test('a Shuangling click clip commits without replaying feedback already shown on press', async () => {
+  const f = fixture();
+  f.p.animations.clicks = ['review'];
+  let squashes = 0; f.p.startSquash = () => { squashes++; };
+  f.p.startClickFeedback(); f.p.clickFeedbackOnPress = true;
+  f.p.onClick();
+  assert.equal(squashes, 1); assert.equal(f.p.pendingSquash, false);
+  await finishPrepared(f);
+  assert.equal(f.p.displayedAnim, 'review');
+  assert.equal(squashes, 1, 'decoding and handoff cannot replay the completed local recoil');
+  assert.equal(f.p.pendingSquash, false);
+});
+
+test('a fast release and ready click video preserve the whole surface recoil through decoder commit', async () => {
+  const f = fixture(); f.p.animations.clicks = ['review'];
+  f.p.interaction = { id: 'same-click', kind: 'click', phase: 'pointer' };
+  f.p.startClickFeedback(); f.p.clickFeedbackOnPress = true;
+  f.runFrame(16); const transform = f.p.videoSurface.style.transform;
+  assert.match(transform, /scaleY\(/);
+  f.p.interaction.phase = 'blocked'; f.p.onClick();
+  await finishPrepared(f);
+  assert.equal(f.p.displayedAnim, 'review');
+  assert.notEqual(f.p.squashRef, null, 'fast video preparation cannot cut the feedback short');
+  assert.equal(f.p.videoSurface.style.transform, transform);
+  f.runFrame(120); assert.match(f.p.videoSurface.style.transform, /scaleY\(/);
+  f.runFrame(520);
+  assert.equal(f.p.squashRef, null); assert.equal(f.p.videoSurface.style.transform, '');
+});
+
+test('a new menu interaction does not inherit the previous click surface driver', async () => {
+  const f = fixture(); f.p.interaction = { id: 'old-click', kind: 'click', phase: 'blocked' };
+  f.p.startClickFeedback(); f.runFrame(16);
+  const old = f.p.squashRef;
+  f.p.interaction = { id: 'new-menu', kind: 'menu', phase: 'blocked' };
+  f.p.onMenuAction({ anim: 'review' }); await finishPrepared(f);
+  assert.equal(f.p.squashRef, null); assert.ok(f.cancelledFrames.includes(old));
+  assert.equal(f.p.videoSurface.style.transform, '');
+});
+
 test('all current video states permit a new manual preparation without awaiting an ended event', () => {
   for (const change of [{}, { paused: true }, { ended: true }, { loop: true }, { readyState: 1 }, { duration: Infinity }]) {
     const f = fixture(); Object.assign(f.wave, change);

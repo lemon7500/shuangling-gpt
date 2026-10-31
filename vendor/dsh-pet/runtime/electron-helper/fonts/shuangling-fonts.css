@@ -1,0 +1,29 @@
+/* Original LXGW WenKai 1.530, unmodified under OFL-1.1. See wenkai/OFL.txt. */
+@font-face {
+  font-family: "Shuangling WenKai";
+  src: url("wenkai/LXGWWenKai-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+:root {
+  --shuangling-font-family: "Shuangling WenKai", "Microsoft YaHei UI", "Microsoft JhengHei UI", "Segoe UI", sans-serif;
+}
+:root:lang(zh-TW) {
+  --shuangling-font-family: "Shuangling WenKai", "Microsoft JhengHei UI", "Microsoft YaHei UI", "Segoe UI", sans-serif;
+}
+/* Short labels carry the handwritten character; reading/editing text retains
+   the existing system font and user-generated text keeps system fallbacks. */
+.panel :is(h1, h2, button, .section-heading, .action-label, .badge),
+.desk :is(h1, h2, h3, button, .eyebrow, .story-list button) {
+  font-family: var(--shuangling-font-family);
+}
+.panel :is(.context-value, .quota-value, .project-total strong),
+.desk :is(.timer-value, .timer-digits) {
+  font-variant-numeric: tabular-nums;
+}
+/* The narrow side card at the smallest pet size retains 15px glyphs;
+   tighter leading keeps a full notice inside the existing transparent window. */
+html.shuangling-profile .pet-bubble.is-shuangling-note.is-compact-note {
+  line-height: 1.35;
+}

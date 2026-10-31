@@ -69,6 +69,9 @@ export async function startBridge({ projectRoot, dataDir = join(projectRoot, 'wi
   let closed = false;
   let changing = Promise.resolve();
   let changingAppearance = Promise.resolve();
+  let language = 'zh-CN';
+  let languageRevision = 0;
+  const getLanguage = () => language;
   const projectUsage = new ProjectUsageReader({ codexHome });
   const accountUsage = accountSource ?? new CurrentAccountUsage({ codexHome,
     transportFactory: ({ signal }) => openNativeAccountClient({ signal, codexHome }),
@@ -98,19 +101,21 @@ export async function startBridge({ projectRoot, dataDir = join(projectRoot, 'wi
   }
   // Install existing user priority before any watcher or lease can start.
   const controller = new PetController({ client, animationMap, availableAnimations,
-    initialPaused: config.paused, initialPreempted });
+    initialPaused: config.paused, initialPreempted, getLanguage });
   async function persist() {
     const temp = `${configPath}.${process.pid}.tmp`;
     await writeFile(temp, JSON.stringify(config, null, 2), { mode: 0o600 });
     await rename(temp, configPath);
   }
   try {
-  controller.setAmbientPreferences(await getLifecyclePreferences({ projectRoot, dataDir }));
+  const initialPreferences = await getLifecyclePreferences({ projectRoot, dataDir });
+  language = initialPreferences.language;
+  controller.setAmbientPreferences(initialPreferences);
   try { desk = await createDeskService({ dataDir, onNotice: notice => deliverFocusNotice(notice, { desk, controller,
-    getLanguage: async () => (await getLifecyclePreferences({ projectRoot, dataDir })).language }) }); }
+    getLanguage }) }); }
   catch { deskIssue = 'desk-storage-unavailable'; }
   if (desk) memoryReminders = createMemoryReminders({ desk, controller,
-    getLanguage: async () => (await getLifecyclePreferences({ projectRoot, dataDir })).language });
+    getLanguage });
   await accountUsage.start();
   const session = await getLifecycleSession({ projectRoot, dataDir });
   watcher = new CodexWorkWatcher({ codexHome, metadataReader: projectUsage,
@@ -128,7 +133,7 @@ export async function startBridge({ projectRoot, dataDir = join(projectRoot, 'wi
       const result = await desk.command(input);
       if (input.type === 'story.select') await controller.companionNotice(null, 'reading');
       void acknowledgeDeskCommand(input, { controller,
-        getLanguage: async () => (await getLifecyclePreferences({ projectRoot, dataDir })).language });
+        getLanguage });
       return result;
     },
     getUsage: () => usageView.snapshot(),
@@ -154,9 +159,18 @@ export async function startBridge({ projectRoot, dataDir = join(projectRoot, 'wi
       return pending;
     },
     getAppearance: async () => ({ ...await client.appearance(), metrics: { ...appearanceMetrics } }),
-    getPreferences: () => getLifecyclePreferences({ projectRoot, dataDir }),
+    getPreferences: async () => {
+      const revision = languageRevision;
+      const preferences = await getLifecyclePreferences({ projectRoot, dataDir });
+      // A preference read already in flight cannot overwrite the language
+      // selected by a later successful save in this same bridge.
+      if (revision === languageRevision) language = preferences.language;
+      return preferences;
+    },
     setPreferences: async input => {
       const preferences = await setLifecyclePreferences({ projectRoot, dataDir }, input);
+      languageRevision++;
+      language = preferences.language;
       controller.setAmbientPreferences(preferences);
       return preferences;
     },

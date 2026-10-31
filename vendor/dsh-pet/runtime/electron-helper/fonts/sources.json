@@ -1,0 +1,22 @@
+{
+  "schema": "shuangling-font-provenance-v1",
+  "font": "Xiaolai",
+  "version": "3.126",
+  "license": "OFL-1.1",
+  "originalUnmodified": true,
+  "website": "https://github.com/lxgw/kose-font",
+  "files": [
+    {
+      "file": "Xiaolai-Regular.ttf",
+      "source": "https://github.com/lxgw/kose-font/releases/download/v3.126/Xiaolai-Regular.ttf",
+      "sha256": "e2f68daf0e72777a8cf58bc83de1b98634b251e537ddbfca24b0ae50d1802da2",
+      "bytes": 22220806
+    },
+    {
+      "file": "OFL.txt",
+      "source": "https://raw.githubusercontent.com/lxgw/kose-font/58beef8/OFL.txt",
+      "sha256": "0df7e09be4c2c850a48bd8beb9cd64b343aad49cd5d3f6cfb2ad2e3d28a56ca4",
+      "bytes": 4432
+    }
+  ]
+}

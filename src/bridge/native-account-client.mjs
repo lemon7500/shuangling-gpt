@@ -64,7 +64,7 @@ export async function openNativeAccountClient({ signal, codexHome, findCli = fin
     });
   }
   try {
-    await request('initialize', { clientInfo: { name: 'shuangling_account_usage', version: '1.9.0' }, capabilities: { experimentalApi: true } });
+    await request('initialize', { clientInfo: { name: 'shuangling_account_usage', version: '1.9.1' }, capabilities: { experimentalApi: true } });
     if (closed) throw Error(closeReason);
     child.stdin.write(JSON.stringify({ method: 'initialized', params: {} }) + '\n');
   } catch (error) { close(); throw error; }

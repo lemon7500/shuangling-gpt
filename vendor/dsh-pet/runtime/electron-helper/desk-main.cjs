@@ -134,6 +134,28 @@ function createDeskController({ BrowserWindow, ipcMain, screen, client, getScale
     owner.once('closed', onClosed);
     ownerCleanup = () => owner.removeListener('closed', onClosed);
   }
+  async function reveal(created, allowed = () => true) {
+    let interrupted = false;
+    const onBlur = () => { interrupted = true; };
+    const current = () => !closed && win === created && !created.isDestroyed() && currentOwner && !currentOwner.isDestroyed() && !interrupted && allowed();
+    created.on('blur', onBlur);
+    try {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        if (!current()) return false;
+        created.show();
+        if (created.isVisible()) {
+          if (!current()) return false;
+          created.focus();
+          return true;
+        }
+        // Windows hidden startup can suppress the first ShowWindow call even
+        // though focus succeeds. Retry once from a fresh event turn, using the
+        // visibility receipt rather than requiring a second user click.
+        if (attempt === 0) await new Promise(resolve => setImmediate(resolve));
+      }
+      return false;
+    } finally { created.removeListener('blur', onBlur); }
+  }
   async function open(owner, options = {}) {
     if (closed || !owner || owner.isDestroyed()) return { ok: false, error: 'owner-unavailable' };
     activeTab = TABS.includes(options.tab) ? options.tab : 'focus';
@@ -141,10 +163,14 @@ function createDeskController({ BrowserWindow, ipcMain, screen, client, getScale
       watchOwner(owner, win);
       // A cold renderer cannot receive tab events yet. Keep the latest intent
       // and reveal it once loadFile has completed instead of showing a blank.
-      if (opening) return opening.promise;
-      win.webContents.send('shuangling-desk:tab', activeTab); win.show(); win.focus(); return { ok: true };
+      if (opening) { opening.canReveal = typeof options.canReveal === 'function' ? options.canReveal : () => true; return opening.promise; }
+      const existing = win;
+      existing.webContents.send('shuangling-desk:tab', activeTab);
+      if (await reveal(existing, typeof options.canReveal === 'function' ? options.canReveal : undefined)) return { ok: true };
+      if (win === existing) close();
+      return { ok: false, error: 'desk-unavailable' };
     }
-    const attempt = { promise: null }; opening = attempt;
+    const attempt = { promise: null, canReveal: typeof options.canReveal === 'function' ? options.canReveal : () => true }; opening = attempt;
     let created;
     attempt.promise = (async () => {
       try {
@@ -167,7 +193,9 @@ function createDeskController({ BrowserWindow, ipcMain, screen, client, getScale
         // This also chooses the right offline page if the first data request
         // fails. Renderer navigation must not depend on a backend round trip.
         created.webContents.send('shuangling-desk:tab', activeTab);
-        created.show(); created.focus(); return { ok: true };
+        if (await reveal(created, () => attempt.canReveal())) return { ok: true };
+        if (win === created) close();
+        return { ok: false, error: 'desk-unavailable' };
       } catch {
         if (opening === attempt && (!created || win === created)) { close(); onError('desk-unavailable'); return { ok: false, error: 'desk-unavailable' }; }
         return { ok: false };

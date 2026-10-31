@@ -108,6 +108,7 @@ function createPanelController({ BrowserWindow, ipcMain, screen, shell, statePat
   let anchor = null;
   let opening = null;
   let closed = false;
+  let deskHandoff = null;
   const send = payload => { if (owner && !owner.isDestroyed()) owner.webContents.send('pet:panel-event', { ...payload, session }); };
   const canPet = event => {
     const win = BrowserWindow.fromWebContents(event.sender);
@@ -123,6 +124,7 @@ function createPanelController({ BrowserWindow, ipcMain, screen, shell, statePat
     if (!panel && !owner) return;
     const old = panel;
     panel = null;
+    deskHandoff = null;
     send({ kind: 'closed', reason });
     owner = null;
     if (old && !old.isDestroyed()) old.destroy();
@@ -151,7 +153,15 @@ function createPanelController({ BrowserWindow, ipcMain, screen, shell, statePat
     created.webContents.on('render-process-gone', () => close('renderer-gone'));
     // The renderer gives an open, local listbox first refusal on Escape.
     // Its document handler closes the panel once no nested control owns it.
-    created.on('blur', () => { if (panel === created) close(); });
+    created.on('blur', () => {
+      if (panel !== created) return;
+      // Keep the activating card until its tool has a positive visibility
+      // receipt. Only the destination tool's focus belongs to this handoff;
+      // clicking elsewhere still dismisses the card and cancels a cold open.
+      const tool = desk.window;
+      if (deskHandoff?.panel === created && tool && !tool.isDestroyed() && tool.isFocused()) return;
+      close();
+    });
     created.on('closed', () => { if (panel === created) close(); });
     send({ kind: 'opened', allowResume: state.ok && !state.control.paused && !state.control.preempted });
     try {
@@ -183,7 +193,15 @@ function createPanelController({ BrowserWindow, ipcMain, screen, shell, statePat
       else if (v.type === 'autoLaunch') await client.request('/api/preferences', { autoLaunch: v.enabled });
       else if (v.type === 'language') await client.request('/api/preferences', { language: v.language });
       else if (v.type === 'ambient') await client.request('/api/preferences', { ambientEnabled: v.enabled, ambientFrequency: v.frequency });
-      else if (v.type === 'desk') { const win = owner; close('desk'); return await desk.open(win, { tab: v.tab }); }
+      else if (v.type === 'desk') {
+        const handoff = { ...target };
+        deskHandoff = handoff;
+        try {
+          const result = await desk.open(target.owner, { tab: v.tab, canReveal: () => current() && deskHandoff === handoff });
+          if (current()) close(result.ok ? 'desk' : 'dismiss');
+          return result;
+        } finally { if (deskHandoff === handoff) deskHandoff = null; }
+      }
       // The usage selection is intentionally separate from task-following settings.
       else if (v.type === 'usageThread') await client.request('/api/usage-target', { threadId: v.threadId });
       else if (v.type === 'advanced') await shell.openExternal(client.settingsUrl());

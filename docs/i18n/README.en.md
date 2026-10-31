@@ -4,9 +4,11 @@
 
 A silver-haired chibi dragon companion for Codex on Windows. Shuangling lives on your desktop, follows the work of the local Codex app, and provides a compact control panel for animations, context usage and account limits.
 
-**Version:** 1.9.0 · **Platform:** Windows x64 · **Integration:** local Codex plugin + MCP
+**Version:** 1.9.1 · **Platform:** Windows x64 · **Integration:** local Codex plugin + MCP
 
-**Version 1.9.0:** adds ambient company, focus and breaks, character stories, bookmark-linked **Our days together**, and lift, held-drag and set-down animations. The Windows portable package provides 12 available actions, including the accepted provisional 10-second **Read journal** clip; classic thinking, checking and waiting variants remain available for randomized manual playback. Playback and transitions use existing media, and bounded frame workspaces are reused to reduce repeated allocation. Occasional single-frame drops remain possible; zero dropped frames on every computer is not guaranteed. See the [trilingual Frost desk guide](../COMPANION-DESK.md).
+**Version 1.9.1:** gives captions a frost-white and lilac note-card border and unifies the panel and desk icons. Captions and short labels use bundled offline LXGW WenKai 1.530, with Simplified Chinese, Traditional Chinese and English support. Six completion lines per language rotate without immediate repetition and refer only to a confirmed turn ending. Focus, journal and bookmarks now open on the first click; pressing Shuangling gives an immediate, brief springy response while longer companion gestures retain their existing rhythm. Existing animation files and personal data are retained. See the [trilingual release notes](../releases/v1.9.1.md).
+
+**Companion features introduced in 1.9.0:** ambient company, focus and breaks, character stories, bookmark-linked **Our days together**, and lift, held-drag and set-down animations. The Windows portable package provides 12 available actions, including the accepted provisional 10-second **Read journal** clip; classic thinking, checking and waiting variants remain available for randomized manual playback. Playback and transitions use existing media, and bounded frame workspaces are reused to reduce repeated allocation. Occasional single-frame drops remain possible; zero dropped frames on every computer is not guaranteed. See the [trilingual Frost desk guide](../COMPANION-DESK.md).
 
 **Character guide:** [Record Keeper of the Frostrealm Library](CHARACTER.en.md) · [简体中文](../CHARACTER.md) · [繁體中文](CHARACTER.zh-TW.md). The backstory and nine animation guides are references for creative work. Six short character stories are available in **Shuangling’s journal**.
 
@@ -28,15 +30,15 @@ Three independent loops record the published 1.8.4 animations, using cropping, b
 ### Right-click control panel
 
 <table>
-  <tr><th>Overview</th><th>Actions</th><th>Settings</th></tr>
+  <tr><th>Simplified Chinese</th><th>Traditional Chinese</th><th>English</th></tr>
   <tr>
-    <td><a href="../media/panel-overview.png"><img src="../media/panel-overview.png" width="240" alt="Shuangling Overview panel with demonstration data" /></a></td>
-    <td><a href="../media/panel-actions.png"><img src="../media/panel-actions.png" width="240" alt="Shuangling Actions panel with nine animations" /></a></td>
-    <td><a href="../media/panel-settings.png"><img src="../media/panel-settings.png" width="240" alt="Shuangling Settings panel for size, docking and automatic launch" /></a></td>
+    <td><a href="../media/panel-v191.zh-CN.png"><img src="../media/panel-v191.zh-CN.png" width="240" alt="Updated Simplified Chinese panel with WenKai, 12 actions and demonstration data" /></a></td>
+    <td><a href="../media/panel-v191.zh-TW.png"><img src="../media/panel-v191.zh-TW.png" width="240" alt="Updated Traditional Chinese panel with 12 actions and demonstration data" /></a></td>
+    <td><a href="../media/panel-v191.en.png"><img src="../media/panel-v191.en.png" width="240" alt="Updated English panel with 12 actions and demonstration data" /></a></td>
   </tr>
 </table>
 
-Captured from the actual 1.8.4 panel code, showing the Simplified Chinese interface with demonstration chat and usage data. Version 1.9.0 adds tool entries and actions. Click an image for the full-resolution screenshot. The panel supports Simplified Chinese, Traditional Chinese and English. [Preview sources and details](../media/README.md)
+These isolated-test screenshots show the updated WenKai font, consistent icons and 12-action panel with synthetic demonstration data, one capture per language. Click for full size. The GIFs above remain historical 1.8.4 animation previews. [Preview sources and details](../media/README.md)
 
 ## Features
 
@@ -58,7 +60,7 @@ Captured from the actual 1.8.4 panel code, showing the Simplified Chinese interf
 
 You need **Windows 10/11 x64 and the Codex desktop app**. The portable package includes Node, Electron, the compiled desktop host and window observer, and production dependencies. You do not need to install Node/npm or compile anything. Installation uses a local plugin, not an official store listing. macOS, Linux and Windows ARM are not supported.
 
-1. Download the **[Windows x64 portable package](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.0/shuangling-gpt-1.9.0-windows-x64.zip)**, `shuangling-gpt-1.9.0-windows-x64.zip`. [Release page and assets](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.0). GitHub's **Source code** archives are not the portable package.
+1. Download the **[Windows x64 portable package](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.1/shuangling-gpt-1.9.1-windows-x64.zip)**, `shuangling-gpt-1.9.1-windows-x64.zip`. [Release page and assets](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.1). GitHub's **Source code** archives are not the portable package.
 2. **Extract the entire archive** to a permanent folder writable by your Windows user. Do not run it inside the ZIP. Spaces and Chinese characters in the path are supported; keep the folder in place after installation.
 3. Double-click **`Install plugin.vbs`** (or **`安装Codex插件.vbs`**) in the extracted root folder, then check that **霜铃 GPT** is enabled in Codex's plugin list. Installation is per user and does not require administrator rights. If local policy blocks login-task registration, manual launch remains available.
 4. **Close all Codex windows and reopen Codex.** No message or plugin-tool call is needed. Right-click Shuangling, select a local chat in **Overview**, and use **Settings** to change **Start with Codex**.
@@ -158,3 +160,5 @@ Turn off **Start with Codex** in Settings to disable automatic startup. Disable 
 In response to this project's request for chibi adaptation, animation production and free sharing on GitHub, the original artist replied: “非商业用途随意” (translation: “You may use it freely for non-commercial purposes.”). The project relies on that permission for non-commercial learning and reference. See the [artwork permission notice](../../ASSETS.md) for the scope and attribution.
 
 Code remains under MIT; character designs, avatars and animation artwork are outside the code's MIT grant. Rights remain with the respective rights holders, and attribution and permission do not imply the artist's participation or endorsement. Commercial use of the artwork requires separate permission from the relevant rights holders.
+
+**Bundled font:** LXGW WenKai 1.530 by LXGW is provided as the author's original offline file with its separate [OFL-1.1 license, copyright and provenance](../../vendor/dsh-pet/runtime/electron-helper/fonts/wenkai/README.md). No system font is installed. The font license, MIT code license and noncommercial artwork permission apply independently.

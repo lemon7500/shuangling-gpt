@@ -171,6 +171,7 @@
   if (typeof document === 'undefined') return;
 
   const $ = id => document.getElementById(id);
+  const buttonLabel = (element, text, icon) => { if (globalThis.shuanglingIcons) globalThis.shuanglingIcons.setLabel(element, text, icon); else element.textContent = text; };
   const api = globalThis.shuanglingPanel;
   let lastSnapshot = null, currentAppearance = null, currentPreferences = null, usage = null, disconnected = false;
   let editingHeight = false, heightDirty = false, appearancePending = false, preferencePending = false, usageTargetPending = false, usageChoicesKey = '', usagePickerOpen = false, usageActiveIndex = 0, renderedUsageChoices = [], renderedUsageId = null, busy = false, revision = 0;
@@ -197,7 +198,7 @@
     $('thread').title = state.threadId;
     $('codex-counts').textContent = state.counts;
     $('codex-counts').hidden = !state.counts;
-    $('pause').textContent = state.resume ? t('恢复联动') : t('暂停联动');
+    buttonLabel($('pause'), state.resume ? t('恢复联动') : t('暂停联动'), state.resume ? 'play' : 'pause');
     $('pause').disabled = busy || !api;
     $('usage-thread').disabled = busy || !api;
     $('state-hint').textContent = state.hint;

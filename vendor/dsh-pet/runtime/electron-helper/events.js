@@ -201,7 +201,8 @@ PetSprite.prototype.showWhisper = function showWhisper(text, image, url, duratio
   this.whisperTimer = window.setTimeout(() => {
     this.whisperOn = false;
     this.renderBubble();
-  }, duration ?? BUBBLE_DURATION_MS);
+  }, typeof SHUANGLING_PROFILE !== 'undefined' && SHUANGLING_PROFILE && typeof ShuanglingBubble !== 'undefined'
+    ? ShuanglingBubble.duration(text, duration) : duration ?? BUBBLE_DURATION_MS);
 };
 
 // 余额展示（气泡 + 档位动画）：周期轮询与菜单点播共用同一展示路径，视觉/行为严格一致。

@@ -3,39 +3,42 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title data-i18n="霜铃 GPT · 控制面板">霜铃 GPT · 控制面板</title>
   <link rel="stylesheet" href="panel.css">
+  <link rel="stylesheet" href="fonts/shuangling-fonts.css">
+  <link rel="stylesheet" href="shuangling-icons.css">
   <script src="panel-i18n.js" defer></script>
+  <script src="shuangling-icons.js" defer></script>
   <script src="panel-ui.js" defer></script>
 </head>
 <body>
   <main class="panel" aria-label="霜铃 GPT 控制面板" data-i18n-aria-label="霜铃 GPT 控制面板">
     <header class="header">
       <span class="avatar"><img src="panel-avatar.png" width="40" height="40" alt=""></span>
-      <div class="identity"><h1><span data-i18n="霜铃 GPT">霜铃 GPT</span> <span class="version">1.9.0</span></h1><p><span id="status-dot" class="status-dot"></span><span id="header-state" data-i18n="正在连接…">正在连接…</span></p></div>
-      <button id="close" class="icon-button" type="button" aria-label="关闭面板" data-i18n-aria-label="关闭面板" title="关闭面板 · Esc" data-i18n-title="关闭面板 · Esc"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
+      <div class="identity"><h1><span data-i18n="霜铃 GPT">霜铃 GPT</span> <span class="version">1.9.1</span></h1><p><span id="status-dot" class="status-dot"></span><span id="header-state" data-i18n="正在连接…">正在连接…</span></p></div>
+      <button id="close" class="icon-button" type="button" aria-label="关闭面板" data-i18n-aria-label="关闭面板" title="关闭面板 · Esc" data-i18n-title="关闭面板 · Esc" data-icon="close"></button>
     </header>
     <nav class="tabs" role="tablist" aria-label="控制页面" data-i18n-aria-label="控制页面">
-      <button id="tab-overview" role="tab" aria-selected="true" aria-controls="overview" tabindex="0" data-tab="overview" type="button" data-i18n="总览">总览</button>
-      <button id="tab-actions" role="tab" aria-selected="false" aria-controls="actions" tabindex="-1" data-tab="actions" type="button" data-i18n="动作">动作</button>
-      <button id="tab-settings" role="tab" aria-selected="false" aria-controls="settings" tabindex="-1" data-tab="settings" type="button" data-i18n="设置">设置</button>
+      <button id="tab-overview" role="tab" aria-selected="true" aria-controls="overview" tabindex="0" data-tab="overview" type="button" data-icon="overview"><span data-icon-label data-i18n="总览">总览</span></button>
+      <button id="tab-actions" role="tab" aria-selected="false" aria-controls="actions" tabindex="-1" data-tab="actions" type="button" data-icon="actions"><span data-icon-label data-i18n="动作">动作</span></button>
+      <button id="tab-settings" role="tab" aria-selected="false" aria-controls="settings" tabindex="-1" data-tab="settings" type="button" data-icon="settings"><span data-icon-label data-i18n="设置">设置</span></button>
     </nav>
     <div class="scroll-area">
       <section id="overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
         <div class="task-card">
           <div class="section-heading"><span data-i18n="此刻的霜铃">此刻的霜铃</span><span id="control-badge" class="badge" data-i18n="连接中">连接中</span></div>
-          <div class="task-line"><strong id="task-state" data-i18n="正在读取任务状态">正在读取任务状态</strong><button id="pause" class="small-button" type="button" disabled data-i18n="暂停联动">暂停联动</button></div>
+          <div class="task-line"><strong id="task-state" data-i18n="正在读取任务状态">正在读取任务状态</strong><button id="pause" class="small-button" type="button" disabled data-icon="pause"><span data-icon-label data-i18n="暂停联动">暂停联动</span></button></div>
           <p class="chat-line"><span id="scope-label" data-i18n="联动范围">联动范围</span><span id="thread" data-i18n="整个 Codex">整个 Codex</span><span id="codex-counts" hidden></span></p>
           <p id="state-hint" class="state-hint" hidden></p>
         </div>
         <div class="desk-shortcuts" aria-label="霜白小工具" data-i18n-aria-label="霜白小工具">
-          <button type="button" data-desk="focus"><svg class="desk-shortcut-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="13.5" r="7.25"/><path d="M9.5 3h5M12 3v3M17.5 7.5 19 6M12 9.5v4l2.75 1.75"/></svg><span data-i18n="专注">专注</span></button>
-          <button type="button" data-desk="journal"><svg class="desk-shortcut-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 6.5c-2.25-1.75-5.25-2-8-1v13c2.75-1 5.75-.75 8 1 2.25-1.75 5.25-2 8-1v-13c-2.75-1-5.75-.75-8 1Zm0 0v13M7 9h2M7 12h2M15 9h2M15 12h2"/></svg><span data-i18n="霜铃手记">霜铃手记</span></button>
-          <button type="button" data-desk="notes"><svg class="desk-shortcut-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 3.5h7.75L18 7.25v13l-5.75-3.5-5.75 3.5V3.5Zm7.75 0v3.75H18"/></svg><span data-i18n="我的书签">我的书签</span></button>
+          <button type="button" data-desk="focus" data-icon="focus"><span data-icon-label data-i18n="专注">专注</span></button>
+          <button type="button" data-desk="journal" data-icon="journal"><span data-icon-label data-i18n="霜铃手记">霜铃手记</span></button>
+          <button type="button" data-desk="notes" data-icon="notes"><span data-icon-label data-i18n="我的书签">我的书签</span></button>
         </div>
         <div class="section-heading usage-heading"><h2 data-i18n="用量与上下文">用量与上下文</h2><span class="quiet" data-i18n="最近本机采样">最近本机采样</span></div>
-        <div class="usage-source"><label id="usage-source-caption" for="usage-thread" data-i18n="用量来源">用量来源</label><strong id="usage-source" data-state="unknown" data-i18n="用量来源未知">用量来源未知</strong><div id="usage-picker" class="usage-picker" hidden><button id="usage-thread" type="button" role="combobox" aria-label="查看哪个聊天的用量" data-i18n-aria-label="查看哪个聊天的用量" aria-expanded="false" aria-controls="usage-options" aria-haspopup="listbox"><span id="usage-current" data-i18n="选择用量聊天">选择用量聊天</span><span aria-hidden="true">⌄</span></button><div id="usage-options" class="usage-options" role="listbox" aria-label="聊天用量列表" data-i18n-aria-label="聊天用量列表" hidden></div></div></div>
+        <div class="usage-source"><label id="usage-source-caption" for="usage-thread" data-i18n="用量来源">用量来源</label><strong id="usage-source" data-state="unknown" data-i18n="用量来源未知">用量来源未知</strong><div id="usage-picker" class="usage-picker" hidden><button id="usage-thread" type="button" role="combobox" aria-label="查看哪个聊天的用量" data-i18n-aria-label="查看哪个聊天的用量" aria-expanded="false" aria-controls="usage-options" aria-haspopup="listbox" data-icon="down"><span id="usage-current" data-i18n="选择用量聊天">选择用量聊天</span></button><div id="usage-options" class="usage-options" role="listbox" aria-label="聊天用量列表" data-i18n-aria-label="聊天用量列表" hidden></div></div></div>
         <div class="usage-card context-card">
           <div class="usage-label"><span id="context-label" data-i18n="上下文剩余">上下文剩余</span><span id="context-percent" class="percent">—</span></div>
           <div id="context-value" class="context-value" data-i18n="未知">未知</div>
@@ -52,18 +55,18 @@
       <section id="actions" role="tabpanel" aria-labelledby="tab-actions" tabindex="0" hidden>
         <div class="section-heading"><h2 data-i18n="和霜铃互动">和霜铃互动</h2><span id="action-count" class="quiet" data-i18n="正在检查动作">正在检查动作</span></div>
         <div class="action-grid">
-          <button type="button" data-animation="idle"><span class="action-icon" aria-hidden="true">☾</span><span data-i18n="安静陪伴">安静陪伴</span></button>
-          <button type="button" data-animation="running"><span class="action-icon" aria-hidden="true">✧</span><span data-i18n="认真思考">认真思考</span></button>
-          <button type="button" data-animation="review"><span class="action-icon" aria-hidden="true">✓</span><span data-i18n="检查工作">检查工作</span></button>
-          <button type="button" data-animation="waiting"><span class="action-icon" aria-hidden="true">…</span><span data-i18n="等你回答">等你回答</span></button>
-          <button type="button" data-animation="waving"><span class="action-icon" aria-hidden="true">♧</span><span data-i18n="开心挥手">开心挥手</span></button>
-          <button type="button" data-animation="jumping"><span class="action-icon" aria-hidden="true">↟</span><span data-i18n="轻轻小跳">轻轻小跳</span></button>
-          <button type="button" data-animation="running-left"><span class="action-icon" aria-hidden="true">←</span><span data-i18n="向左小跑">向左小跑</span></button>
-          <button type="button" data-animation="failed"><span class="action-icon" aria-hidden="true">⌄</span><span data-i18n="收起动作">收起动作</span></button>
-          <button type="button" data-animation="running-right"><span class="action-icon" aria-hidden="true">→</span><span data-i18n="向右小跑">向右小跑</span></button>
-          <button type="button" data-animation="reading" disabled><span class="action-icon" aria-hidden="true">▤</span><span data-i18n="翻看见闻">翻看见闻</span></button>
-          <button type="button" data-animation="looking-around" disabled><span class="action-icon" aria-hidden="true">⌕</span><span data-i18n="侧望微光">侧望微光</span></button>
-          <button type="button" data-animation="stretching-wings" disabled><span class="action-icon" aria-hidden="true">⋈</span><span data-i18n="轻舒双翼">轻舒双翼</span></button>
+          <button type="button" data-animation="idle" data-icon="idle"><span data-icon-label data-i18n="安静陪伴">安静陪伴</span></button>
+          <button type="button" data-animation="running" data-icon="running"><span data-icon-label data-i18n="认真思考">认真思考</span></button>
+          <button type="button" data-animation="review" data-icon="review"><span data-icon-label data-i18n="检查工作">检查工作</span></button>
+          <button type="button" data-animation="waiting" data-icon="waiting"><span data-icon-label data-i18n="等你回答">等你回答</span></button>
+          <button type="button" data-animation="waving" data-icon="waving"><span data-icon-label data-i18n="开心挥手">开心挥手</span></button>
+          <button type="button" data-animation="jumping" data-icon="jumping"><span data-icon-label data-i18n="轻轻小跳">轻轻小跳</span></button>
+          <button type="button" data-animation="running-left" data-icon="running-left"><span data-icon-label data-i18n="向左小跑">向左小跑</span></button>
+          <button type="button" data-animation="failed" data-icon="failed"><span data-icon-label data-i18n="收起动作">收起动作</span></button>
+          <button type="button" data-animation="running-right" data-icon="running-right"><span data-icon-label data-i18n="向右小跑">向右小跑</span></button>
+          <button type="button" data-animation="reading" disabled data-icon="reading"><span data-icon-label data-i18n="翻看见闻">翻看见闻</span></button>
+          <button type="button" data-animation="looking-around" disabled data-icon="looking-around"><span data-icon-label data-i18n="侧望微光">侧望微光</span></button>
+          <button type="button" data-animation="stretching-wings" disabled data-icon="stretching-wings"><span data-icon-label data-i18n="轻舒双翼">轻舒双翼</span></button>
         </div>
       </section>
       <section id="settings" role="tabpanel" aria-labelledby="tab-settings" tabindex="0" hidden>
@@ -80,14 +83,14 @@
           <div class="setting-row"><label for="auto-launch" data-i18n="随 Codex 自动启动">随 Codex 自动启动</label><button id="auto-launch" class="switch" role="switch" aria-checked="false" type="button" disabled><span></span></button></div>
           <p id="launch-hint" class="setting-description" data-i18n="读取自动联动状态…">读取自动联动状态…</p>
         </div>
-        <button id="advanced" class="advanced" type="button"><span data-i18n="高级设置">高级设置</span><span aria-hidden="true">↗</span></button>
+        <button id="advanced" class="advanced" type="button" data-icon="advanced"><span data-icon-label data-i18n="高级设置">高级设置</span></button>
       </section>
     </div>
     <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
     <footer class="footer">
-      <button id="home" class="footer-home" type="button" title="回到初始位置" data-i18n-title="回到初始位置" aria-label="回到初始位置" data-i18n-aria-label="回到初始位置"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m3 9 7-6 7 6M5 8v9h10V8M8 17v-5h4v5"/></svg></button>
-      <button id="hide" type="button" data-i18n="隐藏霜铃">隐藏霜铃</button>
-      <button id="quit" class="quit" type="button" data-i18n="退出霜铃">退出霜铃</button>
+      <button id="home" class="footer-home" type="button" title="回到初始位置" data-i18n-title="回到初始位置" aria-label="回到初始位置" data-i18n-aria-label="回到初始位置" data-icon="home"></button>
+      <button id="hide" type="button" data-icon="hide"><span data-icon-label data-i18n="隐藏霜铃">隐藏霜铃</span></button>
+      <button id="quit" class="quit" type="button" data-icon="quit"><span data-icon-label data-i18n="退出霜铃">退出霜铃</span></button>
     </footer>
   </main>
 </body>

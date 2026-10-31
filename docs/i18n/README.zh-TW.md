@@ -4,9 +4,11 @@
 
 陪伴你使用 Codex 的銀髮 Q 版龍女桌寵。霜鈴顯示在 Windows 桌面上，跟隨本機 Codex 的工作狀態，並透過小型控制面板提供動作、聊天用量與帳戶額度資訊。
 
-**版本：**1.9.0 · **平台：**Windows x64 · **整合方式：**本機 Codex 外掛程式 + MCP
+**版本：**1.9.1 · **平台：**Windows x64 · **整合方式：**本機 Codex 外掛程式 + MCP
 
-**1.9.0：**新增自主陪伴、專注與休息、霜境手記、與書籤聯動的「我們的日常」，以及托起、持續拖曳和放下的動作。Windows 免安裝包提供 12 個可用動作，包含已接納的「翻看見聞」10 秒暫定版，並保留思考、檢查與等待的舊版供點選時隨機播放。使用既有素材改善播放與銜接，重用有界畫面緩衝區以減少反覆配置；仍可能有零星單格遺失，不保證所有電腦都零掉格。用法見[霜白小工具（三語）](../COMPANION-DESK.md)。
+**1.9.1：**提示氣泡採用霜白淡紫的紙卡邊框，面板與小工具統一線條圖示；提示與短標籤使用離線隨附的霞鶩文楷 1.530，相容簡體、繁體及英語。每種語言提供六句完成短句，依序輪替、不連續重複；僅提示已確認的本輪結束。修復專注、手記、書籤首次點選未顯示的問題；點按霜鈴即時輕輕回彈，保留較長陪伴動作的原有節奏。沿用既有動畫與個人資料。見[本版三語發布說明](../releases/v1.9.1.md)。
+
+**既有陪伴功能（自 1.9.0 起）：**自主陪伴、專注與休息、霜境手記、與書籤聯動的「我們的日常」，以及托起、持續拖曳和放下的動作。Windows 免安裝包提供 12 個可用動作，包含已接納的「翻看見聞」10 秒暫定版，並保留思考、檢查與等待的舊版供點選時隨機播放。使用既有素材改善播放與銜接，重用有界畫面緩衝區以減少反覆配置；仍可能有零星單格遺失，不保證所有電腦都零掉格。用法見[霜白小工具（三語）](../COMPANION-DESK.md)。
 
 **角色設定：**[霜境書庫的記錄者](CHARACTER.zh-TW.md) · [简体中文](../CHARACTER.md) · [English](CHARACTER.en.md)。背景故事與九種動作準則供後續創作參考；六篇角色短篇可在「霜鈴手記」中閱讀。
 
@@ -28,15 +30,15 @@
 ### 右鍵控制面板
 
 <table>
-  <tr><th>總覽</th><th>動作</th><th>設定</th></tr>
+  <tr><th>简体中文</th><th>繁體中文</th><th>English</th></tr>
   <tr>
-    <td><a href="../media/panel-overview.png"><img src="../media/panel-overview.png" width="240" alt="霜鈴右鍵面板：總覽，使用展示資料" /></a></td>
-    <td><a href="../media/panel-actions.png"><img src="../media/panel-actions.png" width="240" alt="霜鈴右鍵面板：九種動作" /></a></td>
-    <td><a href="../media/panel-settings.png"><img src="../media/panel-settings.png" width="240" alt="霜鈴右鍵面板：大小、停靠與自動啟動設定" /></a></td>
+    <td><a href="../media/panel-v191.zh-CN.png"><img src="../media/panel-v191.zh-CN.png" width="240" alt="霜鈴新版動作面板：簡體中文、霞鶩文楷及12個動作，使用展示資料" /></a></td>
+    <td><a href="../media/panel-v191.zh-TW.png"><img src="../media/panel-v191.zh-TW.png" width="240" alt="霜鈴新版動作面板：繁體中文及12個動作，使用展示資料" /></a></td>
+    <td><a href="../media/panel-v191.en.png"><img src="../media/panel-v191.en.png" width="240" alt="霜鈴新版動作面板：英語及12個動作，使用展示資料" /></a></td>
   </tr>
 </table>
 
-截圖記錄 1.8.4 的實際面板程式碼，以簡體中文介面搭配展示聊天與用量；1.9.0 已增加工具入口與動作。點擊圖片可查看清晰原圖。面板支援簡體中文、繁體中文與 English。[素材來源與預覽說明](../media/README.md)
+截圖展示新面板的霞鶩文楷、統一圖示及 12 格動作版面，使用獨立測試的展示資料，三語各一張。點擊可查看清晰原圖；上方 GIF 仍為歷史 1.8.4 動畫預覽。[素材來源與預覽說明](../media/README.md)
 
 ## 功能
 
@@ -58,7 +60,7 @@
 
 需要 **Windows 10/11 x64 與已安裝的 Codex 桌面應用程式**。免安裝包包含 Node、Electron、已建置的桌寵宿主、視窗觀察器及執行依賴，不必安裝 Node/npm 或自行編譯。目前採用本機外掛程式安裝，並非官方商店項目；不支援 macOS、Linux 或 Windows ARM。
 
-1. 下載 **[Windows x64 免安裝包](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.0/shuangling-gpt-1.9.0-windows-x64.zip)**（`shuangling-gpt-1.9.0-windows-x64.zip`）。[查看 Release 與附件](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.0)。GitHub 的 **Source code** 壓縮檔不是免安裝包。
+1. 下載 **[Windows x64 免安裝包](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.1/shuangling-gpt-1.9.1-windows-x64.zip)**（`shuangling-gpt-1.9.1-windows-x64.zip`）。[查看 Release 與附件](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.1)。GitHub 的 **Source code** 壓縮檔不是免安裝包。
 2. **完整解壓縮**至固定、目前使用者可寫入的資料夾。不要直接在 ZIP 中執行；路徑可包含中文或空格，安裝後請保留此目錄。
 3. 按兩下解壓後根目錄的 **`安装Codex插件.vbs`**，再確認 Codex 外掛程式清單中的 **霜铃 GPT** 已啟用。安裝範圍為目前 Windows 使用者，不需管理員身分；若本機原則阻止登錄登入工作，仍可手動啟動霜鈴。
 4. **完整關閉所有 Codex 視窗後重新開啟**，無須傳送訊息或呼叫外掛程式工具。按右鍵開啟霜鈴面板，在**總覽**選擇本機聊天，並於**設定**調整**隨 Codex 自動啟動**。
@@ -158,3 +160,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 針對本專案關於 Q 版改編、動畫製作及在 GitHub 免費公開分享的申請，原作者回覆原文：「非商业用途随意」。本專案依此同意，在非商業範圍內用於學習與參考；具體範圍及署名見[美術素材許可說明](../../ASSETS.md)。
 
 程式碼維持 MIT 授權；角色形象、頭像與動畫等美術素材不納入程式碼 MIT 的授權範圍。相關權利仍歸各權利人所有，署名及許可不代表原作者參與開發或為專案背書。涉及美術素材的商業用途，須另行取得相關權利人的許可。
+
+**隨附字型：**LXGW 的霞鶩文楷 1.530 以作者原版離線檔案隨軟體提供，保留獨立的 [OFL-1.1、著作權與來源](../../vendor/dsh-pet/runtime/electron-helper/fonts/wenkai/README.md)，不安裝系統字型。字型授權與程式碼 MIT、角色美術非商業許可分別適用。

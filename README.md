@@ -4,12 +4,12 @@
   <p>陪你思考、等你回答，也陪你安静工作。</p>
   <p>Windows 桌宠 × Codex 本地插件 × 任务与用量面板</p>
   <p><a href="README.md">简体中文</a> · <a href="docs/i18n/README.zh-TW.md">繁體中文</a> · <a href="docs/i18n/README.en.md">English</a></p>
-  <p><img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-8B73A6" /> <img alt="Version 1.8.4" src="https://img.shields.io/badge/version-1.8.4-8B73A6" /> <a href="LICENSE"><img alt="Code license MIT" src="https://img.shields.io/badge/code-MIT-8B73A6" /></a> <a href="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml"><img alt="Windows source check" src="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml/badge.svg" /></a></p>
+  <p><img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-8B73A6" /> <img alt="Version 1.9.0" src="https://img.shields.io/badge/version-1.9.0-8B73A6" /> <a href="LICENSE"><img alt="Code license MIT" src="https://img.shields.io/badge/code-MIT-8B73A6" /></a> <a href="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml"><img alt="Windows source check" src="https://github.com/lemon7500/shuangling-gpt/actions/workflows/windows.yml/badge.svg" /></a></p>
 </div>
 
 霜铃是一只银白卷发、淡紫双翼的 Q 版龙女桌宠。她通过本地 Codex 插件跟随整个应用的任务状态，提供角色动画、拖拽与抛出交互，以及霜白淡紫的右键控制卡片。
 
-**源码开发版 1.9.0：**新增自主陪伴、专注与休息、霜境手记、书签联动的「我们的日常」，以及托起、持续拖动和放下的动作。开发版提供 12 个可用动作，包含已接纳的「翻看见闻」10 秒暂定版，并保留思考、检查和等待的旧版供点击时随机选播。当前使用现有素材继续改善播放与衔接，不保证所有机器上零丢帧。下方免安装包仍是已发布的 **1.8.4**，不包含这些新增内容；同步源码不会自动更新 Release 附件。使用方式见[霜白小工具（三语）](docs/COMPANION-DESK.md)。
+**1.9.0：**新增自主陪伴、专注与休息、霜境手记、书签联动的「我们的日常」，以及托起、持续拖动和放下的动作。Windows 免安装包提供 12 个可用动作，包含已接纳的「翻看见闻」10 秒暂定版，并保留思考、检查和等待的旧版供点击时随机选播。使用现有素材改善播放与衔接，复用有界画面缓存以减少反复分配；仍可能有零星单帧丢失，不保证所有机器上零丢帧。使用方式见[霜白小工具（三语）](docs/COMPANION-DESK.md)。
 
 **角色设定：**[霜境书库的记录者](docs/CHARACTER.md) · [繁體中文](docs/i18n/CHARACTER.zh-TW.md) · [English](docs/i18n/CHARACTER.en.md)。背景故事与九种动作准则供后续创作参考；六篇角色短篇可在「霜铃手记」中阅读。
 
@@ -30,7 +30,7 @@
   </tr>
 </table>
 
-三个预览记录已发布的 1.8.4 动画，保留当时的动作节奏，不代表开发版新增或替换素材。仅做裁切、背景合成和 GIF 转换；点击可查看原尺寸动图。
+三个预览记录已发布的 1.8.4 动画，保留当时的动作节奏，不代表 1.9.0 新增或替换素材。仅做裁切、背景合成和 GIF 转换；点击可查看原尺寸动图。
 
 ### 右键控制面板
 
@@ -43,13 +43,13 @@
   </tr>
 </table>
 
-截图来自实际面板代码，以简体中文界面和演示聊天、用量展示；点击图片可查看清晰原图。面板支持简体中文、繁體中文和 English。[素材来源与预览说明](docs/media/README.md)
+截图记录 1.8.4 的实际面板代码，以简体中文界面和演示聊天、用量展示；1.9.0 已增加工具入口和动作。点击图片可查看清晰原图。面板支持简体中文、繁體中文和 English。[素材来源与预览说明](docs/media/README.md)
 
 ## 功能
 
 | 功能 | 说明 |
 | --- | --- |
-| 开发版 12 个可用动作 | 原有九种动作加「侧望微光」「轻舒双翼」「翻看见闻」；阅读采用已接纳的 10 秒暂定版 |
+| 12 个可用动作 | 原有九种动作加「侧望微光」「轻舒双翼」「翻看见闻」；阅读采用已接纳的 10 秒暂定版 |
 | 整个 Codex 的任务联动 | 汇总当前本机 Codex 应用会话中的根聊天；子代理不会提前触发完成 |
 | 独立右键控制卡片 | 总览、动作、设置三页；面板尺寸独立于角色缩放 |
 | 专注工具 | 独立工具窗，默认 25 分钟专注／5 分钟休息；支持手动开始、暂停、恢复和结束 |
@@ -68,14 +68,14 @@
 
 **需要 Windows 10/11 x64 和已安装的 Codex 桌面版。** 免安装包已包含 Node、Electron、桌宠宿主、窗口观察器和运行依赖，无需安装 Node/npm 或自行编译。当前通过 GitHub 下载及本地插件安装，不是官方插件商店项目；不支持 macOS、Linux 或 Windows ARM。
 
-1. 下载 **[Windows x64 免安装包](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.4/shuangling-gpt-1.8.4-windows-x64.zip)**（`shuangling-gpt-1.8.4-windows-x64.zip`）。[查看 Release 与附件](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.4)。请勿将 GitHub 的 **Source code** 压缩包当作免安装包。
+1. 下载 **[Windows x64 免安装包](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.0/shuangling-gpt-1.9.0-windows-x64.zip)**（`shuangling-gpt-1.9.0-windows-x64.zip`）。[查看 Release 与附件](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.0)。请勿将 GitHub 的 **Source code** 压缩包当作免安装包。
 2. **完整解压**到一个固定、当前用户可写的目录。不要直接在 ZIP 中运行；中文和空格路径均可，安装后请保留此目录。
 3. 双击解压后根目录的 **`安装Codex插件.vbs`**，然后确认 Codex 插件列表中的 **霜铃 GPT** 已启用。安装使用当前 Windows 用户，无需管理员身份；若本机策略阻止登录任务登记，仍可手动启动霜铃。
 4. **完整关闭所有 Codex 窗口并重新打开，无需发消息或手动调用工具。** 右键霜铃打开「总览」，在用量区选择本机聊天；在「设置」调整「随 Codex 自动启动」。
 
 安装器按当前解压目录生成本机路径，注册 `shuangling-gpt@shuangling-local`，并按偏好管理当前用户的登录观察任务。包内 MCP 模板默认禁用，不能直接用于安装；运行上述入口后才会注册本机路径。移动目录后需在新位置重新运行安装入口。
 
-**1.8.4 自动启动修复：**轻量窗口观察器由 Windows 计划任务独立托管，检测到 Codex 主窗口便触发启动，无需等待聊天插件加载。Windows 登录任务检查在后台进行，不再挡住桌宠启动。登录 Windows 时只运行观察器；全部 Codex 主窗口关闭三秒后，霜铃退出，观察器继续等待下次打开。旧版用户请先退出霜铃并关闭所有 Codex 窗口，备份并复制原 `windows/data` 到新版目录后，再运行新版安装入口，以保留设置、语言和所选用量聊天。
+**自动启停与升级：**轻量窗口观察器由 Windows 计划任务独立托管，检测到 Codex 主窗口便触发启动，无需等待聊天插件加载。Windows 登录任务检查在后台进行，不再挡住桌宠启动。登录 Windows 时只运行观察器；全部 Codex 主窗口关闭三秒后，霜铃退出，观察器继续等待下次打开。旧版用户请先退出霜铃并关闭所有 Codex 窗口，备份并复制原 `windows/data` 到新版目录后，再运行新版安装入口，以保留设置、语言、所选用量聊天及手记／书签数据。
 
 默认单只、右下角、可见高度约 200 像素；声音和自动漫游关闭。也可双击 **`启动霜铃.vbs`** 独立陪伴；任务状态和账户用量需要本机 Codex 提供数据。首次未选择聊天或数据不可用时，用量保留为未知。
 
@@ -132,7 +132,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 
 **能用在 macOS／Linux 或云端任务吗？** 当前 Windows 桌宠和自动启停仅支持 Windows x64，只跟踪当前本机 Codex 会话。仓库不是 ChatGPT Pets 的通用一键导入包。
 
-**动画是否已完全没有瑕疵？** 开发版有 12 个可用动作，不表示每一处细节都已完善。「翻看见闻」采用已认可的 10 秒暂定版，书本高度和翻页靠脸等细节仍可继续优化；任务到来时保留自然收书过程，不会保证即时切断。偶发解码丢帧和看书、舒翼与常态的衔接仍在持续排查。旧 1.8.4 预览保留当时的袖口和局部转身限制。反馈时请注明版本、动作和触发方式；仓库不含历史候选和生成过程的庞大归档。
+**动画是否已完全没有瑕疵？** 1.9.0 有 12 个可用动作，不表示每一处细节都已完善。「翻看见闻」采用已认可的 10 秒暂定版，书本高度和翻页靠脸等细节仍可继续优化；任务到来时保留自然收书过程，不会保证即时切断。偶发解码丢帧和看书、舒翼与常态的衔接仍在持续排查。旧 1.8.4 预览保留当时的袖口和局部转身限制。反馈时请注明版本、动作和触发方式；仓库不含历史候选和生成过程的庞大归档。
 
 ## 开发
 
@@ -143,9 +143,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 
 源码目录：`src/bridge`（工作状态、聊天用量和当前账号）、`src/desk`（专注计时、固定角色短篇和手动书签）、`src/plugin`（MCP）、`src/lifecycle` 与 `windows/lifecycle`（自动启停），以及 `vendor/dsh-pet`（保留上游与本项目修改的宿主）。运行素材在 `windows/assets/shuangling`；动作入口依照已接纳清单和实际文件启用。
 
-[可选离线媒体审计](tools/MEDIA-AUDIT.md)仅供开发者检查素材，额外使用 Python 与图像库；安装和运行桌宠不需要这些依赖。审计只向 QA 目录暂存结果，不会自动替换角色素材或已安装程序。
+[可选离线媒体审计](https://github.com/lemon7500/shuangling-gpt/blob/main/tools/MEDIA-AUDIT.md)仅供开发者检查素材，额外使用 Python 与图像库；安装和运行桌宠不需要这些依赖。审计只向 QA 目录暂存结果，不会自动替换角色素材或已安装程序。
 
-详见 [联动与接口](BRIDGE.md)、[隐私](docs/PRIVACY.md)、[更新记录](docs/CHANGELOG.md)和[源码准备检查记录](reports/publication-check.json)。开发版仅纳入审核接纳的素材，保留满意的常态；左右小跑、拖拽及小跳采用后续本地验收接纳的修整版本。来源记录只保留运行所需的相对路径元数据，并重新绑定校验值。
+详见 [联动与接口](BRIDGE.md)、[隐私](docs/PRIVACY.md)、[更新记录](docs/CHANGELOG.md)和[早期源码准备检查记录（1.8.4）](https://github.com/lemon7500/shuangling-gpt/blob/main/reports/publication-check.json)。本版仅纳入审核接纳的素材，保留满意的常态；左右小跑、拖拽及小跳采用后续本地验收接纳的修整版本。来源记录只保留运行所需的相对路径元数据，并重新绑定校验值。
 
 ## 致谢与参考
 

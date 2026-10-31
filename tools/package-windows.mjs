@@ -6,7 +6,7 @@
 // Runtimes can also be supplied with SHUANGLING_RUNTIME_SOURCE. That directory
 // must contain node/node.exe, node/LICENSE and a complete electron/ directory.
 import { createReadStream } from 'node:fs';
-import { access, copyFile, lstat, mkdir, readFile, readdir, stat, utimes, writeFile } from 'node:fs/promises';
+import { access, copyFile, lstat, mkdir, readFile, readdir, stat, statfs, utimes, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -21,6 +21,10 @@ const releaseRoot = join(root, 'release');
 const slash = value => value.split(sep).join('/');
 const json = async file => JSON.parse(await readFile(file, 'utf8'));
 const exists = async file => { try { await access(file); return true; } catch { return false; } };
+async function guardDiskSpace(reserve = 0) {
+  const disk = await statfs(root);
+  if (disk.bavail * disk.bsize <= 3 * 1024 ** 3 + reserve) throw new Error('Disk safety stop: preserve 3 GiB of free space; no files were deleted');
+}
 const packageInfo = await json(join(root, 'package.json'));
 const mediaInfo = await json(join(root, 'reports/windows-assets.json'));
 if (!/^reports\/windows-action-frames(?:-v\d{3,6})?\.json$/.test(mediaInfo.motionManifest ?? '')) throw new Error('Invalid accepted motion manifest');
@@ -84,9 +88,10 @@ async function filesIn(directory, prefix = '') {
   return files;
 }
 async function copyOne(source, destination, bind = false) {
+  const info = await stat(source);
+  await guardDiskSpace(info.size);
   await mkdir(dirname(destination), { recursive: true });
   await copyFile(source, destination);
-  const info = await stat(source);
   await utimes(destination, info.atime, info.mtime);
   if (bind) sourceBindings.push({ path: slash(relative(root, source)), sha256: await hash(source) });
 }
@@ -214,6 +219,7 @@ async function writeManifest(metadata) {
 async function stagePackage() {
   if (await exists(stage) || await exists(archive)) throw new Error(`Release output already exists; nothing overwritten: ${releaseName}`);
   if (process.platform !== 'win32' || process.arch !== 'x64') throw new Error('Build this distribution on Windows x64');
+  await guardDiskSpace(1024 ** 3);
   for (const path of fixedFiles) await access(join(root, path));
   for (const path of ['node/node.exe', 'node/LICENSE', 'electron/electron.exe', 'electron/LICENSE', 'electron/LICENSES.chromium.html', 'electron/version']) await access(join(runtimeSource, path));
   await verifyMediaAt(root);
@@ -258,6 +264,7 @@ async function stagePackage() {
 async function finalizePackage(manifest) {
   if (await exists(archive)) throw new Error(`Archive already exists; nothing overwritten: ${releaseName}.zip`);
   if (manifest.version !== packageInfo.version || manifest.schema !== 'shuangling-portable-windows-v1') throw new Error('Staged version mismatch');
+  await guardDiskSpace(Math.ceil(manifest.totalBytes * 1.05) + 16 * 1024 ** 2);
   for (const binding of manifest.sourceBindings) {
     if (await hash(join(root, binding.path)) !== binding.sha256) throw new Error(`Source changed after staging; use a new verified release staging directory: ${binding.path}`);
   }
@@ -270,6 +277,7 @@ async function finalizePackage(manifest) {
   const script = `$ErrorActionPreference='Stop';Add-Type -AssemblyName System.IO.Compression.FileSystem;[System.IO.Compression.ZipFile]::CreateFromDirectory(${ps(stage)},${ps(archive)},[System.IO.Compression.CompressionLevel]::Optimal,$true)`;
   const powershell = join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
   await run(powershell, ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(script, 'utf16le').toString('base64')], { windowsHide: true, timeout: 600000 });
+  await guardDiskSpace();
   const sha256 = await hash(archive);
   await writeFile(`${archive}.sha256`, `${sha256}  ${releaseName}.zip\n`);
   const report = { schema: 'shuangling-portable-build-v1', version: packageInfo.version, archive: `${releaseName}.zip`,

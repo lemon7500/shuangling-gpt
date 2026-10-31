@@ -6,7 +6,7 @@
 
 右键霜铃，在「总览」点击「专注」「霜铃手记」或「我的书签」，打开独立工具窗。它不改变宠物的大小、位置或聊天绑定，失去焦点也不会像右键面板一样关闭。界面与手记沿用设置中的简体中文、繁體中文或 English。
 
-本页描述源码开发版 1.9.0。公开免安装包仍为 1.8.4；同步源码不会自动更新 Release 附件。首次打开工具直接进入所选页面，保存中切页或确认关闭会等待写入完成；断连时保留草稿及已确认的界面语言，不把读取失败当成空记录。
+本页描述 1.9.0；Windows 免安装包包含本页功能。首次打开工具直接进入所选页面，保存中切页或确认关闭会等待写入完成；断连时保留草稿及已确认的界面语言，不把读取失败当成空记录。
 
 ### 专注
 
@@ -38,7 +38,7 @@
 
 安静／适中／活跃的基础间隔分别为 45–90／25–45／12–25 秒，从前一个动作真实结束后计算；完整常态片段播完可能略长。看书冷却 180 秒、侧望冷却 45 秒、舒翼冷却 120 秒，均从动作结束起算，不连续重复同种自主动作。可用动作的选择权重为看书 40%、侧望 40%、舒翼 20%；冷却中的动作暂不参与选择。
 
-在右键面板「设置」切换自主陪伴，并选择安静、适中或活跃。闲暇动作只使用已安装且已接纳的素材，遵守间隔、冷却与用户操作优先规则。开发版动作页的 12 个动作均可用，新增「侧望微光」「轻舒双翼」「翻看见闻」。阅读采用已接纳的 10 秒暂定版，本次接入由既有样片本地调整阅读节奏，不额外生成视频；书本高度及翻页靠脸的细节仍可继续优化。页面计数以实际安装的接纳素材为准。隐藏或退出后，工具不会擅自重新显示宠物。
+在右键面板「设置」切换自主陪伴，并选择安静、适中或活跃。闲暇动作只使用已安装且已接纳的素材，遵守间隔、冷却与用户操作优先规则。1.9.0 动作页的 12 个动作均可用，新增「侧望微光」「轻舒双翼」「翻看见闻」。阅读采用已接纳的 10 秒暂定版，本次接入由既有样片本地调整阅读节奏，不额外生成视频；书本高度及翻页靠脸的细节仍可继续优化。页面计数以实际安装的接纳素材为准。隐藏或退出后，工具不会擅自重新显示宠物。
 
 点击思考、检查或等待时，从新旧两个版本随机选播，同一版本不连续超过两次；这不改变真实任务状态。拖拽使用托起、持续循环和放下三个阶段。看书中收到任务会先自然收书，不以突然切姿势代替衔接；播放与解码仍在优化，不承诺所有电脑零丢帧。
 
@@ -52,7 +52,7 @@
 
 按右鍵開啟霜鈴面板，在「總覽」點選「專注」「霜鈴手記」或「我的書籤」，即可開啟獨立工具視窗。它不改變桌寵大小、位置或聊天綁定，失去焦點也不會關閉。介面與手記沿用設定中的簡體中文、繁體中文或 English。
 
-本頁描述原始碼開發版 1.9.0。公開免安裝包仍為 1.8.4；同步原始碼不會自動更新 Release 附件。首次開啟直接進入所選頁面，儲存中切頁或確認關閉會等待寫入完成；斷線時保留草稿及已確認的介面語言，不將讀取失敗視為空紀錄。
+本頁描述 1.9.0；Windows 免安裝包包含本頁功能。首次開啟直接進入所選頁面，儲存中切頁或確認關閉會等待寫入完成；斷線時保留草稿及已確認的介面語言，不將讀取失敗視為空紀錄。
 
 ### 專注
 
@@ -82,7 +82,7 @@
 
 安靜／適中／活躍的基本間隔分別為 45–90／25–45／12–25 秒，從前一個動作真正結束後計算；完整常態片段播完可能略長。看書冷卻 180 秒、側望冷卻 45 秒、舒翼冷卻 120 秒，均從動作結束起算，不連續重複同種自主動作。可用動作的選擇權重為看書 40%、側望 40%、舒翼 20%；冷卻中的動作暫不參與選擇。
 
-於右鍵面板「設定」開關自主陪伴，頻率為安靜／適中／活躍。閒暇動作只選已安裝且已接納的素材，保留間隔、冷卻及使用者操作優先。開發版動作頁的 12 個動作均可用，新增「側望微光」「輕舒雙翼」「翻看見聞」。閱讀採用已接納的 10 秒暫定版，本次接入由既有樣片在本機調整閱讀節奏，不額外生成影片；書本高度及翻頁靠臉的細節仍可繼續改善。頁面計數以實際安裝的接納素材為準。隱藏或退出後不會自行再顯示桌寵。
+於右鍵面板「設定」開關自主陪伴，頻率為安靜／適中／活躍。閒暇動作只選已安裝且已接納的素材，保留間隔、冷卻及使用者操作優先。1.9.0 動作頁的 12 個動作均可用，新增「側望微光」「輕舒雙翼」「翻看見聞」。閱讀採用已接納的 10 秒暫定版，本次接入由既有樣片在本機調整閱讀節奏，不額外生成影片；書本高度及翻頁靠臉的細節仍可繼續改善。頁面計數以實際安裝的接納素材為準。隱藏或退出後不會自行再顯示桌寵。
 
 點選思考、檢查或等待時，從新舊兩版隨機播放，同一版不連續超過兩次；這不改變真實工作狀態。拖曳採用托起、持續循環與放下三階段。看書時收到工作會先自然收書，不以突然換姿勢取代銜接；播放與解碼仍持續改善，不承諾所有電腦都零掉格。
 
@@ -94,7 +94,7 @@
 
 Right-click Shuangling and choose **Focus**, **Shuangling’s journal** or **My bookmarks** in **Overview**. This opens a separate Frost desk window without moving/resizing the pet or changing its chat binding. It stays open when it loses focus. The interface and stories use your chosen Simplified Chinese, Traditional Chinese or English language.
 
-This guide describes source development version 1.9.0. The public portable package remains 1.8.4; a source update does not update Release attachments. A cold open goes directly to the requested page. Navigation or a confirmed close waits for pending saves; a disconnection preserves drafts and the last confirmed interface language rather than treating failed reads as empty records.
+This guide describes version 1.9.0; the Windows portable package includes these features. A cold open goes directly to the requested page. Navigation or a confirmed close waits for pending saves; a disconnection preserves drafts and the last confirmed interface language rather than treating failed reads as empty records.
 
 ### Focus
 
@@ -122,7 +122,7 @@ Deleting a bookmark removes its derived journal quotes by default; the confirmat
 
 Quiet, Normal and Lively intervals are 45–90, 25–45 and 12–25 seconds from the previous gesture’s actual end. Finishing a complete idle clip may extend the interval slightly. Reading has a 180-second cooldown, glancing a 45-second cooldown and wing stretching a 120-second cooldown, all measured from the end. The same autonomous gesture never runs twice in succession. Eligible gestures have selection weights of 40% reading, 40% glancing and 20% wing stretching; gestures on cooldown are excluded.
 
-In the right-click **Settings** page, turn ambient company on/off and choose Quiet, Normal or Lively. Idle selection uses installed, accepted assets with intervals, cooldowns and user interaction taking priority. All 12 development actions are available, adding **Glance at light**, **Stretch wings** and **Read journal** to the original nine. Reading uses the accepted provisional 10-second version, with its pace adjusted locally from the existing sample rather than generating another video. Its book height and the page turning close to the face can still be refined. The counter reflects the accepted files actually installed. Hidden or closed pets are not reopened automatically.
+In the right-click **Settings** page, turn ambient company on/off and choose Quiet, Normal or Lively. Idle selection uses installed, accepted assets with intervals, cooldowns and user interaction taking priority. All 12 actions are available in 1.9.0, adding **Glance at light**, **Stretch wings** and **Read journal** to the original nine. Reading uses the accepted provisional 10-second version, with its pace adjusted locally from the existing sample rather than generating another video. Its book height and the page turning close to the face can still be refined. The counter reflects the accepted files actually installed. Hidden or closed pets are not reopened automatically.
 
 Manual thinking, checking and waiting selections randomly choose between the new and classic variants, with no more than two consecutive plays of one variant. This does not change the real task state. Dragging uses lift, continuous held-loop and set-down phases. An incoming task allows reading to stow the book naturally instead of jumping to another pose. Playback and decoding remain under refinement; zero dropped frames on every computer is not promised.
 

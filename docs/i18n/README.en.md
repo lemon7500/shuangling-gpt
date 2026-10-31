@@ -4,9 +4,9 @@
 
 A silver-haired chibi dragon companion for Codex on Windows. Shuangling lives on your desktop, follows the work of the local Codex app, and provides a compact control panel for animations, context usage and account limits.
 
-**Version:** 1.8.4 · **Platform:** Windows x64 · **Integration:** local Codex plugin + MCP
+**Version:** 1.9.0 · **Platform:** Windows x64 · **Integration:** local Codex plugin + MCP
 
-**Source development version 1.9.0:** adds ambient company, focus and breaks, character stories, bookmark-linked **Our days together**, and lift, held-drag and set-down animations. The development build provides 12 available actions, including the accepted provisional 10-second **Read journal** clip; classic thinking, checking and waiting variants remain available for randomized manual playback. Playback and transitions are being improved using existing media; zero dropped frames on every computer is not guaranteed. The portable download below remains **1.8.4** and does not include these additions. Updating source does not update Release attachments. See the [trilingual Frost desk guide](../COMPANION-DESK.md).
+**Version 1.9.0:** adds ambient company, focus and breaks, character stories, bookmark-linked **Our days together**, and lift, held-drag and set-down animations. The Windows portable package provides 12 available actions, including the accepted provisional 10-second **Read journal** clip; classic thinking, checking and waiting variants remain available for randomized manual playback. Playback and transitions use existing media, and bounded frame workspaces are reused to reduce repeated allocation. Occasional single-frame drops remain possible; zero dropped frames on every computer is not guaranteed. See the [trilingual Frost desk guide](../COMPANION-DESK.md).
 
 **Character guide:** [Record Keeper of the Frostrealm Library](CHARACTER.en.md) · [简体中文](../CHARACTER.md) · [繁體中文](CHARACTER.zh-TW.md). The backstory and nine animation guides are references for creative work. Six short character stories are available in **Shuangling’s journal**.
 
@@ -23,7 +23,7 @@ A silver-haired chibi dragon companion for Codex on Windows. Shuangling lives on
   </tr>
 </table>
 
-Three independent loops record the published 1.8.4 animations, using cropping, background compositing and GIF conversion while retaining their original timing. They do not preview development additions or replacements. Click a preview to view it at full size.
+Three independent loops record the published 1.8.4 animations, using cropping, background compositing and GIF conversion while retaining their original timing. They do not preview additions or replacements in 1.9.0. Click a preview to view it at full size.
 
 ### Right-click control panel
 
@@ -36,11 +36,11 @@ Three independent loops record the published 1.8.4 animations, using cropping, b
   </tr>
 </table>
 
-Captured from the actual panel code, showing the Simplified Chinese interface with demonstration chat and usage data. Click an image for the full-resolution screenshot. The panel supports Simplified Chinese, Traditional Chinese and English. [Preview sources and details](../media/README.md)
+Captured from the actual 1.8.4 panel code, showing the Simplified Chinese interface with demonstration chat and usage data. Version 1.9.0 adds tool entries and actions. Click an image for the full-resolution screenshot. The panel supports Simplified Chinese, Traditional Chinese and English. [Preview sources and details](../media/README.md)
 
 ## Features
 
-- Twelve available development actions, a transparent desktop window, dragging, throwing and edge docking. **Glance at light**, **Stretch wings** and **Read journal** join the original nine; reading uses the accepted provisional 10-second version.
+- Twelve available actions, a transparent desktop window, dragging, throwing and edge docking. **Glance at light**, **Stretch wings** and **Read journal** join the original nine; reading uses the accepted provisional 10-second version.
 - A frost-white and lavender right-click panel with **Overview**, **Actions** and **Settings**.
 - An independent **Frost desk** window with a focus timer: 25-minute focus / 5-minute break defaults, with manual start, pause, resume and stop.
 - **Shuangling’s journal** contains six stories in all three languages and remembers read status, favorites and each entry’s reading position.
@@ -58,16 +58,16 @@ Captured from the actual panel code, showing the Simplified Chinese interface wi
 
 You need **Windows 10/11 x64 and the Codex desktop app**. The portable package includes Node, Electron, the compiled desktop host and window observer, and production dependencies. You do not need to install Node/npm or compile anything. Installation uses a local plugin, not an official store listing. macOS, Linux and Windows ARM are not supported.
 
-1. Download the **[Windows x64 portable package](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.8.4/shuangling-gpt-1.8.4-windows-x64.zip)**, `shuangling-gpt-1.8.4-windows-x64.zip`. [Release page and assets](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.8.4). GitHub's **Source code** archives are not the portable package.
+1. Download the **[Windows x64 portable package](https://github.com/lemon7500/shuangling-gpt/releases/download/v1.9.0/shuangling-gpt-1.9.0-windows-x64.zip)**, `shuangling-gpt-1.9.0-windows-x64.zip`. [Release page and assets](https://github.com/lemon7500/shuangling-gpt/releases/tag/v1.9.0). GitHub's **Source code** archives are not the portable package.
 2. **Extract the entire archive** to a permanent folder writable by your Windows user. Do not run it inside the ZIP. Spaces and Chinese characters in the path are supported; keep the folder in place after installation.
-3. Double-click **`安装Codex插件.vbs`** in the extracted root folder, then check that **霜铃 GPT** is enabled in Codex's plugin list. Installation is per user and does not require administrator rights. If local policy blocks login-task registration, manual launch remains available.
+3. Double-click **`Install plugin.vbs`** (or **`安装Codex插件.vbs`**) in the extracted root folder, then check that **霜铃 GPT** is enabled in Codex's plugin list. Installation is per user and does not require administrator rights. If local policy blocks login-task registration, manual launch remains available.
 4. **Close all Codex windows and reopen Codex.** No message or plugin-tool call is needed. Right-click Shuangling, select a local chat in **Overview**, and use **Settings** to change **Start with Codex**.
 
 The installer generates paths for the extracted folder, registers `shuangling-gpt@shuangling-local`, and manages the current user's login observer task according to your preferences. The included MCP template is disabled until the installer registers the local paths; do not install the template directly. If you move the folder, run the installer again from its new location. See [plugin installation details](../../plugin-marketplace/README.md).
 
 Signing into Windows starts only the observer; the pet appears when Codex opens. Minimized windows count as open, and multiple windows share one pet. Manually quitting Shuangling suppresses automatic relaunch for that Codex session; fully reopen Codex or explicitly start Shuangling to clear it.
 
-**Automatic startup fix in 1.8.4:** Windows Task Scheduler independently hosts the lightweight window observer. A Codex main window triggers launch without waiting for a chat plugin connection. Login-task checks run in the background and no longer block pet startup. After all Codex windows close, Shuangling exits while the observer stays ready for the next launch. To upgrade, exit Shuangling and close all Codex windows, back up and copy the original `windows/data` into the new package folder, then run the new installer to preserve settings, language and the selected usage chat.
+**Automatic startup and upgrades:** Windows Task Scheduler independently hosts the lightweight window observer. A Codex main window triggers launch without waiting for a chat plugin connection. Login-task checks run in the background and no longer block pet startup. After all Codex windows close, Shuangling exits while the observer stays ready for the next launch. To upgrade, exit Shuangling and close all Codex windows, back up and copy the original `windows/data` into the new package folder, then run the new installer to preserve settings, language, the selected usage chat, and journal/bookmark data.
 
 You can also double-click **`启动霜铃.vbs`** for independent companionship. Task status and account usage require data from local Codex. Context and tokens stay unknown until a chat is selected and readable data is available.
 
@@ -131,7 +131,7 @@ Codex currently exposes no reliable public identifier for the chat visible on it
 - Timer state, journal favorites/reading positions and manually entered bookmark text stay in local `windows/data/desk.json`. They are not uploaded automatically; check the data directory before sharing it.
 - Local log formats are internal and may change. Unreadable or incompatible state is shown as unknown while dragging and companionship remain available.
 - Log silence is not completion, and one failed tool call is not a failed task. Precise approval-wait and whole-task-error detection is not guaranteed.
-- The development build provides 12 available actions; acceptance does not mean every detail is perfect. **Read journal** uses the accepted provisional 10-second version; its book height and the page turning close to the face can still be refined. A new task allows a natural book-stowing motion rather than promising an instant cut. Occasional decoder drops and reading/wing/idle transitions remain under investigation. Historical 1.8.4 previews retain their sleeve details, local clipping and task-board limitations. Please include the version, action and trigger when reporting an issue.
+- Version 1.9.0 provides 12 available actions; acceptance does not mean every detail is perfect. **Read journal** uses the accepted provisional 10-second version; its book height and the page turning close to the face can still be refined. A new task allows a natural book-stowing motion rather than promising an instant cut. Occasional decoder drops and reading/wing/idle transitions remain under investigation. Historical 1.8.4 previews retain their sleeve details, local clipping and task-board limitations. Please include the version, action and trigger when reporting an issue.
 - This repository's Windows desktop plugin does not automatically import the character into the separate Pets service.
 
 ## Development
@@ -144,7 +144,7 @@ The project uses ES modules. Complete `setup.ps1` first, then run the tests with
 
 The setup script installs the locked `vendor/dsh-pet` dependencies and builds the standalone host and desktop shared core. Runtime diagnostics and authenticated local interfaces are described in [BRIDGE.md](../../BRIDGE.md). Do not publish local data, runtime authentication files or conversation logs.
 
-[Optional offline media audits](../../tools/MEDIA-AUDIT.md) use Python and image libraries for developer checks only; installing or running the pet does not require them. Audits stage their output under a QA directory and never automatically replace character media or an installed runtime.
+[Optional offline media audits](https://github.com/lemon7500/shuangling-gpt/blob/main/tools/MEDIA-AUDIT.md) use Python and image libraries for developer checks only; installing or running the pet does not require them. Audits stage their output under a QA directory and never automatically replace character media or an installed runtime.
 
 ## Disable or uninstall
 
